@@ -29,9 +29,9 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Verificar permisos de owner
+  // Verificar permisos de owner/superadmin
   const isOwnerPath = OWNER_ONLY_PATHS.some((p) => path.startsWith(p));
-  if (isOwnerPath && payload.role !== 'owner') {
+  if (isOwnerPath && payload.role !== 'owner' && payload.role !== 'superadmin') {
     return NextResponse.redirect(new URL('/pos', request.url));
   }
 
