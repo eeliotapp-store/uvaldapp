@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useAuthStore, isSuperAdmin } from '@/stores/auth-store';
-import { useRouter } from 'next/navigation';
 
 // SVG Icons
 function AlertTriangleIcon({ className }: { className?: string }) {
@@ -39,7 +38,6 @@ function ShoppingCartIcon({ className }: { className?: string }) {
 
 export default function AdminPage() {
   const { employee } = useAuthStore();
-  const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     type: 'inventory' | 'sales' | null;
@@ -47,22 +45,7 @@ export default function AdminPage() {
   }>({ type: null, open: false });
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  // Verificar que sea superadmin
-  if (!isSuperAdmin(employee?.role)) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-4">
-        <AlertTriangleIcon className="w-16 h-16 text-red-500 mb-4" />
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Acceso Denegado</h1>
-        <p className="text-gray-600 mb-4">Solo el superadmin puede acceder a esta página.</p>
-        <button
-          onClick={() => router.push('/pos')}
-          className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-        >
-          Volver al POS
-        </button>
-      </div>
-    );
-  }
+  const canExecute = isSuperAdmin(employee?.role);
 
   const handleClearInventory = async () => {
     setLoading('inventory');
@@ -135,6 +118,12 @@ export default function AdminPage() {
           Estas acciones son irreversibles. Usa con precaución.
         </p>
 
+        {!canExecute && (
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800 text-sm">
+            Solo el superadmin puede ejecutar estas acciones. Tu rol actual: {employee?.role}
+          </div>
+        )}
+
         <div className="space-y-4">
           {/* Vaciar Inventario */}
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -147,8 +136,8 @@ export default function AdminPage() {
             </div>
             <button
               onClick={() => setConfirmDialog({ type: 'inventory', open: true })}
-              disabled={loading !== null}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+              disabled={loading !== null || !canExecute}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <TrashIcon className="w-4 h-4" />
               Vaciar
@@ -166,8 +155,8 @@ export default function AdminPage() {
             </div>
             <button
               onClick={() => setConfirmDialog({ type: 'sales', open: true })}
-              disabled={loading !== null}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center gap-2"
+              disabled={loading !== null || !canExecute}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               <TrashIcon className="w-4 h-4" />
               Vaciar

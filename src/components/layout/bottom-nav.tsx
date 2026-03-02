@@ -11,7 +11,7 @@ const navigation = [
   { name: 'Inventario', href: '/inventory', icon: BoxIcon, ownerOnly: false, superAdminOnly: false },
   { name: 'Cierre', href: '/shifts/close', icon: ClockOffIcon, ownerOnly: false, superAdminOnly: false },
   { name: 'Stats', href: '/stats', icon: ChartIcon, ownerOnly: true, superAdminOnly: false },
-  { name: 'Admin', href: '/admin', icon: SettingsIcon, ownerOnly: false, superAdminOnly: true },
+  { name: 'Admin', href: '/admin', icon: SettingsIcon, ownerOnly: true, superAdminOnly: false },
 ];
 
 export function BottomNav() {

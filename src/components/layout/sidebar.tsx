@@ -18,7 +18,7 @@ const navigation = [
   { name: 'Productos', href: '/products', icon: TagIcon, ownerOnly: true, superAdminOnly: false },
   { name: 'Proveedores', href: '/suppliers', icon: TruckIcon, ownerOnly: true, superAdminOnly: false },
   { name: 'Empleados', href: '/employees', icon: UsersIcon, ownerOnly: true, superAdminOnly: false },
-  { name: 'Admin', href: '/admin', icon: SettingsIcon, ownerOnly: false, superAdminOnly: true },
+  { name: 'Admin', href: '/admin', icon: SettingsIcon, ownerOnly: true, superAdminOnly: false },
 ];
 
 export function Sidebar() {
