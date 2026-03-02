@@ -7,10 +7,14 @@ import { cn } from '@/lib/utils';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, ownerOnly: true },
+  { name: 'Iniciar Turno', href: '/shifts/start', icon: ClockIcon, ownerOnly: false },
   { name: 'Punto de Venta', href: '/pos', icon: CartIcon, ownerOnly: false },
-  { name: 'Inventario', href: '/inventory', icon: BoxIcon, ownerOnly: false },
   { name: 'Ventas', href: '/sales', icon: ReceiptIcon, ownerOnly: false },
-  { name: 'Reportes', href: '/reports', icon: ChartIcon, ownerOnly: true },
+  { name: 'Inventario', href: '/inventory', icon: BoxIcon, ownerOnly: false },
+  { name: 'Cerrar Turno', href: '/shifts/close', icon: ClockOffIcon, ownerOnly: false },
+  { name: 'Historial Turnos', href: '/shifts/history', icon: HistoryIcon, ownerOnly: true },
+  { name: 'Estadísticas', href: '/stats', icon: ChartIcon, ownerOnly: true },
+  { name: 'Reportes', href: '/reports', icon: ReportIcon, ownerOnly: true },
   { name: 'Productos', href: '/products', icon: TagIcon, ownerOnly: true },
   { name: 'Proveedores', href: '/suppliers', icon: TruckIcon, ownerOnly: true },
   { name: 'Empleados', href: '/employees', icon: UsersIcon, ownerOnly: true },
@@ -177,6 +181,40 @@ function UsersIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+  );
+}
+
+function ClockIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  );
+}
+
+function ClockOffIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4l16 16" />
+    </svg>
+  );
+}
+
+function ReportIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+    </svg>
+  );
+}
+
+function HistoryIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h1m17 0h-1M12 3v1m0 16v1" />
     </svg>
   );
 }

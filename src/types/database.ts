@@ -1,6 +1,6 @@
 // Tipos generados para la base de datos
 
-export type EmployeeRole = 'employee' | 'owner';
+export type EmployeeRole = 'employee' | 'owner' | 'superadmin';
 export type ShiftType = 'day' | 'night';
 export type PaymentMethod = 'cash' | 'transfer' | 'mixed';
 export type SaleStatus = 'open' | 'closed' | 'voided';
@@ -24,6 +24,7 @@ export interface Shift {
   start_time: string;
   end_time: string | null;
   cash_start: number;
+  transfer_start: number;
   cash_end: number | null;
   notes: string | null;
   is_active: boolean;
@@ -90,6 +91,11 @@ export interface Sale {
   cash_amount: number | null;
   voided: boolean;
   voided_reason: string | null;
+  // Tracking de traspaso
+  opened_by_employee_id: string | null;
+  taken_over_by_employee_id: string | null;
+  taken_over_at: string | null;
+  closed_by_employee_id: string | null;
   created_at: string;
 }
 
@@ -131,11 +137,16 @@ export interface ShiftSummary {
   type: ShiftType;
   employee_name: string;
   cash_start: number;
+  transfer_start: number;
   cash_end: number | null;
   cash_sales: number;
-  card_sales: number;
+  transfer_sales: number;
+  mixed_cash: number;
+  mixed_transfer: number;
   total_sales: number;
+  total_change: number;
   transactions_count: number;
+  open_tabs_count: number;
   is_active: boolean;
 }
 
@@ -154,6 +165,12 @@ export interface OpenTab {
   employee_id: string;
   employee_name: string;
   shift_id: string;
+  // Tracking de traspaso
+  opened_by_employee_id: string | null;
+  opened_by_name: string | null;
+  taken_over_by_employee_id: string | null;
+  taken_over_by_name: string | null;
+  taken_over_at: string | null;
   items: {
     id: string;
     product_id: string;
@@ -162,4 +179,27 @@ export interface OpenTab {
     unit_price: number;
     subtotal: number;
   }[];
+}
+
+// Estadísticas diarias
+export interface DailyStats {
+  date: string;
+  total_sales: number;
+  total_revenue: number;
+  cash_revenue: number;
+  transfer_revenue: number;
+  employees_worked: number;
+  shifts_count: number;
+}
+
+// Estadísticas semanales
+export interface WeeklyStats {
+  week_start: string;
+  week_end: string;
+  total_sales: number;
+  total_revenue: number;
+  cash_revenue: number;
+  transfer_revenue: number;
+  employees_worked: number;
+  days_worked: number;
 }

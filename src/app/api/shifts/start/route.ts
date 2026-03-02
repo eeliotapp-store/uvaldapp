@@ -3,7 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { employee_id, shift_type, cash_start } = await request.json();
+    const { employee_id, shift_type, cash_start, transfer_start } = await request.json();
 
     if (!employee_id || !shift_type) {
       return NextResponse.json(
@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
         employee_id,
         type: shift_type,
         cash_start: cash_start || 0,
+        transfer_start: transfer_start || 0,
         is_active: true,
       })
       .select()

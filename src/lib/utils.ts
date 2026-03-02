@@ -32,3 +32,15 @@ export function formatTime(date: string | Date): string {
 export function formatDateTime(date: string | Date): string {
   return `${formatDate(date)} ${formatTime(date)}`;
 }
+
+// Auto-detectar tipo de turno según la hora
+// Día: 6:00 AM - 5:59 PM
+// Noche: 6:00 PM - 5:59 AM
+export function detectShiftType(): 'day' | 'night' {
+  const hour = new Date().getHours();
+  return hour >= 6 && hour < 18 ? 'day' : 'night';
+}
+
+export function getShiftTypeLabel(type: 'day' | 'night'): string {
+  return type === 'day' ? 'Día' : 'Noche';
+}

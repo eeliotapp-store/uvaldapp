@@ -30,4 +30,8 @@ export const useAuthStore = create<AuthState>()(
 );
 
 // Helpers
-export const isOwner = (role: EmployeeRole | undefined): boolean => role === 'owner';
+export const isOwner = (role: EmployeeRole | undefined): boolean =>
+  role === 'owner' || role === 'superadmin';
+
+export const isSuperAdmin = (role: EmployeeRole | undefined): boolean =>
+  role === 'superadmin';

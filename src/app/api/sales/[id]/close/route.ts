@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
 
 interface CloseTabRequest {
+  employee_id: string;
   payment_method: 'cash' | 'transfer' | 'mixed';
   cash_received?: number;
   cash_change?: number;
@@ -18,6 +19,7 @@ export async function POST(
     const { id } = await params;
     const body: CloseTabRequest = await request.json();
     const {
+      employee_id,
       payment_method,
       cash_received = 0,
       cash_change = 0,
@@ -25,9 +27,9 @@ export async function POST(
       cash_amount = 0,
     } = body;
 
-    if (!payment_method) {
+    if (!payment_method || !employee_id) {
       return NextResponse.json(
-        { error: 'Se requiere método de pago' },
+        { error: 'Se requiere método de pago y empleado' },
         { status: 400 }
       );
     }
@@ -76,6 +78,7 @@ export async function POST(
     const updateData: Record<string, unknown> = {
       status: 'closed',
       payment_method,
+      closed_by_employee_id: employee_id,
     };
 
     if (payment_method === 'cash') {

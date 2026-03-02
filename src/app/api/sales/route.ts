@@ -11,11 +11,14 @@ export async function GET(request: NextRequest) {
     const payment_method = searchParams.get('payment_method');
     const limit = parseInt(searchParams.get('limit') || '100');
 
+    // Solo mostrar ventas cerradas (las abiertas se muestran en open-tabs)
+    // Incluir ventas donde status = 'closed' o status es null (ventas antiguas)
+    // Especificar la relación explícita con employees debido a múltiples FKs
     let query = supabaseAdmin
       .from('sales')
       .select(`
         *,
-        employees (id, name),
+        employees:employees!sales_employee_id_fkey (id, name),
         shifts (id, type),
         sale_items (
           id,
@@ -25,6 +28,7 @@ export async function GET(request: NextRequest) {
           products (id, name)
         )
       `)
+      .or('status.eq.closed,status.is.null')
       .order('created_at', { ascending: false })
       .limit(limit);
 

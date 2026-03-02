@@ -112,6 +112,8 @@ export async function POST(request: NextRequest) {
       total,
       table_number: table_number || null,
       status: close ? 'closed' : 'open',
+      opened_by_employee_id: employee_id,
+      closed_by_employee_id: close ? employee_id : null,
     };
 
     // Si se cierra, agregar datos de pago

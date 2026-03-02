@@ -155,14 +155,26 @@ export default function SalesPage() {
               <button
                 key={tab.id}
                 onClick={() => handleOpenTab(tab)}
-                className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 text-left hover:border-amber-400 hover:shadow-md transition-all"
+                className={`border-2 rounded-xl p-4 text-left hover:shadow-md transition-all ${
+                  tab.employee_id === employee?.id
+                    ? 'bg-amber-50 border-amber-200 hover:border-amber-400'
+                    : 'bg-blue-50 border-blue-200 hover:border-blue-400'
+                }`}
               >
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <span className="font-bold text-amber-800 text-lg">
+                    <span className={`font-bold text-lg ${
+                      tab.employee_id === employee?.id ? 'text-amber-800' : 'text-blue-800'
+                    }`}>
                       {tab.table_number ? `Mesa ${tab.table_number}` : 'Sin mesa'}
                     </span>
                     <p className="text-sm text-gray-500">{formatTime(tab.created_at)}</p>
+                    {tab.employee_id !== employee?.id && (
+                      <p className="text-xs text-blue-600 font-medium mt-1">
+                        De: {tab.employee_name}
+                        {tab.taken_over_by_name && ` (tomado de ${tab.opened_by_name})`}
+                      </p>
+                    )}
                   </div>
                   <span className="text-xl font-bold text-gray-900">
                     {formatCurrency(tab.total)}
@@ -413,7 +425,12 @@ function SaleModal({
 }) {
   // Determinar paso inicial según si hay turno activo
   const [currentShift, setCurrentShift] = useState(initialShift);
-  const [step, setStep] = useState<'shift' | 'products' | 'payment'>(initialShift ? 'products' : 'shift');
+  // Si el tab pertenece a otro empleado, mostrar opción de tomar relevo
+  const tabBelongsToOther = existingTab && employee && existingTab.employee_id !== employee.id;
+  const [step, setStep] = useState<'shift' | 'takeover' | 'products' | 'payment'>(
+    !initialShift ? 'shift' : tabBelongsToOther ? 'takeover' : 'products'
+  );
+  const [hasTakenOver, setHasTakenOver] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [stockMap, setStockMap] = useState<Record<string, number>>({});
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -441,6 +458,41 @@ function SaleModal({
   useEffect(() => {
     loadProducts();
   }, []);
+
+  // Tomar relevo de una cuenta de otro empleado
+  const handleTakeover = async () => {
+    if (!employee || !currentShift || !existingTab) {
+      setError('Faltan datos para tomar el relevo');
+      return;
+    }
+
+    setIsProcessing(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/sales/${existingTab.id}/takeover`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          new_employee_id: employee.id,
+          new_shift_id: currentShift.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al tomar el relevo');
+      }
+
+      setHasTakenOver(true);
+      setStep('products');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al tomar el relevo');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleStartShift = async () => {
     if (!employee) {
@@ -472,7 +524,13 @@ function SaleModal({
       setShift(data.shift);
       setCurrentShift(data.shift);
       openCashRegister(parseFloat(cashStart) || 0);
-      setStep('products');
+
+      // Si hay un tab de otro empleado, mostrar paso de takeover
+      if (existingTab && existingTab.employee_id !== employee?.id) {
+        setStep('takeover');
+      } else {
+        setStep('products');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al iniciar turno');
     } finally {
@@ -693,6 +751,7 @@ function SaleModal({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            employee_id: employee.id,
             payment_method: paymentMethod,
             cash_received: paymentMethod === 'cash' ? cashReceivedNum : paymentMethod === 'mixed' ? cashMixedNum : 0,
             cash_change: change,
@@ -771,9 +830,11 @@ function SaleModal({
               <h2 className="text-xl font-bold">
                 {step === 'shift'
                   ? 'Iniciar Turno'
-                  : existingTab
-                    ? `Mesa ${existingTab.table_number || 'Sin número'}`
-                    : step === 'products' ? 'Nueva Venta' : 'Método de Pago'
+                  : step === 'takeover'
+                    ? 'Tomar Relevo'
+                    : existingTab
+                      ? `Mesa ${existingTab.table_number || 'Sin número'}`
+                      : step === 'products' ? 'Nueva Venta' : 'Método de Pago'
                 }
               </h2>
               {existingTab && step !== 'shift' && (
@@ -797,7 +858,70 @@ function SaleModal({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {step === 'shift' ? (
+          {step === 'takeover' ? (
+            /* Paso de tomar relevo */
+            <div className="space-y-6">
+              <div className="bg-amber-50 rounded-xl p-6 text-center">
+                <div className="text-4xl mb-3">🔄</div>
+                <h3 className="font-bold text-amber-800 text-lg mb-2">Cuenta de otro empleado</h3>
+                <p className="text-amber-700">
+                  Esta cuenta fue abierta por <strong>{existingTab?.employee_name}</strong>
+                </p>
+                {existingTab?.opened_by_name && existingTab.opened_by_name !== existingTab.employee_name && (
+                  <p className="text-sm text-amber-600 mt-1">
+                    (Originalmente de {existingTab.opened_by_name})
+                  </p>
+                )}
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-4">
+                <p className="text-sm text-gray-600 mb-2">Resumen de la cuenta:</p>
+                <div className="space-y-1">
+                  {existingTab?.items?.slice(0, 5).map((item, idx) => (
+                    <div key={idx} className="flex justify-between text-sm">
+                      <span>{item.quantity}x {item.product_name}</span>
+                      <span>{formatCurrency(item.subtotal)}</span>
+                    </div>
+                  ))}
+                  {existingTab && existingTab.items?.length > 5 && (
+                    <p className="text-xs text-gray-400">+{existingTab.items.length - 5} productos más</p>
+                  )}
+                </div>
+                <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between font-bold">
+                  <span>Total:</span>
+                  <span>{formatCurrency(existingTab?.total || 0)}</span>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="text-sm text-gray-700 mb-2">
+                  Al tomar el relevo, esta cuenta pasará a tu turno actual:
+                </p>
+                <p className="font-medium text-gray-900">
+                  {employee?.name} - Turno {currentShift?.type === 'day' ? 'Día' : 'Noche'}
+                </p>
+              </div>
+
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                  {error}
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={onClose} className="flex-1">
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleTakeover}
+                  disabled={isProcessing}
+                  className="flex-1"
+                >
+                  {isProcessing ? 'Procesando...' : 'Tomar Relevo'}
+                </Button>
+              </div>
+            </div>
+          ) : step === 'shift' ? (
             /* Paso de inicio de turno */
             <div className="space-y-6">
               <div className="bg-amber-50 rounded-xl p-4 text-center">
