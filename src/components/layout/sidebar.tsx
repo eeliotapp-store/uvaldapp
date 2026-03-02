@@ -2,22 +2,23 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuthStore, isOwner } from '@/stores/auth-store';
+import { useAuthStore, isOwner, isSuperAdmin } from '@/stores/auth-store';
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon, ownerOnly: true },
-  { name: 'Iniciar Turno', href: '/shifts/start', icon: ClockIcon, ownerOnly: false },
-  { name: 'Punto de Venta', href: '/pos', icon: CartIcon, ownerOnly: false },
-  { name: 'Ventas', href: '/sales', icon: ReceiptIcon, ownerOnly: false },
-  { name: 'Inventario', href: '/inventory', icon: BoxIcon, ownerOnly: false },
-  { name: 'Cerrar Turno', href: '/shifts/close', icon: ClockOffIcon, ownerOnly: false },
-  { name: 'Historial Turnos', href: '/shifts/history', icon: HistoryIcon, ownerOnly: true },
-  { name: 'Estadísticas', href: '/stats', icon: ChartIcon, ownerOnly: true },
-  { name: 'Reportes', href: '/reports', icon: ReportIcon, ownerOnly: true },
-  { name: 'Productos', href: '/products', icon: TagIcon, ownerOnly: true },
-  { name: 'Proveedores', href: '/suppliers', icon: TruckIcon, ownerOnly: true },
-  { name: 'Empleados', href: '/employees', icon: UsersIcon, ownerOnly: true },
+  { name: 'Dashboard', href: '/', icon: HomeIcon, ownerOnly: true, superAdminOnly: false },
+  { name: 'Iniciar Turno', href: '/shifts/start', icon: ClockIcon, ownerOnly: false, superAdminOnly: false },
+  { name: 'Punto de Venta', href: '/pos', icon: CartIcon, ownerOnly: false, superAdminOnly: false },
+  { name: 'Ventas', href: '/sales', icon: ReceiptIcon, ownerOnly: false, superAdminOnly: false },
+  { name: 'Inventario', href: '/inventory', icon: BoxIcon, ownerOnly: false, superAdminOnly: false },
+  { name: 'Cerrar Turno', href: '/shifts/close', icon: ClockOffIcon, ownerOnly: false, superAdminOnly: false },
+  { name: 'Historial Turnos', href: '/shifts/history', icon: HistoryIcon, ownerOnly: true, superAdminOnly: false },
+  { name: 'Estadísticas', href: '/stats', icon: ChartIcon, ownerOnly: true, superAdminOnly: false },
+  { name: 'Reportes', href: '/reports', icon: ReportIcon, ownerOnly: true, superAdminOnly: false },
+  { name: 'Productos', href: '/products', icon: TagIcon, ownerOnly: true, superAdminOnly: false },
+  { name: 'Proveedores', href: '/suppliers', icon: TruckIcon, ownerOnly: true, superAdminOnly: false },
+  { name: 'Empleados', href: '/employees', icon: UsersIcon, ownerOnly: true, superAdminOnly: false },
+  { name: 'Admin', href: '/admin', icon: SettingsIcon, ownerOnly: false, superAdminOnly: true },
 ];
 
 export function Sidebar() {
@@ -26,7 +27,11 @@ export function Sidebar() {
   const { employee, logout } = useAuthStore();
 
   const filteredNav = navigation.filter(
-    (item) => !item.ownerOnly || isOwner(employee?.role)
+    (item) => {
+      if (item.superAdminOnly && !isSuperAdmin(employee?.role)) return false;
+      if (item.ownerOnly && !isOwner(employee?.role)) return false;
+      return true;
+    }
   );
 
   const handleLogout = async () => {
@@ -95,7 +100,7 @@ export function Sidebar() {
               {employee?.name || 'Usuario'}
             </p>
             <p className="text-gray-400 text-xs capitalize">
-              {employee?.role === 'owner' ? 'Dueña' : 'Empleado'}
+              {employee?.role === 'superadmin' ? 'Super Admin' : employee?.role === 'owner' ? 'Dueña' : 'Empleado'}
             </p>
           </div>
         </div>
@@ -215,6 +220,15 @@ function HistoryIcon({ className }: { className?: string }) {
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12h1m17 0h-1M12 3v1m0 16v1" />
+    </svg>
+  );
+}
+
+function SettingsIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   );
 }
