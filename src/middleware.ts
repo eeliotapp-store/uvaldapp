@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 
 const PUBLIC_PATHS = ['/login', '/api/auth/login'];
-const OWNER_ONLY_PATHS = ['/reports', '/products', '/suppliers', '/employees'];
+const OWNER_ONLY_PATHS = ['/reports', '/suppliers', '/employees'];
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;

@@ -343,8 +343,9 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
   const [formData, setFormData] = useState({
     product_id: '',
     supplier_id: '',
-    quantity: '',
-    purchase_price: '',
+    packages: '1',
+    units_per_package: '',
+    price_per_package: '',
     batch_date: new Date().toISOString().split('T')[0],
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -363,10 +364,25 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
     setProducts(data || []);
   };
 
+  // Calcular totales
+  const packages = parseInt(formData.packages) || 0;
+  const unitsPerPackage = parseInt(formData.units_per_package) || 0;
+  const pricePerPackage = parseFloat(formData.price_per_package) || 0;
+
+  const totalUnits = packages * unitsPerPackage;
+  const unitPrice = unitsPerPackage > 0 ? pricePerPackage / unitsPerPackage : 0;
+  const totalCost = packages * pricePerPackage;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+
+    if (totalUnits <= 0) {
+      setError('Debe ingresar cantidad válida');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const response = await fetch('/api/inventory', {
@@ -375,8 +391,8 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
         body: JSON.stringify({
           product_id: formData.product_id,
           supplier_id: formData.supplier_id,
-          quantity: formData.quantity,
-          purchase_price: formData.purchase_price,
+          quantity: totalUnits,
+          purchase_price: unitPrice,
           batch_date: formData.batch_date,
         }),
       });
@@ -445,39 +461,81 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Cantidad *
-              </label>
-              <input
-                type="number"
-                value={formData.quantity}
-                onChange={(e) =>
-                  setFormData({ ...formData, quantity: e.target.value })
-                }
-                required
-                min="1"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
-              />
+          {/* Sección de paquetes */}
+          <div className="bg-amber-50 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-amber-800">Información del paquete</p>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Paquetes
+                </label>
+                <input
+                  type="number"
+                  value={formData.packages}
+                  onChange={(e) =>
+                    setFormData({ ...formData, packages: e.target.value })
+                  }
+                  required
+                  min="1"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Uds/Paquete
+                </label>
+                <input
+                  type="number"
+                  value={formData.units_per_package}
+                  onChange={(e) =>
+                    setFormData({ ...formData, units_per_package: e.target.value })
+                  }
+                  required
+                  min="1"
+                  placeholder="24"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  $/Paquete
+                </label>
+                <input
+                  type="number"
+                  value={formData.price_per_package}
+                  onChange={(e) =>
+                    setFormData({ ...formData, price_per_package: e.target.value })
+                  }
+                  required
+                  min="0"
+                  placeholder="68000"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Precio Compra *
-              </label>
-              <input
-                type="number"
-                value={formData.purchase_price}
-                onChange={(e) =>
-                  setFormData({ ...formData, purchase_price: e.target.value })
-                }
-                required
-                min="0"
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
-              />
-            </div>
+            {/* Resumen calculado */}
+            {totalUnits > 0 && (
+              <div className="bg-white rounded-lg p-3 mt-3 border border-amber-200">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-xs text-gray-500">Total Unidades</p>
+                    <p className="text-lg font-bold text-gray-900">{totalUnits}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Precio/Unidad</p>
+                    <p className="text-lg font-bold text-amber-600">{formatCurrency(unitPrice)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Total Compra</p>
+                    <p className="text-lg font-bold text-gray-900">{formatCurrency(totalCost)}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
