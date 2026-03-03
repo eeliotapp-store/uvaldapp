@@ -35,8 +35,10 @@ export default function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showStockModal, setShowStockModal] = useState(false);
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithDetails | null>(null);
   const [stockProduct, setStockProduct] = useState<ProductWithDetails | null>(null);
+  const [adjustProduct, setAdjustProduct] = useState<ProductWithDetails | null>(null);
   const [filter, setFilter] = useState({ category: '', showInactive: false });
 
   useEffect(() => {
@@ -97,6 +99,17 @@ export default function ProductsPage() {
   const handleStockSuccess = () => {
     setShowStockModal(false);
     setStockProduct(null);
+    loadData();
+  };
+
+  const handleAdjustStock = (product: ProductWithDetails) => {
+    setAdjustProduct(product);
+    setShowAdjustModal(true);
+  };
+
+  const handleAdjustSuccess = () => {
+    setShowAdjustModal(false);
+    setAdjustProduct(null);
     loadData();
   };
 
@@ -171,13 +184,24 @@ export default function ProductsPage() {
                     {formatCurrency(product.sale_price)}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <div>
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        onClick={() => handleAdjustStock(product)}
+                        className="w-6 h-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full text-sm font-bold flex items-center justify-center"
+                        title="Ajustar stock"
+                      >
+                        −
+                      </button>
+                      <button
+                        onClick={() => handleAdjustStock(product)}
+                        className="px-2 py-1 hover:bg-gray-100 rounded cursor-pointer"
+                        title="Click para ajustar"
+                      >
                         <span className={`font-bold ${product.current_stock <= product.min_stock ? 'text-red-600' : 'text-gray-900'}`}>
                           {product.current_stock}
                         </span>
                         <span className="text-gray-400 text-sm"> / {product.min_stock}</span>
-                      </div>
+                      </button>
                       <button
                         onClick={() => handleAddStock(product)}
                         className="w-6 h-6 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-sm font-bold flex items-center justify-center"
@@ -248,6 +272,17 @@ export default function ProductsPage() {
             setStockProduct(null);
           }}
           onSuccess={handleStockSuccess}
+        />
+      )}
+
+      {showAdjustModal && adjustProduct && (
+        <AdjustProductStockModal
+          product={adjustProduct}
+          onClose={() => {
+            setShowAdjustModal(false);
+            setAdjustProduct(null);
+          }}
+          onSuccess={handleAdjustSuccess}
         />
       )}
     </div>
@@ -645,6 +680,131 @@ function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockM
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
               {isLoading ? 'Guardando...' : 'Agregar Stock'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface AdjustProductStockModalProps {
+  product: ProductWithDetails;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductStockModalProps) {
+  const [newStock, setNewStock] = useState(product.current_stock.toString());
+  const [reason, setReason] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const diff = parseInt(newStock || '0') - product.current_stock;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    const newStockValue = parseInt(newStock);
+    if (isNaN(newStockValue) || newStockValue < 0) {
+      setError('Ingrese un valor válido');
+      setIsLoading(false);
+      return;
+    }
+
+    if (newStockValue === product.current_stock) {
+      onClose();
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/inventory/adjust-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: product.id,
+          new_stock: newStockValue,
+          reason: reason || 'Ajuste manual desde productos',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Error al ajustar stock');
+        return;
+      }
+
+      onSuccess();
+    } catch {
+      setError('Error de conexión');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+        <h2 className="text-xl font-bold mb-2">Ajustar Stock</h2>
+        <p className="text-gray-600 mb-4">{product.name}</p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-500">Stock actual:</span>
+              <span className="font-bold text-gray-900">{product.current_stock}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Stock mínimo:</span>
+              <span className="text-gray-600">{product.min_stock}</span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Nuevo Stock *
+            </label>
+            <input
+              type="number"
+              value={newStock}
+              onChange={(e) => setNewStock(e.target.value)}
+              required
+              min="0"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center text-xl font-bold"
+            />
+            {diff !== 0 && (
+              <p className={`text-sm mt-1 text-center ${diff > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {diff > 0 ? '+' : ''}{diff} unidades
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Razón del ajuste
+            </label>
+            <input
+              type="text"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Ej: Conteo físico, producto dañado..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+            />
+          </div>
+
+          {error && (
+            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading} className="flex-1">
+              {isLoading ? 'Guardando...' : 'Guardar'}
             </Button>
           </div>
         </form>
