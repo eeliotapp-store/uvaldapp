@@ -589,7 +589,6 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
     supplier_id: entry.supplier_id || '',
     batch_date: entry.batch_date,
   });
-  const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -604,6 +603,13 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
     setError('');
 
     try {
+      // Validar que haya proveedor seleccionado
+      if (!formData.supplier_id) {
+        setError('Debe seleccionar un proveedor');
+        setIsLoading(false);
+        return;
+      }
+
       const response = await fetch(`/api/inventory/${entry.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -611,9 +617,8 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
           quantity: parseInt(formData.quantity),
           initial_quantity: parseInt(formData.initial_quantity),
           purchase_price: parseFloat(formData.purchase_price),
-          supplier_id: formData.supplier_id || null,
+          supplier_id: formData.supplier_id,
           batch_date: formData.batch_date,
-          notes: notes || 'Edición manual',
         }),
       });
 
@@ -645,14 +650,15 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
           {/* Proveedor */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Proveedor
+              Proveedor *
             </label>
             <select
               value={formData.supplier_id}
               onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
+              required
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             >
-              <option value="">Sin proveedor</option>
+              <option value="">Seleccionar proveedor...</option>
               {suppliers.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
@@ -740,20 +746,6 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
               type="date"
               value={formData.batch_date}
               onChange={(e) => setFormData({ ...formData, batch_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
-            />
-          </div>
-
-          {/* Notas */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Razón de la edición
-            </label>
-            <input
-              type="text"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ej: Corrección de precio, error de captura..."
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>

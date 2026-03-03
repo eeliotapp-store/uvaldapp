@@ -66,7 +66,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { quantity, initial_quantity, purchase_price, supplier_id, batch_date, notes } = body;
+    const { quantity, initial_quantity, purchase_price, supplier_id, batch_date } = body;
 
     // Validaciones
     if (quantity !== undefined && (isNaN(quantity) || quantity < 0)) {
@@ -81,6 +81,11 @@ export async function PUT(
       return NextResponse.json({ error: 'Precio inválido' }, { status: 400 });
     }
 
+    // supplier_id es NOT NULL, validar que no sea null si se proporciona
+    if (supplier_id === null || supplier_id === '') {
+      return NextResponse.json({ error: 'El proveedor es requerido' }, { status: 400 });
+    }
+
     // Construir objeto de actualización solo con campos proporcionados
     const updateData: Record<string, unknown> = {};
 
@@ -89,7 +94,6 @@ export async function PUT(
     if (purchase_price !== undefined) updateData.purchase_price = purchase_price;
     if (supplier_id !== undefined) updateData.supplier_id = supplier_id;
     if (batch_date !== undefined) updateData.batch_date = batch_date;
-    if (notes !== undefined) updateData.notes = notes;
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: 'No hay datos para actualizar' }, { status: 400 });

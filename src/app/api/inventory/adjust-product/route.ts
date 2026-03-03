@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Obtener el stock actual del producto
-    const { data: stockData, error: stockError } = await supabaseAdmin
+    const { data: stockData } = await supabaseAdmin
       .from('v_current_stock')
       .select('current_stock')
       .eq('product_id', product_id)
@@ -60,27 +60,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Error al obtener inventario' }, { status: 500 });
     }
 
+    // Obtener el primer proveedor disponible si no hay entradas previas
+    let defaultSupplierId = inventoryEntries?.[0]?.supplier_id;
+    if (!defaultSupplierId) {
+      const { data: suppliers } = await supabaseAdmin
+        .from('suppliers')
+        .select('id')
+        .eq('active', true)
+        .limit(1);
+      defaultSupplierId = suppliers?.[0]?.id;
+    }
+
+    if (!defaultSupplierId && diff > 0) {
+      return NextResponse.json(
+        { error: 'Se necesita al menos un proveedor para agregar stock' },
+        { status: 400 }
+      );
+    }
+
     if (diff > 0) {
       // Agregar stock - crear nueva entrada de inventario
-      // Usar el proveedor y precio de la última entrada o valores por defecto
       const lastEntry = inventoryEntries?.[0];
 
       const { error: insertError } = await supabaseAdmin
         .from('inventory')
         .insert({
           product_id,
-          supplier_id: lastEntry?.supplier_id || null,
+          supplier_id: defaultSupplierId,
           quantity: diff,
           initial_quantity: diff,
           purchase_price: lastEntry?.purchase_price || 0,
           batch_date: new Date().toISOString().split('T')[0],
-          employee_id: payload.employee_id,
-          notes: reason || 'Ajuste manual - incremento',
+          created_by: payload.employee_id,
         });
 
       if (insertError) {
         console.error('Error inserting inventory:', insertError);
-        return NextResponse.json({ error: 'Error al agregar stock' }, { status: 500 });
+        return NextResponse.json({
+          error: 'Error al agregar stock',
+          details: insertError.message
+        }, { status: 500 });
       }
     } else {
       // Reducir stock - ajustar las entradas existentes
@@ -94,33 +113,32 @@ export async function POST(request: NextRequest) {
 
         const { error: updateError } = await supabaseAdmin
           .from('inventory')
-          .update({
-            quantity: newQuantity,
-            notes: reason || 'Ajuste manual - reducción',
-          })
+          .update({ quantity: newQuantity })
           .eq('id', entry.id);
 
         if (updateError) {
           console.error('Error updating inventory:', updateError);
-          return NextResponse.json({ error: 'Error al ajustar stock' }, { status: 500 });
+          return NextResponse.json({
+            error: 'Error al ajustar stock',
+            details: updateError.message
+          }, { status: 500 });
         }
 
         remaining -= reduceBy;
       }
 
-      if (remaining > 0) {
-        // No había suficiente stock en las entradas, crear entrada negativa
+      if (remaining > 0 && defaultSupplierId) {
+        // No había suficiente stock en las entradas, crear entrada de ajuste
         const { error: insertError } = await supabaseAdmin
           .from('inventory')
           .insert({
             product_id,
-            supplier_id: inventoryEntries?.[0]?.supplier_id || null,
+            supplier_id: defaultSupplierId,
             quantity: 0,
             initial_quantity: -remaining,
             purchase_price: 0,
             batch_date: new Date().toISOString().split('T')[0],
-            employee_id: payload.employee_id,
-            notes: reason || 'Ajuste manual - sin stock suficiente',
+            created_by: payload.employee_id,
           });
 
         if (insertError) {
