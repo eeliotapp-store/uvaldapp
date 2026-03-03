@@ -695,26 +695,57 @@ interface AdjustProductStockModalProps {
 }
 
 function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductStockModalProps) {
+  const [mode, setMode] = useState<'quick' | 'package'>('quick');
   const [newStock, setNewStock] = useState(product.current_stock.toString());
+  const [packageData, setPackageData] = useState({
+    packages: '1',
+    units_per_package: '',
+    price_per_package: '',
+  });
   const [reason, setReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const diff = parseInt(newStock || '0') - product.current_stock;
+  // Cálculos para modo paquete
+  const packages = parseInt(packageData.packages) || 0;
+  const unitsPerPackage = parseInt(packageData.units_per_package) || 0;
+  const pricePerPackage = parseFloat(packageData.price_per_package) || 0;
+  const packageUnits = packages * unitsPerPackage;
+  const unitPrice = unitsPerPackage > 0 ? pricePerPackage / unitsPerPackage : 0;
+
+  // Diferencia según el modo
+  const quickDiff = parseInt(newStock || '0') - product.current_stock;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    const newStockValue = parseInt(newStock);
-    if (isNaN(newStockValue) || newStockValue < 0) {
-      setError('Ingrese un valor válido');
-      setIsLoading(false);
-      return;
+    let finalStock: number;
+
+    if (mode === 'quick') {
+      finalStock = parseInt(newStock);
+      if (isNaN(finalStock) || finalStock < 0) {
+        setError('Ingrese un valor válido');
+        setIsLoading(false);
+        return;
+      }
+    } else {
+      // Modo paquete - restar unidades
+      if (packageUnits <= 0) {
+        setError('Ingrese cantidad válida de paquetes');
+        setIsLoading(false);
+        return;
+      }
+      finalStock = product.current_stock - packageUnits;
+      if (finalStock < 0) {
+        setError(`No hay suficiente stock. Máximo a restar: ${product.current_stock}`);
+        setIsLoading(false);
+        return;
+      }
     }
 
-    if (newStockValue === product.current_stock) {
+    if (finalStock === product.current_stock) {
       onClose();
       return;
     }
@@ -725,8 +756,10 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           product_id: product.id,
-          new_stock: newStockValue,
-          reason: reason || 'Ajuste manual desde productos',
+          new_stock: finalStock,
+          reason: reason || (mode === 'package'
+            ? `Salida: ${packageUnits} uds (${packages} paq x ${unitsPerPackage} uds)`
+            : 'Ajuste manual'),
         }),
       });
 
@@ -747,40 +780,125 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-2">Ajustar Stock</h2>
-        <p className="text-gray-600 mb-4">{product.name}</p>
+        <p className="text-gray-600 mb-2">{product.name}</p>
+        <p className="text-sm mb-4">
+          Stock actual: <span className="font-bold text-lg">{product.current_stock}</span>
+          <span className="text-gray-400"> / mín: {product.min_stock}</span>
+        </p>
+
+        {/* Tabs de modo */}
+        <div className="flex gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => setMode('quick')}
+            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+              mode === 'quick'
+                ? 'bg-amber-500 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Ajuste Directo
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('package')}
+            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+              mode === 'package'
+                ? 'bg-amber-500 text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            Por Paquetes
+          </button>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-500">Stock actual:</span>
-              <span className="font-bold text-gray-900">{product.current_stock}</span>
+          {mode === 'quick' ? (
+            /* Modo ajuste directo */
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nuevo Stock *
+              </label>
+              <input
+                type="number"
+                value={newStock}
+                onChange={(e) => setNewStock(e.target.value)}
+                required
+                min="0"
+                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center text-2xl font-bold"
+              />
+              {quickDiff !== 0 && (
+                <p className={`text-sm mt-2 text-center font-medium ${quickDiff > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {quickDiff > 0 ? '+' : ''}{quickDiff} unidades
+                </p>
+              )}
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Stock mínimo:</span>
-              <span className="text-gray-600">{product.min_stock}</span>
-            </div>
-          </div>
+          ) : (
+            /* Modo paquetes - para restar */
+            <div className="bg-red-50 rounded-lg p-4 space-y-3">
+              <p className="text-sm font-medium text-red-800">Restar por paquetes vendidos/dañados</p>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nuevo Stock *
-            </label>
-            <input
-              type="number"
-              value={newStock}
-              onChange={(e) => setNewStock(e.target.value)}
-              required
-              min="0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center text-xl font-bold"
-            />
-            {diff !== 0 && (
-              <p className={`text-sm mt-1 text-center ${diff > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {diff > 0 ? '+' : ''}{diff} unidades
-              </p>
-            )}
-          </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Paquetes</label>
+                  <input
+                    type="number"
+                    value={packageData.packages}
+                    onChange={(e) => setPackageData({ ...packageData, packages: e.target.value })}
+                    required
+                    min="1"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Uds/Paquete</label>
+                  <input
+                    type="number"
+                    value={packageData.units_per_package}
+                    onChange={(e) => setPackageData({ ...packageData, units_per_package: e.target.value })}
+                    required
+                    min="1"
+                    placeholder="24"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">$/Paquete</label>
+                  <input
+                    type="number"
+                    value={packageData.price_per_package}
+                    onChange={(e) => setPackageData({ ...packageData, price_per_package: e.target.value })}
+                    min="0"
+                    placeholder="68000"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                  />
+                </div>
+              </div>
+
+              {packageUnits > 0 && (
+                <div className="bg-white rounded-lg p-3 border border-red-200">
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <p className="text-xs text-gray-500">Restar</p>
+                      <p className="text-lg font-bold text-red-600">-{packageUnits}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">$/Unidad</p>
+                      <p className="text-lg font-bold text-gray-600">{formatCurrency(unitPrice)}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Nuevo Stock</p>
+                      <p className={`text-lg font-bold ${product.current_stock - packageUnits < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                        {product.current_stock - packageUnits}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -790,7 +908,7 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
               type="text"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Ej: Conteo físico, producto dañado..."
+              placeholder="Ej: Conteo físico, producto dañado, venta..."
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
