@@ -34,7 +34,9 @@ export default function ProductsPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showStockModal, setShowStockModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductWithDetails | null>(null);
+  const [stockProduct, setStockProduct] = useState<ProductWithDetails | null>(null);
   const [filter, setFilter] = useState({ category: '', showInactive: false });
 
   useEffect(() => {
@@ -85,6 +87,17 @@ export default function ProductsPage() {
     } catch (error) {
       console.error('Error toggling product:', error);
     }
+  };
+
+  const handleAddStock = (product: ProductWithDetails) => {
+    setStockProduct(product);
+    setShowStockModal(true);
+  };
+
+  const handleStockSuccess = () => {
+    setShowStockModal(false);
+    setStockProduct(null);
+    loadData();
   };
 
   const filteredProducts = products.filter((p) => {
@@ -158,10 +171,21 @@ export default function ProductsPage() {
                     {formatCurrency(product.sale_price)}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className={`font-bold ${product.current_stock <= product.min_stock ? 'text-red-600' : 'text-gray-900'}`}>
-                      {product.current_stock}
-                    </span>
-                    <span className="text-gray-400 text-sm"> / {product.min_stock}</span>
+                    <div className="flex items-center justify-center gap-2">
+                      <div>
+                        <span className={`font-bold ${product.current_stock <= product.min_stock ? 'text-red-600' : 'text-gray-900'}`}>
+                          {product.current_stock}
+                        </span>
+                        <span className="text-gray-400 text-sm"> / {product.min_stock}</span>
+                      </div>
+                      <button
+                        onClick={() => handleAddStock(product)}
+                        className="w-6 h-6 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-sm font-bold flex items-center justify-center"
+                        title="Agregar stock"
+                      >
+                        +
+                      </button>
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-1">
@@ -212,6 +236,18 @@ export default function ProductsPage() {
           suppliers={suppliers}
           onClose={() => setShowModal(false)}
           onSuccess={handleSuccess}
+        />
+      )}
+
+      {showStockModal && stockProduct && (
+        <QuickStockModal
+          product={stockProduct}
+          suppliers={suppliers}
+          onClose={() => {
+            setShowStockModal(false);
+            setStockProduct(null);
+          }}
+          onSuccess={handleStockSuccess}
         />
       )}
     </div>
@@ -439,6 +475,176 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
               {isLoading ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface QuickStockModalProps {
+  product: ProductWithDetails;
+  suppliers: Supplier[];
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockModalProps) {
+  const [formData, setFormData] = useState({
+    supplier_id: product.product_suppliers?.[0]?.supplier_id || '',
+    packages: '1',
+    units_per_package: '',
+    price_per_package: '',
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Calcular totales
+  const packages = parseInt(formData.packages) || 0;
+  const unitsPerPackage = parseInt(formData.units_per_package) || 0;
+  const pricePerPackage = parseFloat(formData.price_per_package) || 0;
+
+  const totalUnits = packages * unitsPerPackage;
+  const unitPrice = unitsPerPackage > 0 ? pricePerPackage / unitsPerPackage : 0;
+  const totalCost = packages * pricePerPackage;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    if (totalUnits <= 0) {
+      setError('Debe ingresar cantidad válida');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: product.id,
+          supplier_id: formData.supplier_id,
+          quantity: totalUnits,
+          purchase_price: unitPrice,
+          batch_date: new Date().toISOString().split('T')[0],
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Error al agregar stock');
+        return;
+      }
+
+      onSuccess();
+    } catch {
+      setError('Error de conexión');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <h2 className="text-xl font-bold mb-2">Agregar Stock</h2>
+        <p className="text-gray-600 mb-4">{product.name}</p>
+        <p className="text-sm text-gray-500 mb-4">Stock actual: <span className="font-bold">{product.current_stock}</span></p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Proveedor *
+            </label>
+            <select
+              value={formData.supplier_id}
+              onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+            >
+              <option value="">Seleccionar...</option>
+              {suppliers.filter(s => s.active).map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Sección de paquetes */}
+          <div className="bg-amber-50 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-amber-800">Información del paquete</p>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Paquetes</label>
+                <input
+                  type="number"
+                  value={formData.packages}
+                  onChange={(e) => setFormData({ ...formData, packages: e.target.value })}
+                  required
+                  min="1"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Uds/Paquete</label>
+                <input
+                  type="number"
+                  value={formData.units_per_package}
+                  onChange={(e) => setFormData({ ...formData, units_per_package: e.target.value })}
+                  required
+                  min="1"
+                  placeholder="24"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">$/Paquete</label>
+                <input
+                  type="number"
+                  value={formData.price_per_package}
+                  onChange={(e) => setFormData({ ...formData, price_per_package: e.target.value })}
+                  required
+                  min="0"
+                  placeholder="68000"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                />
+              </div>
+            </div>
+
+            {totalUnits > 0 && (
+              <div className="bg-white rounded-lg p-3 border border-amber-200">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-xs text-gray-500">Total Uds</p>
+                    <p className="text-lg font-bold text-gray-900">{totalUnits}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">$/Unidad</p>
+                    <p className="text-lg font-bold text-amber-600">{formatCurrency(unitPrice)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Total</p>
+                    <p className="text-lg font-bold text-gray-900">{formatCurrency(totalCost)}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {error && (
+            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading} className="flex-1">
+              {isLoading ? 'Guardando...' : 'Agregar Stock'}
             </Button>
           </div>
         </form>
