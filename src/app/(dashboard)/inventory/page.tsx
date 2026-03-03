@@ -278,14 +278,12 @@ export default function InventoryPage() {
                       {formatCurrency(entry.purchase_price * entry.initial_quantity)}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      {entry.quantity > 0 && (
-                        <button
-                          onClick={() => handleAdjust(entry)}
-                          className="px-2 py-1 text-xs bg-amber-50 text-amber-700 rounded hover:bg-amber-100"
-                        >
-                          Ajustar
-                        </button>
-                      )}
+                      <button
+                        onClick={() => handleAdjust(entry)}
+                        className="px-2 py-1 text-xs bg-amber-50 text-amber-700 rounded hover:bg-amber-100"
+                      >
+                        Editar
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -313,10 +311,11 @@ export default function InventoryPage() {
         />
       )}
 
-      {/* Adjust Stock Modal */}
+      {/* Edit Inventory Modal */}
       {showAdjustModal && selectedEntry && (
-        <AdjustStockModal
+        <EditInventoryModal
           entry={selectedEntry}
+          suppliers={suppliers}
           onClose={() => {
             setShowAdjustModal(false);
             setSelectedEntry(null);
@@ -575,17 +574,29 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
   );
 }
 
-interface AdjustStockModalProps {
+interface EditInventoryModalProps {
   entry: InventoryEntry;
+  suppliers: Supplier[];
   onClose: () => void;
   onSuccess: () => void;
 }
 
-function AdjustStockModal({ entry, onClose, onSuccess }: AdjustStockModalProps) {
-  const [newQuantity, setNewQuantity] = useState(entry.quantity.toString());
-  const [reason, setReason] = useState('');
+function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInventoryModalProps) {
+  const [formData, setFormData] = useState({
+    quantity: entry.quantity.toString(),
+    initial_quantity: entry.initial_quantity.toString(),
+    purchase_price: entry.purchase_price.toString(),
+    supplier_id: entry.supplier_id || '',
+    batch_date: entry.batch_date,
+  });
+  const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Calcular precio total basado en cantidad inicial y precio unitario
+  const purchasePrice = parseFloat(formData.purchase_price) || 0;
+  const initialQty = parseInt(formData.initial_quantity) || 0;
+  const totalCost = purchasePrice * initialQty;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -593,82 +604,156 @@ function AdjustStockModal({ entry, onClose, onSuccess }: AdjustStockModalProps) 
     setError('');
 
     try {
-      const response = await fetch('/api/inventory/adjust', {
-        method: 'POST',
+      const response = await fetch(`/api/inventory/${entry.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          inventory_id: entry.id,
-          new_quantity: newQuantity,
-          reason: reason,
+          quantity: parseInt(formData.quantity),
+          initial_quantity: parseInt(formData.initial_quantity),
+          purchase_price: parseFloat(formData.purchase_price),
+          supplier_id: formData.supplier_id || null,
+          batch_date: formData.batch_date,
+          notes: notes || 'Edición manual',
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Error al ajustar inventario');
+        setError(data.error || 'Error al editar inventario');
         return;
       }
 
       onSuccess();
     } catch (err) {
-      console.error('Error adjusting inventory:', err);
-      setError('Error al ajustar inventario');
+      console.error('Error editing inventory:', err);
+      setError('Error al editar inventario');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const diff = parseInt(newQuantity || '0') - entry.quantity;
+  const qtyDiff = parseInt(formData.quantity || '0') - entry.quantity;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
-        <h2 className="text-xl font-bold mb-2">Ajustar Inventario</h2>
-        <p className="text-sm text-gray-500 mb-6">
-          {entry.products?.name} - {entry.suppliers?.name}
-        </p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 my-8">
+        <h2 className="text-xl font-bold mb-2">Editar Entrada de Inventario</h2>
+        <p className="text-gray-600 mb-4">{entry.products?.name}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-500">Cantidad actual:</span>
-              <span className="font-medium">{entry.quantity}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Cantidad inicial:</span>
-              <span className="text-gray-600">{entry.initial_quantity}</span>
+          {/* Proveedor */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Proveedor
+            </label>
+            <select
+              value={formData.supplier_id}
+              onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+            >
+              <option value="">Sin proveedor</option>
+              {suppliers.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Cantidades */}
+          <div className="bg-amber-50 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-amber-800">Cantidades</p>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Cantidad Inicial
+                </label>
+                <input
+                  type="number"
+                  value={formData.initial_quantity}
+                  onChange={(e) => setFormData({ ...formData, initial_quantity: e.target.value })}
+                  required
+                  min="0"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                />
+                <p className="text-xs text-gray-500 mt-1">Original: {entry.initial_quantity}</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Cantidad Actual
+                </label>
+                <input
+                  type="number"
+                  value={formData.quantity}
+                  onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                  required
+                  min="0"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                />
+                {qtyDiff !== 0 && (
+                  <p className={`text-xs mt-1 text-center font-medium ${qtyDiff > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {qtyDiff > 0 ? '+' : ''}{qtyDiff} uds
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Nueva Cantidad *
-            </label>
-            <input
-              type="number"
-              value={newQuantity}
-              onChange={(e) => setNewQuantity(e.target.value)}
-              required
-              min="0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
-            />
-            {diff !== 0 && (
-              <p className={`text-sm mt-1 ${diff > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {diff > 0 ? '+' : ''}{diff} unidades
+          {/* Precio */}
+          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-gray-700">Precio de Compra</p>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">
+                Precio por Unidad
+              </label>
+              <input
+                type="number"
+                value={formData.purchase_price}
+                onChange={(e) => setFormData({ ...formData, purchase_price: e.target.value })}
+                required
+                min="0"
+                step="0.01"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Original: {formatCurrency(entry.purchase_price)}
               </p>
+            </div>
+
+            {totalCost > 0 && (
+              <div className="bg-white rounded-lg p-3 border border-gray-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Total compra:</span>
+                  <span className="text-lg font-bold text-gray-900">{formatCurrency(totalCost)}</span>
+                </div>
+              </div>
             )}
           </div>
 
+          {/* Fecha */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Razon del ajuste
+              Fecha de Compra
             </label>
-            <textarea
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={2}
-              placeholder="Ej: Producto danado, conteo fisico, error de registro..."
+            <input
+              type="date"
+              value={formData.batch_date}
+              onChange={(e) => setFormData({ ...formData, batch_date: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+            />
+          </div>
+
+          {/* Notas */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Razón de la edición
+            </label>
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Ej: Corrección de precio, error de captura..."
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
@@ -687,7 +772,7 @@ function AdjustStockModal({ entry, onClose, onSuccess }: AdjustStockModalProps) 
               Cancelar
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? 'Guardando...' : 'Guardar Ajuste'}
+              {isLoading ? 'Guardando...' : 'Guardar Cambios'}
             </Button>
           </div>
         </form>
