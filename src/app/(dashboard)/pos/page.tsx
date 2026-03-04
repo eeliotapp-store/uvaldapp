@@ -55,7 +55,7 @@ export default function POSPage() {
         supabase
           .from('v_current_stock')
           .select('*'),
-        fetch('/api/combos').then(r => r.json()),
+        fetch('/api/combos').then(res => res.json()).catch(() => ({ combos: [] })),
       ]);
 
       if (productsResult.error) throw productsResult.error;

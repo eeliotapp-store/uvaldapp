@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { useShiftStore } from '@/stores/shift-store';
 import { supabase } from '@/lib/supabase/client';
-import type { PaymentMethod, Product, CurrentStock, OpenTab, Shift } from '@/types/database';
+import type { PaymentMethod, Product, CurrentStock, OpenTab, Shift, ComboWithItems } from '@/types/database';
+import { MICHELADA_EXTRA } from '@/stores/cart-store';
 
 interface SaleWithDetails {
   id: string;
@@ -43,6 +44,13 @@ interface CartItem {
   product: Product;
   quantity: number;
   stock: number;
+  isMichelada?: boolean;
+}
+
+interface CartComboItem {
+  combo: ComboWithItems;
+  items: { product: Product; quantity: number; isMichelada?: boolean }[];
+  finalPrice: number;
 }
 
 export default function SalesPage() {
@@ -432,14 +440,18 @@ function SaleModal({
   );
   const [hasTakenOver, setHasTakenOver] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [combos, setCombos] = useState<ComboWithItems[]>([]);
   const [stockMap, setStockMap] = useState<Record<string, number>>({});
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartCombos, setCartCombos] = useState<CartComboItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedCombo, setSelectedCombo] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [tableNumber, setTableNumber] = useState(existingTab?.table_number || '');
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [showComboModal, setShowComboModal] = useState<ComboWithItems | null>(null);
 
   // Estado para turno
   const [shiftType, setShiftType] = useState<'day' | 'night'>('day');
@@ -540,12 +552,15 @@ function SaleModal({
 
   const loadProducts = async () => {
     try {
-      const [productsRes, stockRes] = await Promise.all([
+      // Cargar productos, stock y combos
+      const [productsRes, stockRes, combosRes] = await Promise.all([
         supabase.from('products').select('*').eq('active', true).order('name'),
         supabase.from('v_current_stock').select('*'),
+        fetch('/api/combos').then(res => res.json()).catch(() => ({ combos: [] })),
       ]);
 
       setProducts(productsRes.data || []);
+      setCombos(combosRes.combos || []);
 
       const stockData: Record<string, number> = {};
       (stockRes.data as CurrentStock[])?.forEach((item) => {
@@ -559,8 +574,12 @@ function SaleModal({
     }
   };
 
-  const newItemsTotal = cart.reduce((sum, item) => sum + item.product.sale_price * item.quantity, 0);
-  const total = existingTotal + newItemsTotal;
+  const newItemsTotal = cart.reduce((sum, item) => {
+    const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0);
+    return sum + unitPrice * item.quantity;
+  }, 0);
+  const combosTotal = cartCombos.reduce((sum, c) => sum + c.finalPrice, 0);
+  const total = existingTotal + newItemsTotal + combosTotal;
 
   const handleAddToCart = () => {
     if (!selectedProduct) return;
@@ -618,6 +637,34 @@ function SaleModal({
     ));
   };
 
+  const handleComboSelect = (comboId: string) => {
+    const combo = combos.find(c => c.id === comboId);
+    if (!combo) return;
+
+    // Si el combo es editable o tiene productos intercambiables, mostrar modal
+    if (combo.is_price_editable || combo.combo_items?.some(i => i.is_swappable)) {
+      setShowComboModal(combo);
+    } else {
+      // Agregar combo directamente
+      const items = combo.combo_items?.map(item => ({
+        product: item.products,
+        quantity: item.quantity,
+        isMichelada: item.is_michelada,
+      })) || [];
+      setCartCombos([...cartCombos, { combo, items, finalPrice: combo.base_price }]);
+    }
+    setSelectedCombo('');
+  };
+
+  const handleAddComboFromModal = (combo: ComboWithItems, items: { product: Product; quantity: number; isMichelada?: boolean }[], finalPrice: number) => {
+    setCartCombos([...cartCombos, { combo, items, finalPrice }]);
+    setShowComboModal(null);
+  };
+
+  const handleRemoveCombo = (index: number) => {
+    setCartCombos(cartCombos.filter((_, i) => i !== index));
+  };
+
   const getChange = () => {
     if (paymentMethod === 'cash') {
       return Math.max(0, (parseFloat(cashReceived) || 0) - total);
@@ -646,8 +693,8 @@ function SaleModal({
       return;
     }
 
-    if (cart.length === 0 && !existingTab) {
-      setError('Agrega al menos un producto');
+    if (cart.length === 0 && cartCombos.length === 0 && !existingTab) {
+      setError('Agrega al menos un producto o combo');
       return;
     }
 
@@ -657,7 +704,7 @@ function SaleModal({
     try {
       if (existingTab) {
         // Agregar items a tab existente
-        if (cart.length > 0) {
+        if (cart.length > 0 || cartCombos.length > 0) {
           const response = await fetch(`/api/sales/${existingTab.id}/add-items`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -665,7 +712,17 @@ function SaleModal({
               items: cart.map(item => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
-                unit_price: item.product.sale_price,
+                unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0),
+                is_michelada: item.isMichelada || false,
+              })),
+              combos: cartCombos.map(c => ({
+                combo_id: c.combo.id,
+                final_price: c.finalPrice,
+                items: c.items.map(item => ({
+                  product_id: item.product.id,
+                  quantity: item.quantity,
+                  is_michelada: item.isMichelada || false,
+                })),
               })),
             }),
           });
@@ -687,7 +744,17 @@ function SaleModal({
             items: cart.map(item => ({
               product_id: item.product.id,
               quantity: item.quantity,
-              unit_price: item.product.sale_price,
+              unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0),
+              is_michelada: item.isMichelada || false,
+            })),
+            combos: cartCombos.map(c => ({
+              combo_id: c.combo.id,
+              final_price: c.finalPrice,
+              items: c.items.map(item => ({
+                product_id: item.product.id,
+                quantity: item.quantity,
+                is_michelada: item.isMichelada || false,
+              })),
             })),
             close: false,
           }),
@@ -727,7 +794,7 @@ function SaleModal({
     try {
       if (existingTab) {
         // Primero agregar items nuevos si hay
-        if (cart.length > 0) {
+        if (cart.length > 0 || cartCombos.length > 0) {
           const addResponse = await fetch(`/api/sales/${existingTab.id}/add-items`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -735,7 +802,17 @@ function SaleModal({
               items: cart.map(item => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
-                unit_price: item.product.sale_price,
+                unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0),
+                is_michelada: item.isMichelada || false,
+              })),
+              combos: cartCombos.map(c => ({
+                combo_id: c.combo.id,
+                final_price: c.finalPrice,
+                items: c.items.map(item => ({
+                  product_id: item.product.id,
+                  quantity: item.quantity,
+                  is_michelada: item.isMichelada || false,
+                })),
               })),
             }),
           });
@@ -776,7 +853,17 @@ function SaleModal({
             items: cart.map(item => ({
               product_id: item.product.id,
               quantity: item.quantity,
-              unit_price: item.product.sale_price,
+              unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0),
+              is_michelada: item.isMichelada || false,
+            })),
+            combos: cartCombos.map(c => ({
+              combo_id: c.combo.id,
+              final_price: c.finalPrice,
+              items: c.items.map(item => ({
+                product_id: item.product.id,
+                quantity: item.quantity,
+                is_michelada: item.isMichelada || false,
+              })),
             })),
             close: true,
             payment_method: paymentMethod,
@@ -1030,7 +1117,7 @@ function SaleModal({
               )}
 
               {/* Agregar producto */}
-              <div className="bg-amber-50 rounded-xl p-4 mb-6">
+              <div className="bg-amber-50 rounded-xl p-4 mb-4">
                 <h3 className="font-medium text-amber-800 mb-3">Agregar Producto</h3>
                 <div className="flex gap-3">
                   <select
@@ -1061,58 +1148,133 @@ function SaleModal({
                 </div>
               </div>
 
+              {/* Agregar combo */}
+              <div className="bg-purple-50 rounded-xl p-4 mb-6">
+                <h3 className="font-medium text-purple-800 mb-3">🎁 Agregar Combo</h3>
+                {combos.length > 0 ? (
+                  <div className="flex gap-3">
+                    <select
+                      value={selectedCombo}
+                      onChange={(e) => {
+                        if (e.target.value) handleComboSelect(e.target.value);
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                    >
+                      <option value="">Seleccionar combo...</option>
+                      {combos.map(combo => (
+                        <option key={combo.id} value={combo.id}>
+                          {combo.name} - {formatCurrency(combo.base_price)}
+                          {combo.is_price_editable ? ' (Editable)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ) : (
+                  <p className="text-sm text-purple-600">
+                    No hay combos creados. El administrador debe crear combos desde la página de Combos.
+                  </p>
+                )}
+              </div>
+
               {error && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
                   {error}
                 </div>
               )}
 
-              {/* Lista de nuevos productos */}
+              {/* Lista de nuevos productos y combos */}
               <div className="space-y-3">
-                {cart.length === 0 ? (
+                {cart.length === 0 && cartCombos.length === 0 ? (
                   <div className="text-center py-8 text-gray-400">
                     <p>No hay productos nuevos</p>
-                    <p className="text-sm">Selecciona un producto y haz clic en Agregar</p>
+                    <p className="text-sm">Selecciona un producto o combo</p>
                   </div>
                 ) : (
                   <>
-                    <h3 className="font-medium text-gray-700">Nuevos productos</h3>
-                    {cart.map(item => (
-                      <div key={item.product.id} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
-                        <div className="flex-1">
-                          <p className="font-medium text-gray-900">{item.product.name}</p>
-                          <p className="text-sm text-gray-500">{formatCurrency(item.product.sale_price)} c/u</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
-                              className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
-                            >
-                              -
-                            </button>
-                            <span className="w-8 text-center font-medium">{item.quantity}</span>
-                            <button
-                              onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
-                              className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 hover:bg-amber-200"
-                            >
-                              +
-                            </button>
+                    {cart.length > 0 && (
+                      <>
+                        <h3 className="font-medium text-gray-700">Productos</h3>
+                        {cart.map(item => {
+                          const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0);
+                          return (
+                            <div key={`${item.product.id}-${item.isMichelada}`} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">
+                                  {item.product.name}
+                                  {item.isMichelada && <span className="text-amber-600 ml-1">🌶️</span>}
+                                </p>
+                                <p className="text-sm text-gray-500">{formatCurrency(unitPrice)} c/u</p>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
+                                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="w-8 text-center font-medium">{item.quantity}</span>
+                                  <button
+                                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
+                                    className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 hover:bg-amber-200"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                <span className="w-24 text-right font-bold">
+                                  {formatCurrency(unitPrice * item.quantity)}
+                                </span>
+                                <button
+                                  onClick={() => handleRemoveFromCart(item.product.id)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </>
+                    )}
+
+                    {cartCombos.length > 0 && (
+                      <>
+                        <h3 className="font-medium text-gray-700 mt-4">🎁 Combos</h3>
+                        {cartCombos.map((cartCombo, index) => (
+                          <div key={`combo-${index}`} className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <p className="font-medium text-purple-900">{cartCombo.combo.name}</p>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {cartCombo.items.map((item, i) => (
+                                    <span key={i}>
+                                      {item.quantity}x {item.product.name}
+                                      {item.isMichelada && ' 🌶️'}
+                                      {i < cartCombo.items.length - 1 && ', '}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="font-bold text-purple-700">
+                                  {formatCurrency(cartCombo.finalPrice)}
+                                </span>
+                                <button
+                                  onClick={() => handleRemoveCombo(index)}
+                                  className="text-red-500 hover:text-red-700"
+                                >
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                          <span className="w-24 text-right font-bold">
-                            {formatCurrency(item.product.sale_price * item.quantity)}
-                          </span>
-                          <button
-                            onClick={() => handleRemoveFromCart(item.product.id)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                        ))}
+                      </>
+                    )}
                   </>
                 )}
               </div>
@@ -1124,9 +1286,12 @@ function SaleModal({
               <div className="bg-amber-50 rounded-xl p-4 text-center">
                 <p className="text-gray-600 text-sm">Total a cobrar</p>
                 <p className="text-3xl font-bold text-amber-700">{formatCurrency(total)}</p>
-                {existingTab && newItemsTotal > 0 && (
+                {(existingTab || combosTotal > 0) && (newItemsTotal > 0 || combosTotal > 0) && (
                   <p className="text-sm text-gray-500 mt-1">
-                    (Anterior: {formatCurrency(existingTotal)} + Nuevo: {formatCurrency(newItemsTotal)})
+                    {existingTab && `Anterior: ${formatCurrency(existingTotal)} + `}
+                    {newItemsTotal > 0 && `Productos: ${formatCurrency(newItemsTotal)}`}
+                    {newItemsTotal > 0 && combosTotal > 0 && ' + '}
+                    {combosTotal > 0 && `Combos: ${formatCurrency(combosTotal)}`}
                   </p>
                 )}
               </div>
@@ -1257,14 +1422,14 @@ function SaleModal({
                 <Button
                   variant="secondary"
                   onClick={handleSaveAsOpen}
-                  disabled={cart.length === 0 && !existingTab || isProcessing}
+                  disabled={(cart.length === 0 && cartCombos.length === 0 && !existingTab) || isProcessing}
                   className="flex-1"
                 >
                   {isProcessing ? 'Guardando...' : 'Guardar (Cuenta Abierta)'}
                 </Button>
                 <Button
                   onClick={() => setStep('payment')}
-                  disabled={(cart.length === 0 && !existingTab) || total === 0}
+                  disabled={(cart.length === 0 && cartCombos.length === 0 && !existingTab) || total === 0}
                   className="flex-1"
                 >
                   Dar la Cuenta
@@ -1285,6 +1450,142 @@ function SaleModal({
               </Button>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Modal para combo editable */}
+      {showComboModal && (
+        <EditableComboModalSales
+          combo={showComboModal}
+          products={products}
+          onClose={() => setShowComboModal(null)}
+          onAdd={(items, finalPrice) => handleAddComboFromModal(showComboModal, items, finalPrice)}
+        />
+      )}
+    </div>
+  );
+}
+
+function EditableComboModalSales({
+  combo,
+  products,
+  onClose,
+  onAdd,
+}: {
+  combo: ComboWithItems;
+  products: Product[];
+  onClose: () => void;
+  onAdd: (items: { product: Product; quantity: number; isMichelada?: boolean }[], finalPrice: number) => void;
+}) {
+  const [finalPrice, setFinalPrice] = useState(combo.base_price.toString());
+  const [comboItems, setComboItems] = useState(
+    combo.combo_items?.map(item => ({
+      originalProductId: item.product_id,
+      productId: item.product_id,
+      quantity: item.quantity,
+      isMichelada: item.is_michelada,
+      isSwappable: item.is_swappable,
+    })) || []
+  );
+
+  const handleProductChange = (index: number, newProductId: string) => {
+    const updated = [...comboItems];
+    updated[index].productId = newProductId;
+    setComboItems(updated);
+  };
+
+  const handleSubmit = () => {
+    const items = comboItems.map(item => {
+      const product = products.find(p => p.id === item.productId);
+      if (!product) return null;
+      return {
+        product,
+        quantity: item.quantity,
+        isMichelada: item.isMichelada,
+      };
+    }).filter(Boolean) as { product: Product; quantity: number; isMichelada?: boolean }[];
+
+    onAdd(items, parseFloat(finalPrice) || combo.base_price);
+  };
+
+  // Filtrar productos activos (solo cervezas para intercambio)
+  const beerProducts = products.filter(p =>
+    p.active && (p.category.includes('beer') || p.category === 'other')
+  );
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <h2 className="text-xl font-bold mb-2">{combo.name}</h2>
+        {combo.description && (
+          <p className="text-sm text-gray-500 mb-4">{combo.description}</p>
+        )}
+
+        {/* Precio editable */}
+        {combo.is_price_editable && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Precio final
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500">$</span>
+              <input
+                type="number"
+                value={finalPrice}
+                onChange={(e) => setFinalPrice(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-lg font-bold"
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Precio base: {formatCurrency(combo.base_price)}
+            </p>
+          </div>
+        )}
+
+        {/* Productos del combo */}
+        <div className="space-y-3 mb-4">
+          <p className="text-sm font-medium text-gray-700">Productos incluidos:</p>
+          {comboItems.map((item, index) => {
+            const currentProduct = products.find(p => p.id === item.productId);
+            return (
+              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                <span className="text-sm font-medium w-8 text-center">{item.quantity}x</span>
+                {item.isSwappable ? (
+                  <select
+                    value={item.productId}
+                    onChange={(e) => handleProductChange(index, e.target.value)}
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                  >
+                    {beerProducts.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="flex-1 text-sm">{currentProduct?.name}</span>
+                )}
+                {item.isMichelada && (
+                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                    Mich
+                  </span>
+                )}
+                {item.isSwappable && (
+                  <span className="text-xs text-blue-600">*</span>
+                )}
+              </div>
+            );
+          })}
+          {comboItems.some(i => i.isSwappable) && (
+            <p className="text-xs text-blue-600">* Producto intercambiable</p>
+          )}
+        </div>
+
+        <div className="flex gap-3">
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmit} className="flex-1">
+            Agregar {formatCurrency(parseFloat(finalPrice) || combo.base_price)}
+          </Button>
         </div>
       </div>
     </div>
