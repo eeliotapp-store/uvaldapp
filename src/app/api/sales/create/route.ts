@@ -5,15 +5,25 @@ interface SaleItem {
   product_id: string;
   quantity: number;
   unit_price: number;
+  is_michelada?: boolean;
+}
+
+interface ComboSale {
+  combo_id: string;
+  final_price: number;
+  items: {
+    product_id: string;
+    quantity: number;
+    is_michelada?: boolean;
+  }[];
 }
 
 interface CreateSaleRequest {
   employee_id: string;
   shift_id: string;
   items: SaleItem[];
+  combos?: ComboSale[];
   table_number?: string;
-  // Si close=true, se cierra inmediatamente con pago
-  // Si close=false o no se envía, queda como cuenta abierta
   close?: boolean;
   payment_method?: 'cash' | 'transfer' | 'mixed';
   cash_received?: number;
@@ -29,7 +39,8 @@ export async function POST(request: NextRequest) {
     const {
       employee_id,
       shift_id,
-      items,
+      items = [],
+      combos = [],
       table_number,
       close = false,
       payment_method,
@@ -40,9 +51,16 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validaciones básicas
-    if (!employee_id || !shift_id || !items || items.length === 0) {
+    if (!employee_id || !shift_id) {
       return NextResponse.json(
         { error: 'Datos incompletos' },
+        { status: 400 }
+      );
+    }
+
+    if (items.length === 0 && combos.length === 0) {
+      return NextResponse.json(
+        { error: 'Debe incluir al menos un producto o combo' },
         { status: 400 }
       );
     }
@@ -56,10 +74,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Calcular totales
-    const subtotal = items.reduce(
+    const itemsSubtotal = items.reduce(
       (sum, item) => sum + item.unit_price * item.quantity,
       0
     );
+    const combosSubtotal = combos.reduce(
+      (sum, combo) => sum + combo.final_price,
+      0
+    );
+    const subtotal = itemsSubtotal + combosSubtotal;
     const total = subtotal;
 
     // Validar pago si se cierra
@@ -81,24 +104,51 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Verificar stock disponible
+    // Recopilar todos los productos que necesitan validación de stock
+    const allProductsToValidate: { product_id: string; quantity: number }[] = [];
+
+    // Items individuales
     for (const item of items) {
+      allProductsToValidate.push({
+        product_id: item.product_id,
+        quantity: item.quantity,
+      });
+    }
+
+    // Items de combos
+    for (const combo of combos) {
+      for (const item of combo.items) {
+        allProductsToValidate.push({
+          product_id: item.product_id,
+          quantity: item.quantity,
+        });
+      }
+    }
+
+    // Agrupar cantidades por producto
+    const productQuantities: Record<string, number> = {};
+    for (const item of allProductsToValidate) {
+      productQuantities[item.product_id] = (productQuantities[item.product_id] || 0) + item.quantity;
+    }
+
+    // Verificar stock disponible
+    for (const [productId, requiredQty] of Object.entries(productQuantities)) {
       const { data: stockData, error: stockError } = await supabaseAdmin
         .from('v_current_stock')
-        .select('current_stock')
-        .eq('product_id', item.product_id)
+        .select('current_stock, product_name')
+        .eq('product_id', productId)
         .single();
 
       if (stockError || !stockData) {
         return NextResponse.json(
-          { error: `Producto no encontrado: ${item.product_id}` },
+          { error: `Producto no encontrado` },
           { status: 400 }
         );
       }
 
-      if (stockData.current_stock < item.quantity) {
+      if (stockData.current_stock < requiredQty) {
         return NextResponse.json(
-          { error: `Stock insuficiente para el producto` },
+          { error: `Stock insuficiente para ${stockData.product_name}` },
           { status: 400 }
         );
       }
@@ -153,15 +203,57 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Crear items de venta (el trigger descuenta inventario)
-    const saleItems = items.map((item) => ({
-      sale_id: sale.id,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-      subtotal: item.unit_price * item.quantity,
-    }));
+    // Preparar todos los sale_items
+    const saleItems: {
+      sale_id: string;
+      product_id: string;
+      quantity: number;
+      unit_price: number;
+      subtotal: number;
+      is_michelada: boolean;
+      combo_id: string | null;
+      combo_price_override: number | null;
+    }[] = [];
 
+    // Items individuales
+    for (const item of items) {
+      saleItems.push({
+        sale_id: sale.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        subtotal: item.unit_price * item.quantity,
+        is_michelada: item.is_michelada || false,
+        combo_id: null,
+        combo_price_override: null,
+      });
+    }
+
+    // Items de combos
+    for (const combo of combos) {
+      // Calcular el precio por unidad del combo para el tracking
+      const totalComboItems = combo.items.reduce((sum, i) => sum + i.quantity, 0);
+      const pricePerComboItem = totalComboItems > 0 ? combo.final_price / totalComboItems : 0;
+
+      // Marcar el primer item del combo con el precio override
+      let isFirstComboItem = true;
+
+      for (const item of combo.items) {
+        saleItems.push({
+          sale_id: sale.id,
+          product_id: item.product_id,
+          quantity: item.quantity,
+          unit_price: pricePerComboItem,
+          subtotal: pricePerComboItem * item.quantity,
+          is_michelada: item.is_michelada || false,
+          combo_id: combo.combo_id,
+          combo_price_override: isFirstComboItem ? combo.final_price : null,
+        });
+        isFirstComboItem = false;
+      }
+    }
+
+    // Crear items de venta (el trigger descuenta inventario)
     const { error: itemsError } = await supabaseAdmin
       .from('sale_items')
       .insert(saleItems);

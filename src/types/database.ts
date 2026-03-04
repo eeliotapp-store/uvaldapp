@@ -106,6 +106,35 @@ export interface SaleItem {
   quantity: number;
   unit_price: number;
   subtotal: number;
+  combo_id?: string | null;
+  is_michelada?: boolean;
+  combo_price_override?: number | null;
+}
+
+// Combos/Promociones
+export interface Combo {
+  id: string;
+  name: string;
+  description: string | null;
+  base_price: number;
+  is_price_editable: boolean;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface ComboItem {
+  id: string;
+  combo_id: string;
+  product_id: string;
+  quantity: number;
+  is_swappable: boolean;
+  is_michelada: boolean;
+}
+
+export interface ComboWithItems extends Combo {
+  combo_items: (ComboItem & {
+    products: Product;
+  })[];
 }
 
 // Vistas
@@ -154,7 +183,22 @@ export interface ShiftSummary {
 export interface CartItem {
   product: Product;
   quantity: number;
+  isMichelada?: boolean;
 }
+
+// Combo en el carrito
+export interface CartCombo {
+  combo: Combo;
+  items: {
+    product: Product;
+    quantity: number;
+    isMichelada?: boolean;
+  }[];
+  finalPrice: number;
+}
+
+// Constante para precio de michelada
+export const MICHELADA_PRICE = 4000;
 
 // Cuenta abierta (tab)
 export interface OpenTab {

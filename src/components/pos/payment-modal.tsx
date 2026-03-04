@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
+import { MICHELADA_EXTRA } from '@/stores/cart-store';
 import type { PaymentMethod } from '@/types/database';
-import type { CartItem } from '@/types/database';
+import type { CartItem, CartCombo } from '@/types/database';
 
 type PaymentStep = 'bill' | 'method' | 'payment' | 'complete';
 
@@ -19,6 +20,7 @@ interface PaymentResult {
 interface PaymentModalProps {
   total: number;
   items: CartItem[];
+  combos?: CartCombo[];
   onConfirm: (result: PaymentResult) => void;
   onCancel: () => void;
   isLoading?: boolean;
@@ -27,6 +29,7 @@ interface PaymentModalProps {
 export function PaymentModal({
   total,
   items,
+  combos = [],
   onConfirm,
   onCancel,
   isLoading,
@@ -129,15 +132,44 @@ export function PaymentModal({
 
       {/* Lista de productos */}
       <div className="bg-gray-50 rounded-xl p-4 mb-4 max-h-60 overflow-y-auto">
-        {items.map((item) => (
-          <div key={item.product.id} className="flex justify-between py-2 border-b border-gray-200 last:border-0">
-            <div>
-              <span className="font-medium">{item.quantity}x</span>{' '}
-              <span>{item.product.name}</span>
+        {/* Items individuales */}
+        {items.map((item, index) => {
+          const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0);
+          const itemTotal = unitPrice * item.quantity;
+          const itemKey = `${item.product.id}-${item.isMichelada ? 'mich' : 'normal'}-${index}`;
+
+          return (
+            <div key={itemKey} className="flex justify-between py-2 border-b border-gray-200 last:border-0">
+              <div>
+                <span className="font-medium">{item.quantity}x</span>{' '}
+                <span>{item.product.name}</span>
+                {item.isMichelada && (
+                  <span className="text-xs text-amber-600 ml-1">🌶️</span>
+                )}
+              </div>
+              <span className="font-medium">
+                {formatCurrency(itemTotal)}
+              </span>
             </div>
-            <span className="font-medium">
-              {formatCurrency(item.product.sale_price * item.quantity)}
-            </span>
+          );
+        })}
+
+        {/* Combos */}
+        {combos.map((cartCombo, index) => (
+          <div key={`combo-${index}`} className="py-2 border-b border-gray-200 last:border-0">
+            <div className="flex justify-between">
+              <div>
+                <span className="font-medium">🎁 {cartCombo.combo.name}</span>
+              </div>
+              <span className="font-medium text-amber-600">
+                {formatCurrency(cartCombo.finalPrice)}
+              </span>
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {cartCombo.items.map(item =>
+                `${item.quantity}x ${item.product.name.substring(0, 15)}${item.isMichelada ? ' 🌶️' : ''}`
+              ).join(', ')}
+            </div>
           </div>
         ))}
       </div>
