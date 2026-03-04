@@ -452,6 +452,7 @@ function SaleModal({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [showComboModal, setShowComboModal] = useState<ComboWithItems | null>(null);
+  const [showMicheladaModal, setShowMicheladaModal] = useState<{ product: Product; qty: number } | null>(null);
 
   // Estado para turno
   const [shiftType, setShiftType] = useState<'day' | 'night'>('day');
@@ -590,8 +591,10 @@ function SaleModal({
     const qty = parseInt(quantity) || 1;
     const stock = stockMap[product.id] || 0;
 
-    const existingItem = cart.find(item => item.product.id === product.id);
-    const currentQtyInCart = existingItem?.quantity || 0;
+    // Verificar stock total (considerando items normales y micheladas)
+    const existingNormal = cart.find(item => item.product.id === product.id && !item.isMichelada);
+    const existingMichelada = cart.find(item => item.product.id === product.id && item.isMichelada);
+    const currentQtyInCart = (existingNormal?.quantity || 0) + (existingMichelada?.quantity || 0);
 
     if (currentQtyInCart + qty > stock) {
       setError(`Solo hay ${stock} unidades disponibles de ${product.name}`);
@@ -600,38 +603,64 @@ function SaleModal({
 
     setError('');
 
-    if (existingItem) {
-      setCart(cart.map(item =>
-        item.product.id === product.id
-          ? { ...item, quantity: item.quantity + qty }
-          : item
-      ));
-    } else {
-      setCart([...cart, { product, quantity: qty, stock }]);
+    // Si es cerveza, mostrar modal de michelada
+    const isBeer = product.category === 'beer_nacional' ||
+                   product.category === 'beer_importada' ||
+                   product.category === 'beer_artesanal' ||
+                   product.category.includes('beer');
+
+    if (isBeer) {
+      setShowMicheladaModal({ product, qty });
+      setSelectedProduct('');
+      setQuantity('1');
+      return;
     }
 
+    // Si no es cerveza, agregar directamente
+    addProductToCart(product, qty, false);
     setSelectedProduct('');
     setQuantity('1');
   };
 
-  const handleRemoveFromCart = (productId: string) => {
-    setCart(cart.filter(item => item.product.id !== productId));
+  const addProductToCart = (product: Product, qty: number, isMichelada: boolean) => {
+    const stock = stockMap[product.id] || 0;
+    const existingItem = cart.find(item => item.product.id === product.id && item.isMichelada === isMichelada);
+
+    if (existingItem) {
+      setCart(cart.map(item =>
+        item.product.id === product.id && item.isMichelada === isMichelada
+          ? { ...item, quantity: item.quantity + qty }
+          : item
+      ));
+    } else {
+      setCart([...cart, { product, quantity: qty, stock, isMichelada }]);
+    }
   };
 
-  const handleUpdateQuantity = (productId: string, newQty: number) => {
+  const handleMicheladaChoice = (isMichelada: boolean) => {
+    if (!showMicheladaModal) return;
+    addProductToCart(showMicheladaModal.product, showMicheladaModal.qty, isMichelada);
+    setShowMicheladaModal(null);
+  };
+
+  const handleRemoveFromCart = (productId: string, isMichelada?: boolean) => {
+    setCart(cart.filter(item => !(item.product.id === productId && item.isMichelada === isMichelada)));
+  };
+
+  const handleUpdateQuantity = (productId: string, newQty: number, isMichelada?: boolean) => {
     if (newQty <= 0) {
-      handleRemoveFromCart(productId);
+      handleRemoveFromCart(productId, isMichelada);
       return;
     }
 
-    const item = cart.find(i => i.product.id === productId);
+    const item = cart.find(i => i.product.id === productId && i.isMichelada === isMichelada);
     if (item && newQty > item.stock) {
       setError(`Solo hay ${item.stock} unidades disponibles`);
       return;
     }
 
     setCart(cart.map(item =>
-      item.product.id === productId
+      item.product.id === productId && item.isMichelada === isMichelada
         ? { ...item, quantity: newQty }
         : item
     ));
@@ -1208,14 +1237,14 @@ function SaleModal({
                               <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2">
                                   <button
-                                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1)}
+                                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1, item.isMichelada)}
                                     className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
                                   >
                                     -
                                   </button>
                                   <span className="w-8 text-center font-medium">{item.quantity}</span>
                                   <button
-                                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1)}
+                                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1, item.isMichelada)}
                                     className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 hover:bg-amber-200"
                                   >
                                     +
@@ -1225,7 +1254,7 @@ function SaleModal({
                                   {formatCurrency(unitPrice * item.quantity)}
                                 </span>
                                 <button
-                                  onClick={() => handleRemoveFromCart(item.product.id)}
+                                  onClick={() => handleRemoveFromCart(item.product.id, item.isMichelada)}
                                   className="text-red-500 hover:text-red-700"
                                 >
                                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1462,6 +1491,51 @@ function SaleModal({
           onAdd={(items, finalPrice) => handleAddComboFromModal(showComboModal, items, finalPrice)}
         />
       )}
+
+      {/* Modal para michelada */}
+      {showMicheladaModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h2 className="text-xl font-bold mb-2 text-center">
+              {showMicheladaModal.product.name}
+            </h2>
+            <p className="text-center text-gray-600 mb-6">
+              ¿Cómo lo quiere el cliente?
+            </p>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => handleMicheladaChoice(false)}
+                className="p-4 rounded-xl border-2 border-gray-200 hover:border-amber-500 hover:bg-amber-50 transition-all"
+              >
+                <div className="text-3xl mb-2">🍺</div>
+                <p className="font-medium">Normal</p>
+                <p className="text-sm text-gray-500">
+                  {formatCurrency(showMicheladaModal.product.sale_price)}
+                </p>
+              </button>
+
+              <button
+                onClick={() => handleMicheladaChoice(true)}
+                className="p-4 rounded-xl border-2 border-amber-500 bg-amber-50 hover:bg-amber-100 transition-all"
+              >
+                <div className="text-3xl mb-2">🌶️</div>
+                <p className="font-medium text-amber-700">Michelada</p>
+                <p className="text-sm text-amber-600">
+                  {formatCurrency(showMicheladaModal.product.sale_price + MICHELADA_EXTRA)}
+                </p>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowMicheladaModal(null)}
+              className="w-full mt-4 py-2 text-gray-500 hover:text-gray-700"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1478,44 +1552,90 @@ function EditableComboModalSales({
   onAdd: (items: { product: Product; quantity: number; isMichelada?: boolean }[], finalPrice: number) => void;
 }) {
   const [finalPrice, setFinalPrice] = useState(combo.base_price.toString());
-  const [comboItems, setComboItems] = useState(
-    combo.combo_items?.map(item => ({
-      originalProductId: item.product_id,
-      productId: item.product_id,
-      quantity: item.quantity,
-      isMichelada: item.is_michelada,
-      isSwappable: item.is_swappable,
-    })) || []
+
+  // Separar items fijos de items intercambiables
+  const fixedItems = combo.combo_items?.filter(item => !item.is_swappable) || [];
+  const swappableItems = combo.combo_items?.filter(item => item.is_swappable) || [];
+
+  // Calcular cantidad total de items intercambiables
+  const totalSwappableQty = swappableItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Estado para items intercambiables personalizados
+  const [customSwappableItems, setCustomSwappableItems] = useState<{ productId: string; quantity: number }[]>(
+    swappableItems.length > 0
+      ? [{ productId: swappableItems[0].product_id, quantity: totalSwappableQty }]
+      : []
   );
 
-  const handleProductChange = (index: number, newProductId: string) => {
-    const updated = [...comboItems];
-    updated[index].productId = newProductId;
-    setComboItems(updated);
+  // Productos disponibles para intercambio (cervezas)
+  const beerProducts = products.filter(p => p.active);
+
+  // Cantidad actual seleccionada
+  const currentSwappableQty = customSwappableItems.reduce((sum, item) => sum + item.quantity, 0);
+  const remainingQty = totalSwappableQty - currentSwappableQty;
+
+  const handleAddSwappableProduct = () => {
+    if (remainingQty <= 0) return;
+    const availableProduct = beerProducts.find(p =>
+      !customSwappableItems.some(item => item.productId === p.id)
+    );
+    if (availableProduct) {
+      setCustomSwappableItems([...customSwappableItems, { productId: availableProduct.id, quantity: 1 }]);
+    }
+  };
+
+  const handleRemoveSwappableProduct = (index: number) => {
+    if (customSwappableItems.length <= 1) return;
+    setCustomSwappableItems(customSwappableItems.filter((_, i) => i !== index));
+  };
+
+  const handleSwappableProductChange = (index: number, productId: string) => {
+    const updated = [...customSwappableItems];
+    updated[index].productId = productId;
+    setCustomSwappableItems(updated);
+  };
+
+  const handleSwappableQtyChange = (index: number, qty: number) => {
+    if (qty < 1) return;
+    const otherQty = customSwappableItems.reduce((sum, item, i) => i === index ? sum : sum + item.quantity, 0);
+    if (qty + otherQty > totalSwappableQty) return;
+
+    const updated = [...customSwappableItems];
+    updated[index].quantity = qty;
+    setCustomSwappableItems(updated);
   };
 
   const handleSubmit = () => {
-    const items = comboItems.map(item => {
-      const product = products.find(p => p.id === item.productId);
-      if (!product) return null;
-      return {
-        product,
-        quantity: item.quantity,
-        isMichelada: item.isMichelada,
-      };
-    }).filter(Boolean) as { product: Product; quantity: number; isMichelada?: boolean }[];
+    // Agregar items fijos
+    const items: { product: Product; quantity: number; isMichelada?: boolean }[] = [];
+
+    for (const item of fixedItems) {
+      const product = products.find(p => p.id === item.product_id);
+      if (product) {
+        items.push({ product, quantity: item.quantity, isMichelada: item.is_michelada });
+      }
+    }
+
+    // Agregar items intercambiables personalizados
+    for (const item of customSwappableItems) {
+      if (item.quantity > 0) {
+        const product = products.find(p => p.id === item.productId);
+        if (product) {
+          // Detectar si es michelada basado en el item original
+          const originalIsMichelada = swappableItems.some(s => s.is_michelada);
+          items.push({ product, quantity: item.quantity, isMichelada: originalIsMichelada });
+        }
+      }
+    }
 
     onAdd(items, parseFloat(finalPrice) || combo.base_price);
   };
 
-  // Filtrar productos activos (solo cervezas para intercambio)
-  const beerProducts = products.filter(p =>
-    p.active && (p.category.includes('beer') || p.category === 'other')
-  );
+  const canSubmit = currentSwappableQty === totalSwappableQty || totalSwappableQty === 0;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-2">{combo.name}</h2>
         {combo.description && (
           <p className="text-sm text-gray-500 mb-4">{combo.description}</p>
@@ -1542,48 +1662,94 @@ function EditableComboModalSales({
           </div>
         )}
 
-        {/* Productos del combo */}
-        <div className="space-y-3 mb-4">
-          <p className="text-sm font-medium text-gray-700">Productos incluidos:</p>
-          {comboItems.map((item, index) => {
-            const currentProduct = products.find(p => p.id === item.productId);
-            return (
-              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                <span className="text-sm font-medium w-8 text-center">{item.quantity}x</span>
-                {item.isSwappable ? (
-                  <select
-                    value={item.productId}
-                    onChange={(e) => handleProductChange(index, e.target.value)}
-                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+        {/* Productos fijos del combo */}
+        {fixedItems.length > 0 && (
+          <div className="space-y-2 mb-4">
+            <p className="text-sm font-medium text-gray-700">Productos fijos:</p>
+            {fixedItems.map((item, index) => {
+              const product = products.find(p => p.id === item.product_id);
+              return (
+                <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium w-8 text-center">{item.quantity}x</span>
+                  <span className="flex-1 text-sm">{product?.name}</span>
+                  {item.is_michelada && (
+                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Mich</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Productos intercambiables */}
+        {totalSwappableQty > 0 && (
+          <div className="space-y-2 mb-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-gray-700">
+                Cervezas a elegir: <span className="text-amber-600">{currentSwappableQty}/{totalSwappableQty}</span>
+              </p>
+              {remainingQty > 0 && (
+                <button
+                  onClick={handleAddSwappableProduct}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  + Agregar otra
+                </button>
+              )}
+            </div>
+
+            {customSwappableItems.map((item, index) => (
+              <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleSwappableQtyChange(index, item.quantity - 1)}
+                    className="w-6 h-6 rounded bg-gray-200 text-gray-700 text-sm hover:bg-gray-300"
+                    disabled={item.quantity <= 1}
                   >
-                    {beerProducts.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <span className="flex-1 text-sm">{currentProduct?.name}</span>
-                )}
-                {item.isMichelada && (
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-                    Mich
-                  </span>
-                )}
-                {item.isSwappable && (
-                  <span className="text-xs text-blue-600">*</span>
+                    -
+                  </button>
+                  <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                  <button
+                    onClick={() => handleSwappableQtyChange(index, item.quantity + 1)}
+                    className="w-6 h-6 rounded bg-amber-200 text-amber-700 text-sm hover:bg-amber-300"
+                    disabled={remainingQty <= 0}
+                  >
+                    +
+                  </button>
+                </div>
+                <select
+                  value={item.productId}
+                  onChange={(e) => handleSwappableProductChange(index, e.target.value)}
+                  className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                >
+                  {beerProducts.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+                {customSwappableItems.length > 1 && (
+                  <button
+                    onClick={() => handleRemoveSwappableProduct(index)}
+                    className="text-red-500 hover:text-red-700 text-sm"
+                  >
+                    ✕
+                  </button>
                 )}
               </div>
-            );
-          })}
-          {comboItems.some(i => i.isSwappable) && (
-            <p className="text-xs text-blue-600">* Producto intercambiable</p>
-          )}
-        </div>
+            ))}
+
+            {remainingQty > 0 && (
+              <p className="text-xs text-amber-600">
+                Faltan {remainingQty} cerveza(s) por seleccionar
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="flex gap-3">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} className="flex-1">
+          <Button onClick={handleSubmit} disabled={!canSubmit} className="flex-1">
             Agregar {formatCurrency(parseFloat(finalPrice) || combo.base_price)}
           </Button>
         </div>
