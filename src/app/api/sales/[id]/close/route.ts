@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { logSaleClosed } from '@/lib/audit';
 
 interface CloseTabRequest {
   employee_id: string;
@@ -111,6 +112,9 @@ export async function POST(
         { status: 500 }
       );
     }
+
+    // Registrar en auditoría
+    await logSaleClosed(id, employee_id, total, payment_method);
 
     return NextResponse.json({
       success: true,

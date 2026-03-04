@@ -19,6 +19,7 @@ const navigation = [
   { name: 'Combos', href: '/combos', icon: GiftIcon, ownerOnly: true, superAdminOnly: false },
   { name: 'Proveedores', href: '/suppliers', icon: TruckIcon, ownerOnly: true, superAdminOnly: false },
   { name: 'Empleados', href: '/employees', icon: UsersIcon, ownerOnly: true, superAdminOnly: false },
+  { name: 'Historial', href: '/audit', icon: AuditIcon, ownerOnly: true, superAdminOnly: false },
   { name: 'Admin', href: '/admin', icon: SettingsIcon, ownerOnly: true, superAdminOnly: false },
 ];
 
@@ -238,6 +239,14 @@ function GiftIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+    </svg>
+  );
+}
+
+function AuditIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
     </svg>
   );
 }

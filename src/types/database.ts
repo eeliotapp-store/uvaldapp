@@ -247,3 +247,55 @@ export interface WeeklyStats {
   employees_worked: number;
   days_worked: number;
 }
+
+// ============================================
+// AUDITORÍA
+// ============================================
+
+export type AuditAction =
+  | 'CREATE'
+  | 'UPDATE'
+  | 'DELETE'
+  | 'VOID'
+  | 'CLOSE'
+  | 'TAKEOVER'
+  | 'ADD_ITEMS'
+  | 'PRICE_CHANGE';
+
+export type AuditEntity =
+  | 'SALE'
+  | 'SALE_ITEM'
+  | 'INVENTORY'
+  | 'PRODUCT'
+  | 'COMBO';
+
+export interface AuditLog {
+  id: string;
+  action: AuditAction;
+  entity_type: AuditEntity;
+  entity_id: string;
+  employee_id: string;
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
+  metadata: Record<string, unknown>;
+  description: string | null;
+  created_at: string;
+}
+
+// Vista de auditoría con info del empleado
+export interface AuditLogWithEmployee extends AuditLog {
+  employee_name: string;
+  sale_id: string | null;
+}
+
+// Para crear un registro de auditoría
+export interface CreateAuditLog {
+  action: AuditAction;
+  entity_type: AuditEntity;
+  entity_id: string;
+  employee_id: string;
+  old_values?: Record<string, unknown> | null;
+  new_values?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown>;
+  description?: string;
+}

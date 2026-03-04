@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { logSaleVoided } from '@/lib/audit';
 
 // POST: Anular venta
 export async function POST(
@@ -8,7 +9,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const { reason } = await request.json();
+    const { reason, employee_id } = await request.json();
 
     if (!reason) {
       return NextResponse.json(
@@ -74,6 +75,11 @@ export async function POST(
       .eq('id', id);
 
     if (updateError) throw updateError;
+
+    // Registrar en auditoría
+    if (employee_id) {
+      await logSaleVoided(id, employee_id, reason, sale.total || 0);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

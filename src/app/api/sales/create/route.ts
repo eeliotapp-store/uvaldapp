@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
+import { logSaleCreated, logSaleClosed } from '@/lib/audit';
 
 interface SaleItem {
   product_id: string;
@@ -267,6 +268,35 @@ export async function POST(request: NextRequest) {
         { error: itemsError.message || 'Error al registrar los productos' },
         { status: 500 }
       );
+    }
+
+    // Obtener nombres de productos para auditoría
+    const productIds = [...items.map(i => i.product_id), ...combos.flatMap(c => c.items.map(i => i.product_id))];
+    const { data: products } = await supabaseAdmin
+      .from('products')
+      .select('id, name')
+      .in('id', productIds);
+    const productMap = new Map(products?.map(p => [p.id, p.name]) || []);
+
+    // Registrar creación en auditoría
+    const auditItems = [
+      ...items.map(i => ({
+        product_name: productMap.get(i.product_id) || 'Desconocido',
+        quantity: i.quantity,
+        unit_price: i.unit_price,
+      })),
+      ...combos.flatMap(c => c.items.map(i => ({
+        product_name: productMap.get(i.product_id) || 'Desconocido',
+        quantity: i.quantity,
+        unit_price: c.final_price / c.items.reduce((sum, it) => sum + it.quantity, 0),
+      }))),
+    ];
+
+    await logSaleCreated(sale.id, employee_id, { total, table_number, status: close ? 'closed' : 'open' }, auditItems);
+
+    // Si se cerró inmediatamente, registrar también el cierre
+    if (close && payment_method) {
+      await logSaleClosed(sale.id, employee_id, total, payment_method);
     }
 
     return NextResponse.json({
