@@ -26,11 +26,15 @@ interface CreateSaleRequest {
   combos?: ComboSale[];
   table_number?: string;
   close?: boolean;
-  payment_method?: 'cash' | 'transfer' | 'mixed';
+  payment_method?: 'cash' | 'transfer' | 'mixed' | 'fiado';
   cash_received?: number;
   cash_change?: number;
   transfer_amount?: number;
   cash_amount?: number;
+  // Campos para fiado
+  fiado_customer_name?: string;
+  fiado_amount?: number;
+  fiado_abono?: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -49,6 +53,9 @@ export async function POST(request: NextRequest) {
       cash_change = 0,
       transfer_amount = 0,
       cash_amount = 0,
+      fiado_customer_name,
+      fiado_amount = 0,
+      fiado_abono = 0,
     } = body;
 
     // Validaciones básicas
@@ -99,6 +106,14 @@ export async function POST(request: NextRequest) {
         if (totalPaid < total) {
           return NextResponse.json(
             { error: 'Pago insuficiente' },
+            { status: 400 }
+          );
+        }
+      }
+      if (payment_method === 'fiado') {
+        if (!fiado_customer_name || fiado_customer_name.trim() === '') {
+          return NextResponse.json(
+            { error: 'Se requiere el nombre del cliente para fiado' },
             { status: 400 }
           );
         }
@@ -186,6 +201,15 @@ export async function POST(request: NextRequest) {
         saleData.cash_change = cash_change;
         saleData.cash_amount = cash_amount;
         saleData.transfer_amount = transfer_amount;
+      } else if (payment_method === 'fiado') {
+        saleData.cash_received = null;
+        saleData.cash_change = null;
+        saleData.cash_amount = fiado_abono;
+        saleData.transfer_amount = 0;
+        saleData.fiado_customer_name = fiado_customer_name;
+        saleData.fiado_amount = fiado_amount || (total - fiado_abono);
+        saleData.fiado_abono = fiado_abono;
+        saleData.fiado_paid = false;
       }
     }
 

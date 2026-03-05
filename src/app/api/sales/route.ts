@@ -25,7 +25,10 @@ export async function GET(request: NextRequest) {
           quantity,
           unit_price,
           subtotal,
-          products (id, name)
+          is_michelada,
+          combo_id,
+          products (id, name),
+          combos (id, name)
         )
       `)
       .or('status.eq.closed,status.is.null')

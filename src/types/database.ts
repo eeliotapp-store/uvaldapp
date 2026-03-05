@@ -2,7 +2,7 @@
 
 export type EmployeeRole = 'employee' | 'owner' | 'superadmin';
 export type ShiftType = 'day' | 'night';
-export type PaymentMethod = 'cash' | 'transfer' | 'mixed';
+export type PaymentMethod = 'cash' | 'transfer' | 'mixed' | 'fiado';
 export type SaleStatus = 'open' | 'closed' | 'voided';
 export type ProductCategory = 'beer_nacional' | 'beer_importada' | 'beer_artesanal' | 'other';
 
@@ -96,6 +96,12 @@ export interface Sale {
   taken_over_by_employee_id: string | null;
   taken_over_at: string | null;
   closed_by_employee_id: string | null;
+  // Fiado
+  fiado_customer_name: string | null;
+  fiado_amount: number | null;
+  fiado_abono: number | null;
+  fiado_paid: boolean;
+  fiado_paid_at: string | null;
   created_at: string;
 }
 
@@ -222,6 +228,9 @@ export interface OpenTab {
     quantity: number;
     unit_price: number;
     subtotal: number;
+    is_michelada?: boolean;
+    combo_id?: string | null;
+    combo_name?: string | null;
   }[];
 }
 

@@ -4,11 +4,15 @@ import { logSaleClosed } from '@/lib/audit';
 
 interface CloseTabRequest {
   employee_id: string;
-  payment_method: 'cash' | 'transfer' | 'mixed';
+  payment_method: 'cash' | 'transfer' | 'mixed' | 'fiado';
   cash_received?: number;
   cash_change?: number;
   transfer_amount?: number;
   cash_amount?: number;
+  // Campos para fiado
+  fiado_customer_name?: string;
+  fiado_amount?: number;
+  fiado_abono?: number;
 }
 
 // POST: Cerrar una cuenta abierta (procesar pago)
@@ -26,6 +30,9 @@ export async function POST(
       cash_change = 0,
       transfer_amount = 0,
       cash_amount = 0,
+      fiado_customer_name,
+      fiado_amount = 0,
+      fiado_abono = 0,
     } = body;
 
     if (!payment_method || !employee_id) {
@@ -74,6 +81,14 @@ export async function POST(
         );
       }
     }
+    if (payment_method === 'fiado') {
+      if (!fiado_customer_name || fiado_customer_name.trim() === '') {
+        return NextResponse.json(
+          { error: 'Se requiere el nombre del cliente para fiado' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Preparar datos de actualización
     const updateData: Record<string, unknown> = {
@@ -97,6 +112,15 @@ export async function POST(
       updateData.cash_change = cash_change;
       updateData.cash_amount = cash_amount;
       updateData.transfer_amount = transfer_amount;
+    } else if (payment_method === 'fiado') {
+      updateData.cash_received = null;
+      updateData.cash_change = null;
+      updateData.cash_amount = fiado_abono;
+      updateData.transfer_amount = 0;
+      updateData.fiado_customer_name = fiado_customer_name;
+      updateData.fiado_amount = fiado_amount || (total - fiado_abono);
+      updateData.fiado_abono = fiado_abono;
+      updateData.fiado_paid = false;
     }
 
     // Actualizar la venta

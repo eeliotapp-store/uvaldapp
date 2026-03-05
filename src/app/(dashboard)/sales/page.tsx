@@ -21,6 +21,11 @@ interface SaleWithDetails {
   voided: boolean;
   voided_reason: string | null;
   created_at: string;
+  // Fiado
+  fiado_customer_name: string | null;
+  fiado_amount: number | null;
+  fiado_abono: number | null;
+  fiado_paid: boolean;
   employees: { id: string; name: string };
   shifts: { id: string; type: string };
   sale_items: {
@@ -28,7 +33,10 @@ interface SaleWithDetails {
     quantity: number;
     unit_price: number;
     subtotal: number;
+    is_michelada?: boolean;
+    combo_id?: string | null;
     products: { id: string; name: string };
+    combos?: { id: string; name: string } | null;
   }[];
 }
 
@@ -192,6 +200,7 @@ export default function SalesPage() {
                   {tab.items?.slice(0, 3).map((item, idx) => (
                     <span key={idx}>
                       {item.quantity}x {item.product_name}
+                      {item.is_michelada && ' 🌶️'}
                       {idx < Math.min(tab.items.length - 1, 2) ? ', ' : ''}
                     </span>
                   ))}
@@ -263,6 +272,7 @@ export default function SalesPage() {
             <option value="cash">Efectivo</option>
             <option value="transfer">Transferencia</option>
             <option value="mixed">Mixto</option>
+            <option value="fiado">Fiado</option>
           </select>
         </div>
       </div>
@@ -309,6 +319,7 @@ export default function SalesPage() {
                         {sale.sale_items?.slice(0, 2).map((item) => (
                           <p key={item.id}>
                             {item.quantity}x {item.products?.name}
+                            {item.is_michelada && ' 🌶️'}
                           </p>
                         ))}
                         {sale.sale_items?.length > 2 && (
@@ -322,10 +333,15 @@ export default function SalesPage() {
                           ? 'bg-green-100 text-green-700'
                           : sale.payment_method === 'transfer'
                           ? 'bg-blue-100 text-blue-700'
+                          : sale.payment_method === 'fiado'
+                          ? 'bg-orange-100 text-orange-700'
                           : 'bg-purple-100 text-purple-700'
                       }`}>
-                        {sale.payment_method === 'cash' ? 'Efectivo' : sale.payment_method === 'transfer' ? 'Transferencia' : 'Mixto'}
+                        {sale.payment_method === 'cash' ? 'Efectivo' : sale.payment_method === 'transfer' ? 'Transferencia' : sale.payment_method === 'fiado' ? 'Fiado' : 'Mixto'}
                       </span>
+                      {sale.payment_method === 'fiado' && sale.fiado_customer_name && (
+                        <p className="text-xs text-orange-600 mt-1">{sale.fiado_customer_name}</p>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <span className={`font-bold ${sale.voided ? 'line-through text-red-500' : 'text-gray-900'}`}>
@@ -463,6 +479,21 @@ function SaleModal({
   const [cashReceived, setCashReceived] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
   const [cashAmountMixed, setCashAmountMixed] = useState('');
+
+  // Estado para fiado
+  const [fiadoCustomerName, setFiadoCustomerName] = useState('');
+  const [fiadoAbono, setFiadoAbono] = useState('');
+
+  // Estado para edición de items existentes
+  const [editingExistingItem, setEditingExistingItem] = useState<string | null>(null);
+  const [editItemModal, setEditItemModal] = useState<{
+    id: string;
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+    is_michelada: boolean;
+    original_price: number; // precio base sin michelada
+  } | null>(null);
 
   // Si es un tab existente, calcular el total previo
   const existingTotal = existingTab?.total || 0;
@@ -694,6 +725,79 @@ function SaleModal({
     setCartCombos(cartCombos.filter((_, i) => i !== index));
   };
 
+  // Eliminar item existente de una cuenta abierta
+  const handleDeleteExistingItem = async (itemId: string) => {
+    if (!existingTab) return;
+
+    setIsProcessing(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/sales/${existingTab.id}/edit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: employee?.id,
+          delete_items: [itemId],
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al eliminar item');
+      }
+
+      // Recargar datos del tab
+      onSuccess();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al eliminar item');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Actualizar item existente de una cuenta abierta
+  const handleUpdateExistingItem = async (
+    itemId: string,
+    newQuantity: number,
+    newUnitPrice: number
+  ) => {
+    if (!existingTab) return;
+
+    setIsProcessing(true);
+    setError('');
+
+    try {
+      const response = await fetch(`/api/sales/${existingTab.id}/edit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: employee?.id,
+          update_items: [{
+            id: itemId,
+            quantity: newQuantity,
+            unit_price: newUnitPrice,
+          }],
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al actualizar item');
+      }
+
+      setEditItemModal(null);
+      // Recargar datos del tab
+      onSuccess();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al actualizar item');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const getChange = () => {
     if (paymentMethod === 'cash') {
       return Math.max(0, (parseFloat(cashReceived) || 0) - total);
@@ -712,7 +816,17 @@ function SaleModal({
       const totalPaid = (parseFloat(transferAmount) || 0) + (parseFloat(cashAmountMixed) || 0);
       return totalPaid >= total;
     }
+    if (paymentMethod === 'fiado') {
+      // Fiado requiere nombre del cliente
+      return fiadoCustomerName.trim().length > 0;
+    }
     return false;
+  };
+
+  // Calcular monto fiado (total - abono)
+  const getFiadoAmount = () => {
+    const abono = parseFloat(fiadoAbono) || 0;
+    return Math.max(0, total - abono);
   };
 
   // Guardar como cuenta abierta (sin cobrar)
@@ -819,6 +933,8 @@ function SaleModal({
     const cashReceivedNum = parseFloat(cashReceived) || 0;
     const transferAmountNum = parseFloat(transferAmount) || 0;
     const cashMixedNum = parseFloat(cashAmountMixed) || 0;
+    const fiadoAbonoNum = parseFloat(fiadoAbono) || 0;
+    const fiadoAmountNum = getFiadoAmount();
 
     try {
       if (existingTab) {
@@ -863,6 +979,10 @@ function SaleModal({
             cash_change: change,
             transfer_amount: paymentMethod === 'transfer' ? total : paymentMethod === 'mixed' ? transferAmountNum : 0,
             cash_amount: paymentMethod === 'cash' ? total : paymentMethod === 'mixed' ? (cashMixedNum - change) : 0,
+            // Datos de fiado
+            fiado_customer_name: paymentMethod === 'fiado' ? fiadoCustomerName : null,
+            fiado_amount: paymentMethod === 'fiado' ? fiadoAmountNum : 0,
+            fiado_abono: paymentMethod === 'fiado' ? fiadoAbonoNum : 0,
           }),
         });
 
@@ -900,6 +1020,10 @@ function SaleModal({
             cash_change: change,
             transfer_amount: paymentMethod === 'transfer' ? total : paymentMethod === 'mixed' ? transferAmountNum : 0,
             cash_amount: paymentMethod === 'cash' ? total : paymentMethod === 'mixed' ? (cashMixedNum - change) : 0,
+            // Datos de fiado
+            fiado_customer_name: paymentMethod === 'fiado' ? fiadoCustomerName : null,
+            fiado_amount: paymentMethod === 'fiado' ? fiadoAmountNum : 0,
+            fiado_abono: paymentMethod === 'fiado' ? fiadoAbonoNum : 0,
           }),
         });
 
@@ -916,6 +1040,9 @@ function SaleModal({
         addTransferSale(total);
       } else if (paymentMethod === 'mixed') {
         addMixedSale(cashMixedNum, transferAmountNum, change);
+      } else if (paymentMethod === 'fiado' && fiadoAbonoNum > 0) {
+        // Solo registrar el abono en efectivo si hay
+        addCashSale(fiadoAbonoNum, 0);
       }
 
       onSuccess();
@@ -995,7 +1122,11 @@ function SaleModal({
                 <div className="space-y-1">
                   {existingTab?.items?.slice(0, 5).map((item, idx) => (
                     <div key={idx} className="flex justify-between text-sm">
-                      <span>{item.quantity}x {item.product_name}</span>
+                      <span>
+                        {item.quantity}x {item.product_name}
+                        {item.is_michelada && <span className="text-amber-600"> Michelada</span>}
+                        {item.combo_name && <span className="text-purple-600 text-xs"> (🎁 {item.combo_name})</span>}
+                      </span>
                       <span>{formatCurrency(item.subtotal)}</span>
                     </div>
                   ))}
@@ -1131,19 +1262,100 @@ function SaleModal({
               )}
 
               {/* Items existentes del tab */}
-              {existingItems.length > 0 && (
-                <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                  <h3 className="font-medium text-gray-700 mb-2">Productos ya agregados</h3>
-                  <div className="space-y-1 text-sm text-gray-600">
-                    {existingItems.map((item, idx) => (
-                      <div key={idx} className="flex justify-between">
-                        <span>{item.quantity}x {item.product_name}</span>
-                        <span>{formatCurrency(item.subtotal)}</span>
-                      </div>
-                    ))}
+              {existingItems.length > 0 && (() => {
+                // Agrupar items por combo
+                const comboGroups: Record<string, { name: string; items: typeof existingItems; total: number }> = {};
+                const individualItems: typeof existingItems = [];
+
+                existingItems.forEach((item) => {
+                  if (item.combo_id && item.combo_name) {
+                    if (!comboGroups[item.combo_id]) {
+                      comboGroups[item.combo_id] = { name: item.combo_name, items: [], total: 0 };
+                    }
+                    comboGroups[item.combo_id].items.push(item);
+                    comboGroups[item.combo_id].total += item.subtotal;
+                  } else {
+                    individualItems.push(item);
+                  }
+                });
+
+                return (
+                  <div className="bg-gray-50 rounded-xl p-4 mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium text-gray-700">Productos ya agregados</h3>
+                      <button
+                        onClick={() => setEditingExistingItem(editingExistingItem ? null : 'all')}
+                        className="text-xs text-amber-600 hover:text-amber-800"
+                      >
+                        {editingExistingItem ? 'Cancelar edición' : '✏️ Editar'}
+                      </button>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      {/* Combos agrupados */}
+                      {Object.entries(comboGroups).map(([comboId, group]) => (
+                        <div key={comboId} className="bg-purple-50 rounded-lg p-2 border border-purple-200">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium text-purple-800">🎁 COMBO: {group.name}</span>
+                            <span className="font-medium text-purple-700">{formatCurrency(group.total)}</span>
+                          </div>
+                          <div className="text-xs text-gray-600 pl-4">
+                            {group.items.map((item) => (
+                              <p key={item.id}>
+                                {item.quantity}x {item.product_name}
+                                {item.is_michelada && ' Michelada'}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Items individuales */}
+                      {individualItems.map((item) => {
+                        // Calcular precio base (sin michelada)
+                        const basePrice = item.is_michelada
+                          ? item.unit_price - MICHELADA_EXTRA
+                          : item.unit_price;
+
+                        return (
+                          <div key={item.id} className="flex items-center justify-between">
+                            <div className="flex-1">
+                              <span className="text-gray-900">
+                                {item.quantity}x {item.product_name}
+                                {item.is_michelada && <span className="text-amber-600"> Michelada</span>}
+                              </span>
+                            </div>
+                            {editingExistingItem ? (
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => setEditItemModal({
+                                    id: item.id,
+                                    product_name: item.product_name,
+                                    quantity: item.quantity,
+                                    unit_price: item.unit_price,
+                                    is_michelada: item.is_michelada || false,
+                                    original_price: basePrice,
+                                  })}
+                                  className="text-blue-500 hover:text-blue-700 text-xs px-2"
+                                >
+                                  ✏️ Editar
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteExistingItem(item.id)}
+                                  className="text-red-500 hover:text-red-700 text-xs px-2"
+                                >
+                                  🗑️ Quitar
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-gray-600">{formatCurrency(item.subtotal)}</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Agregar producto */}
               <div className="bg-amber-50 rounded-xl p-4 mb-4">
@@ -1326,22 +1538,22 @@ function SaleModal({
               </div>
 
               {/* Métodos de pago */}
-              <div className="grid grid-cols-3 gap-3">
-                {(['cash', 'transfer', 'mixed'] as PaymentMethod[]).map(method => (
+              <div className="grid grid-cols-4 gap-2">
+                {(['cash', 'transfer', 'mixed', 'fiado'] as PaymentMethod[]).map(method => (
                   <button
                     key={method}
                     onClick={() => setPaymentMethod(method)}
-                    className={`p-4 rounded-xl border-2 transition-all ${
+                    className={`p-3 rounded-xl border-2 transition-all ${
                       paymentMethod === method
                         ? 'border-amber-500 bg-amber-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="text-2xl mb-1">
-                      {method === 'cash' ? '💵' : method === 'transfer' ? '📱' : '💳'}
+                      {method === 'cash' ? '💵' : method === 'transfer' ? '📱' : method === 'mixed' ? '💳' : '📝'}
                     </div>
-                    <p className="font-medium text-sm">
-                      {method === 'cash' ? 'Efectivo' : method === 'transfer' ? 'Transferencia' : 'Mixto'}
+                    <p className="font-medium text-xs">
+                      {method === 'cash' ? 'Efectivo' : method === 'transfer' ? 'Transfer.' : method === 'mixed' ? 'Mixto' : 'Fiado'}
                     </p>
                   </button>
                 ))}
@@ -1422,6 +1634,55 @@ function SaleModal({
                       )}
                     </div>
                   )}
+                </div>
+              )}
+
+              {paymentMethod === 'fiado' && (
+                <div className="space-y-4">
+                  <div className="bg-orange-50 rounded-xl p-4 text-center">
+                    <p className="text-orange-700 text-sm font-medium">⚠️ Esta venta quedará como fiado</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nombre del cliente *
+                    </label>
+                    <input
+                      type="text"
+                      value={fiadoCustomerName}
+                      onChange={(e) => setFiadoCustomerName(e.target.value)}
+                      className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-orange-500"
+                      placeholder="¿A quién se le fía?"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Abono (opcional)
+                    </label>
+                    <input
+                      type="number"
+                      value={fiadoAbono}
+                      onChange={(e) => setFiadoAbono(e.target.value)}
+                      className="w-full px-4 py-3 text-lg font-bold text-center border-2 border-gray-200 rounded-xl focus:border-green-500"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="bg-orange-100 rounded-lg p-4">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Total:</span>
+                      <span className="font-medium">{formatCurrency(total)}</span>
+                    </div>
+                    {parseFloat(fiadoAbono) > 0 && (
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>Abono:</span>
+                        <span className="text-green-600 font-medium">-{formatCurrency(parseFloat(fiadoAbono) || 0)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-lg pt-2 border-t border-orange-200 mt-2">
+                      <span className="font-medium">Queda debiendo:</span>
+                      <span className="text-orange-700 font-bold">{formatCurrency(getFiadoAmount())}</span>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -1536,6 +1797,145 @@ function SaleModal({
           </div>
         </div>
       )}
+
+      {/* Modal para editar item existente */}
+      {editItemModal && (
+        <EditExistingItemModal
+          item={editItemModal}
+          onClose={() => setEditItemModal(null)}
+          onSave={(newQuantity, isMichelada) => {
+            const newUnitPrice = isMichelada
+              ? editItemModal.original_price + MICHELADA_EXTRA
+              : editItemModal.original_price;
+            handleUpdateExistingItem(editItemModal.id, newQuantity, newUnitPrice);
+          }}
+          isProcessing={isProcessing}
+        />
+      )}
+    </div>
+  );
+}
+
+// Modal para editar item existente
+function EditExistingItemModal({
+  item,
+  onClose,
+  onSave,
+  isProcessing,
+}: {
+  item: {
+    id: string;
+    product_name: string;
+    quantity: number;
+    unit_price: number;
+    is_michelada: boolean;
+    original_price: number;
+  };
+  onClose: () => void;
+  onSave: (quantity: number, isMichelada: boolean) => void;
+  isProcessing: boolean;
+}) {
+  const [quantity, setQuantity] = useState(item.quantity);
+  const [isMichelada, setIsMichelada] = useState(item.is_michelada);
+
+  const newUnitPrice = isMichelada
+    ? item.original_price + MICHELADA_EXTRA
+    : item.original_price;
+  const newSubtotal = quantity * newUnitPrice;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+      <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+        <h2 className="text-xl font-bold mb-4 text-center">
+          Editar Item
+        </h2>
+
+        <div className="bg-gray-50 rounded-lg p-3 mb-4">
+          <p className="font-medium text-gray-900">{item.product_name}</p>
+          <p className="text-sm text-gray-500">Precio base: {formatCurrency(item.original_price)}</p>
+        </div>
+
+        {/* Cantidad */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Cantidad
+          </label>
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xl hover:bg-gray-300"
+              disabled={quantity <= 1}
+            >
+              -
+            </button>
+            <span className="text-2xl font-bold w-12 text-center">{quantity}</span>
+            <button
+              onClick={() => setQuantity(quantity + 1)}
+              className="w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl text-amber-700 hover:bg-amber-300"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Michelada toggle */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Tipo de preparación
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setIsMichelada(false)}
+              className={`p-3 rounded-xl border-2 transition-all ${
+                !isMichelada
+                  ? 'border-amber-500 bg-amber-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="text-2xl mb-1">🍺</div>
+              <p className="font-medium text-sm">Normal</p>
+              <p className="text-xs text-gray-500">{formatCurrency(item.original_price)}</p>
+            </button>
+            <button
+              onClick={() => setIsMichelada(true)}
+              className={`p-3 rounded-xl border-2 transition-all ${
+                isMichelada
+                  ? 'border-amber-500 bg-amber-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="text-2xl mb-1">🌶️</div>
+              <p className="font-medium text-sm text-amber-700">Michelada</p>
+              <p className="text-xs text-amber-600">{formatCurrency(item.original_price + MICHELADA_EXTRA)}</p>
+            </button>
+          </div>
+        </div>
+
+        {/* Resumen */}
+        <div className="bg-amber-50 rounded-lg p-3 mb-4">
+          <div className="flex justify-between text-sm">
+            <span>Precio unitario:</span>
+            <span>{formatCurrency(newUnitPrice)}</span>
+          </div>
+          <div className="flex justify-between font-bold text-lg mt-1">
+            <span>Subtotal:</span>
+            <span className="text-amber-700">{formatCurrency(newSubtotal)}</span>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={onClose} className="flex-1" disabled={isProcessing}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => onSave(quantity, isMichelada)}
+            className="flex-1"
+            disabled={isProcessing}
+          >
+            {isProcessing ? 'Guardando...' : 'Guardar Cambios'}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1759,9 +2159,25 @@ function EditableComboModalSales({
 }
 
 function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: () => void }) {
+  // Agrupar items por combo
+  const comboGroups: Record<string, { name: string; items: typeof sale.sale_items; total: number }> = {};
+  const individualItems: typeof sale.sale_items = [];
+
+  sale.sale_items?.forEach((item) => {
+    if (item.combo_id && item.combos?.name) {
+      if (!comboGroups[item.combo_id]) {
+        comboGroups[item.combo_id] = { name: item.combos.name, items: [], total: 0 };
+      }
+      comboGroups[item.combo_id].items.push(item);
+      comboGroups[item.combo_id].total += item.subtotal;
+    } else {
+      individualItems.push(item);
+    }
+  });
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">Detalle de Venta</h2>
 
         <div className="space-y-3 mb-4">
@@ -1781,7 +2197,11 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Método de pago:</span>
-            <span>{sale.payment_method === 'cash' ? 'Efectivo' : sale.payment_method === 'transfer' ? 'Transferencia' : 'Mixto'}</span>
+            <span>
+              {sale.payment_method === 'cash' ? 'Efectivo' :
+               sale.payment_method === 'transfer' ? 'Transferencia' :
+               sale.payment_method === 'fiado' ? 'Fiado' : 'Mixto'}
+            </span>
           </div>
           {(sale.payment_method === 'cash' || sale.payment_method === 'mixed') && sale.cash_received && (
             <>
@@ -1797,15 +2217,56 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
               )}
             </>
           )}
+          {sale.payment_method === 'fiado' && (
+            <div className="bg-orange-50 rounded-lg p-3 mt-2">
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-600">Cliente:</span>
+                <span className="font-medium text-orange-700">{sale.fiado_customer_name}</span>
+              </div>
+              {sale.fiado_abono && sale.fiado_abono > 0 && (
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-600">Abono:</span>
+                  <span className="text-green-600">{formatCurrency(sale.fiado_abono)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Queda debiendo:</span>
+                <span className="font-bold text-orange-700">{formatCurrency(sale.fiado_amount || 0)}</span>
+              </div>
+              {sale.fiado_paid && (
+                <p className="text-xs text-green-600 mt-2">✅ Pagado</p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="border-t border-gray-200 pt-4 mb-4">
           <h3 className="font-medium mb-2">Productos</h3>
           <div className="space-y-2">
-            {sale.sale_items?.map((item) => (
+            {/* Combos agrupados */}
+            {Object.entries(comboGroups).map(([comboId, group]) => (
+              <div key={comboId} className="bg-purple-50 rounded-lg p-3">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="font-medium text-purple-800">🎁 {group.name}</span>
+                  <span className="font-medium text-purple-700">{formatCurrency(group.total)}</span>
+                </div>
+                <div className="space-y-1 text-xs text-gray-600">
+                  {group.items.map((item) => (
+                    <p key={item.id}>
+                      {item.quantity}x {item.products?.name}
+                      {item.is_michelada && ' 🌶️'}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Items individuales */}
+            {individualItems.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
                 <span>
                   {item.quantity}x {item.products?.name}
+                  {item.is_michelada && <span className="text-amber-600 ml-1">🌶️ michelada</span>}
                 </span>
                 <span className="font-medium">{formatCurrency(item.subtotal)}</span>
               </div>
