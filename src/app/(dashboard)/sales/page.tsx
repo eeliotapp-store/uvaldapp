@@ -1296,15 +1296,58 @@ function SaleModal({
                         <div key={comboId} className="bg-purple-50 rounded-lg p-2 border border-purple-200">
                           <div className="flex items-center justify-between mb-1">
                             <span className="font-medium text-purple-800">🎁 COMBO: {group.name}</span>
-                            <span className="font-medium text-purple-700">{formatCurrency(group.total)}</span>
+                            {editingExistingItem ? (
+                              <button
+                                onClick={() => {
+                                  // Eliminar todos los items del combo
+                                  group.items.forEach(item => handleDeleteExistingItem(item.id));
+                                }}
+                                className="text-red-500 hover:text-red-700 text-xs"
+                              >
+                                🗑️ Quitar combo
+                              </button>
+                            ) : (
+                              <span className="font-medium text-purple-700">{formatCurrency(group.total)}</span>
+                            )}
                           </div>
-                          <div className="text-xs text-gray-600 pl-4">
-                            {group.items.map((item) => (
-                              <p key={item.id}>
-                                {item.quantity}x {item.product_name}
-                                {item.is_michelada && ' Michelada'}
-                              </p>
-                            ))}
+                          <div className="text-xs text-gray-600 pl-4 space-y-1">
+                            {group.items.map((item) => {
+                              const basePrice = item.is_michelada
+                                ? item.unit_price - MICHELADA_EXTRA
+                                : item.unit_price;
+
+                              return (
+                                <div key={item.id} className="flex items-center justify-between">
+                                  <span>
+                                    {item.quantity}x {item.product_name}
+                                    {item.is_michelada && <span className="text-amber-600"> Michelada</span>}
+                                  </span>
+                                  {editingExistingItem && (
+                                    <div className="flex gap-1">
+                                      <button
+                                        onClick={() => setEditItemModal({
+                                          id: item.id,
+                                          product_name: item.product_name,
+                                          quantity: item.quantity,
+                                          unit_price: item.unit_price,
+                                          is_michelada: item.is_michelada || false,
+                                          original_price: basePrice,
+                                        })}
+                                        className="text-blue-500 hover:text-blue-700 text-xs"
+                                      >
+                                        ✏️
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteExistingItem(item.id)}
+                                        className="text-red-500 hover:text-red-700 text-xs"
+                                      >
+                                        🗑️
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       ))}
