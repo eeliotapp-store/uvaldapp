@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 
-// Rutas públicas (sin autenticación)
+// Rutas públicas
 const PUBLIC_PATHS = ['/login', '/api/auth/login'];
 
 // Rutas solo para owners/superadmin (páginas)
