@@ -89,7 +89,7 @@ export default function ReportsPage() {
   const [error, setError] = useState('');
 
   // Solo owners y superadmin pueden ver reportes
-  if (!employee || !isOwner(employee)) {
+  if (!employee || !isOwner(employee.role)) {
     return (
       <div className="p-4 text-center">
         <p className="text-gray-500">No tienes permisos para ver reportes</p>
