@@ -26,7 +26,14 @@ interface SaleWithDetails {
   fiado_amount: number | null;
   fiado_abono: number | null;
   fiado_paid: boolean;
+  // Tracking de empleados
+  opened_by_employee_id: string | null;
+  closed_by_employee_id: string | null;
+  taken_over_by_employee_id: string | null;
   employees: { id: string; name: string };
+  opened_by?: { id: string; name: string } | null;
+  closed_by?: { id: string; name: string } | null;
+  taken_over_by?: { id: string; name: string } | null;
   shifts: { id: string; type: string };
   sale_items: {
     id: string;
@@ -35,8 +42,10 @@ interface SaleWithDetails {
     subtotal: number;
     is_michelada?: boolean;
     combo_id?: string | null;
+    added_by_employee_id?: string | null;
     products: { id: string; name: string };
     combos?: { id: string; name: string } | null;
+    added_by?: { id: string; name: string } | null;
   }[];
 }
 
@@ -852,6 +861,7 @@ function SaleModal({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              employee_id: employee.id,
               items: cart.map(item => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
@@ -944,6 +954,7 @@ function SaleModal({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
+              employee_id: employee.id,
               items: cart.map(item => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
@@ -1292,24 +1303,35 @@ function SaleModal({
                     </div>
                     <div className="space-y-2 text-sm">
                       {/* Combos agrupados */}
-                      {Object.entries(comboGroups).map(([comboId, group]) => (
-                        <div key={comboId} className="bg-purple-50 rounded-lg p-2 border border-purple-200">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-purple-800">🎁 COMBO: {group.name}</span>
-                            {editingExistingItem ? (
-                              <button
-                                onClick={() => {
-                                  // Eliminar todos los items del combo
-                                  group.items.forEach(item => handleDeleteExistingItem(item.id));
-                                }}
-                                className="text-red-500 hover:text-red-700 text-xs"
-                              >
-                                🗑️ Quitar combo
-                              </button>
-                            ) : (
-                              <span className="font-medium text-purple-700">{formatCurrency(group.total)}</span>
-                            )}
-                          </div>
+                      {Object.entries(comboGroups).map(([comboId, group]) => {
+                        // Obtener el nombre del empleado que agregó el combo (del primer item)
+                        const addedByName = group.items[0]?.added_by_name;
+
+                        return (
+                          <div key={comboId} className="bg-purple-50 rounded-lg p-2 border border-purple-200">
+                            <div className="flex items-center justify-between mb-1">
+                              <div>
+                                <span className="font-medium text-purple-800">🎁 COMBO: {group.name}</span>
+                                {addedByName && (
+                                  <div className="text-xs text-purple-600">
+                                    Agregado por: <span className="font-medium">{addedByName}</span>
+                                  </div>
+                                )}
+                              </div>
+                              {editingExistingItem ? (
+                                <button
+                                  onClick={() => {
+                                    // Eliminar todos los items del combo
+                                    group.items.forEach(item => handleDeleteExistingItem(item.id));
+                                  }}
+                                  className="text-red-500 hover:text-red-700 text-xs"
+                                >
+                                  🗑️ Quitar combo
+                                </button>
+                              ) : (
+                                <span className="font-medium text-purple-700">{formatCurrency(group.total)}</span>
+                              )}
+                            </div>
                           <div className="text-xs text-gray-600 pl-4 space-y-1">
                             {group.items.map((item) => {
                               const basePrice = item.is_michelada
@@ -1350,7 +1372,8 @@ function SaleModal({
                             })}
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
 
                       {/* Items individuales */}
                       {individualItems.map((item) => {
@@ -1360,12 +1383,17 @@ function SaleModal({
                           : item.unit_price;
 
                         return (
-                          <div key={item.id} className="flex items-center justify-between">
+                          <div key={item.id} className="flex items-center justify-between py-1">
                             <div className="flex-1">
-                              <span className="text-gray-900">
+                              <div className="text-gray-900">
                                 {item.quantity}x {item.product_name}
                                 {item.is_michelada && <span className="text-amber-600"> Michelada</span>}
-                              </span>
+                              </div>
+                              {item.added_by_name && (
+                                <div className="text-xs text-gray-500">
+                                  Agregado por: <span className="font-medium">{item.added_by_name}</span>
+                                </div>
+                              )}
                             </div>
                             {editingExistingItem ? (
                               <div className="flex gap-2">
@@ -2234,10 +2262,38 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
               <span>{sale.table_number}</span>
             </div>
           )}
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Empleado:</span>
-            <span>{sale.employees?.name}</span>
+
+          {/* Empleados que intervinieron */}
+          <div className="bg-blue-50 rounded-lg p-3 mt-2">
+            <p className="text-xs font-medium text-blue-800 mb-2">Empleados que intervinieron:</p>
+            <div className="space-y-1 text-sm">
+              {sale.opened_by?.name && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Abrió la cuenta:</span>
+                  <span className="font-medium">{sale.opened_by.name}</span>
+                </div>
+              )}
+              {sale.taken_over_by?.name && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Retomó la cuenta:</span>
+                  <span className="font-medium">{sale.taken_over_by.name}</span>
+                </div>
+              )}
+              {sale.closed_by?.name && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Cerró la cuenta:</span>
+                  <span className="font-medium">{sale.closed_by.name}</span>
+                </div>
+              )}
+              {!sale.opened_by?.name && !sale.taken_over_by?.name && !sale.closed_by?.name && sale.employees?.name && (
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Empleado:</span>
+                  <span className="font-medium">{sale.employees.name}</span>
+                </div>
+              )}
+            </div>
           </div>
+
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Método de pago:</span>
             <span>
@@ -2287,31 +2343,46 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
           <h3 className="font-medium mb-2">Productos</h3>
           <div className="space-y-2">
             {/* Combos agrupados */}
-            {Object.entries(comboGroups).map(([comboId, group]) => (
-              <div key={comboId} className="bg-purple-50 rounded-lg p-3">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="font-medium text-purple-800">🎁 {group.name}</span>
-                  <span className="font-medium text-purple-700">{formatCurrency(group.total)}</span>
+            {Object.entries(comboGroups).map(([comboId, group]) => {
+              // Obtener quién agregó el combo (del primer item)
+              const addedByName = group.items[0]?.added_by?.name;
+
+              return (
+                <div key={comboId} className="bg-purple-50 rounded-lg p-3">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <span className="font-medium text-purple-800">🎁 {group.name}</span>
+                      {addedByName && (
+                        <p className="text-xs text-purple-600">Vendido por: {addedByName}</p>
+                      )}
+                    </div>
+                    <span className="font-medium text-purple-700">{formatCurrency(group.total)}</span>
+                  </div>
+                  <div className="space-y-1 text-xs text-gray-600">
+                    {group.items.map((item) => (
+                      <p key={item.id}>
+                        {item.quantity}x {item.products?.name}
+                        {item.is_michelada && ' 🌶️'}
+                      </p>
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-1 text-xs text-gray-600">
-                  {group.items.map((item) => (
-                    <p key={item.id}>
-                      {item.quantity}x {item.products?.name}
-                      {item.is_michelada && ' 🌶️'}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Items individuales */}
             {individualItems.map((item) => (
-              <div key={item.id} className="flex justify-between text-sm">
-                <span>
-                  {item.quantity}x {item.products?.name}
-                  {item.is_michelada && <span className="text-amber-600 ml-1">🌶️ michelada</span>}
-                </span>
-                <span className="font-medium">{formatCurrency(item.subtotal)}</span>
+              <div key={item.id} className="text-sm py-1">
+                <div className="flex justify-between">
+                  <span>
+                    {item.quantity}x {item.products?.name}
+                    {item.is_michelada && <span className="text-amber-600 ml-1">🌶️ michelada</span>}
+                  </span>
+                  <span className="font-medium">{formatCurrency(item.subtotal)}</span>
+                </div>
+                {item.added_by?.name && (
+                  <p className="text-xs text-gray-500">Vendido por: {item.added_by.name}</p>
+                )}
               </div>
             ))}
           </div>

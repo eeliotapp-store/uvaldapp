@@ -238,6 +238,7 @@ export async function POST(request: NextRequest) {
       is_michelada: boolean;
       combo_id: string | null;
       combo_price_override: number | null;
+      added_by_employee_id: string;
     }[] = [];
 
     // Items individuales
@@ -251,6 +252,7 @@ export async function POST(request: NextRequest) {
         is_michelada: item.is_michelada || false,
         combo_id: null,
         combo_price_override: null,
+        added_by_employee_id: employee_id,
       });
     }
 
@@ -273,6 +275,7 @@ export async function POST(request: NextRequest) {
           is_michelada: item.is_michelada || false,
           combo_id: combo.combo_id,
           combo_price_override: isFirstComboItem ? combo.final_price : null,
+          added_by_employee_id: employee_id,
         });
         isFirstComboItem = false;
       }

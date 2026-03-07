@@ -94,13 +94,15 @@ export async function POST(
           }
         }
 
-        // Actualizar el item
+        // Actualizar el item (incluyendo quién lo modificó)
         const { error: updateError } = await supabaseAdmin
           .from('sale_items')
           .update({
             quantity: newQuantity,
             unit_price: newUnitPrice,
             subtotal: newSubtotal,
+            modified_by_employee_id: employee_id,
+            modified_at: new Date().toISOString(),
           })
           .eq('id', item.id);
 
@@ -167,6 +169,7 @@ export async function POST(
         unit_price: item.unit_price,
         subtotal: item.quantity * item.unit_price,
         is_michelada: item.is_michelada || false,
+        added_by_employee_id: employee_id,
       }));
 
       const { error: insertError } = await supabaseAdmin

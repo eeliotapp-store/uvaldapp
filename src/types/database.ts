@@ -115,6 +115,10 @@ export interface SaleItem {
   combo_id?: string | null;
   is_michelada?: boolean;
   combo_price_override?: number | null;
+  // Tracking de empleado
+  added_by_employee_id?: string | null;
+  modified_by_employee_id?: string | null;
+  modified_at?: string | null;
 }
 
 // Combos/Promociones
@@ -231,6 +235,8 @@ export interface OpenTab {
     is_michelada?: boolean;
     combo_id?: string | null;
     combo_name?: string | null;
+    added_by_employee_id?: string | null;
+    added_by_name?: string | null;
   }[];
 }
 

@@ -19,6 +19,9 @@ export async function GET(request: NextRequest) {
       .select(`
         *,
         employees:employees!sales_employee_id_fkey (id, name),
+        opened_by:employees!sales_opened_by_employee_id_fkey (id, name),
+        closed_by:employees!sales_closed_by_employee_id_fkey (id, name),
+        taken_over_by:employees!sales_taken_over_by_employee_id_fkey (id, name),
         shifts (id, type),
         sale_items (
           id,
@@ -27,6 +30,7 @@ export async function GET(request: NextRequest) {
           subtotal,
           is_michelada,
           combo_id,
+          added_by_employee_id,
           products (id, name),
           combos (id, name)
         )
@@ -55,6 +59,40 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
+    // Obtener IDs únicos de empleados que agregaron items
+    const addedByIds = new Set<string>();
+    data?.forEach((sale) => {
+      sale.sale_items?.forEach((item: { added_by_employee_id?: string | null }) => {
+        if (item.added_by_employee_id) {
+          addedByIds.add(item.added_by_employee_id);
+        }
+      });
+    });
+
+    // Obtener nombres de empleados
+    let employeeMap: Record<string, string> = {};
+    if (addedByIds.size > 0) {
+      const { data: employees } = await supabaseAdmin
+        .from('employees')
+        .select('id, name')
+        .in('id', Array.from(addedByIds));
+
+      if (employees) {
+        employeeMap = Object.fromEntries(employees.map(e => [e.id, e.name]));
+      }
+    }
+
+    // Agregar added_by a cada item
+    const salesWithAddedBy = data?.map((sale) => ({
+      ...sale,
+      sale_items: sale.sale_items?.map((item: { added_by_employee_id?: string | null }) => ({
+        ...item,
+        added_by: item.added_by_employee_id
+          ? { id: item.added_by_employee_id, name: employeeMap[item.added_by_employee_id] || null }
+          : null,
+      })),
+    }));
+
     // Calcular totales
     const totals = {
       total_sales: 0,
@@ -64,7 +102,7 @@ export async function GET(request: NextRequest) {
       voided_count: 0,
     };
 
-    data?.forEach((sale) => {
+    salesWithAddedBy?.forEach((sale) => {
       if (!sale.voided) {
         totals.total_sales += sale.total;
         totals.transactions++;
@@ -82,7 +120,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({ sales: data, totals });
+    return NextResponse.json({ sales: salesWithAddedBy, totals });
   } catch (error) {
     console.error('Error fetching sales:', error);
     return NextResponse.json(
