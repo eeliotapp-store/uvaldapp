@@ -1,0 +1,407 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase/server';
+
+// GET: Reporte de turnos
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get('date'); // Fecha específica
+    const shift_id = searchParams.get('shift_id'); // Turno específico
+    const start_date = searchParams.get('start_date');
+    const end_date = searchParams.get('end_date');
+
+    // Si se pide un turno específico
+    if (shift_id) {
+      return await getShiftReport(shift_id);
+    }
+
+    // Si se pide una fecha específica (reporte diario con ambos turnos)
+    if (date) {
+      return await getDailyReport(date);
+    }
+
+    // Si se pide un rango de fechas
+    if (start_date && end_date) {
+      return await getDateRangeReport(start_date, end_date);
+    }
+
+    // Por defecto, obtener turnos de hoy
+    const today = new Date().toISOString().split('T')[0];
+    return await getDailyReport(today);
+  } catch (error) {
+    console.error('Report error:', error);
+    return NextResponse.json(
+      { error: 'Error al generar reporte' },
+      { status: 500 }
+    );
+  }
+}
+
+// Reporte de un turno específico
+async function getShiftReport(shiftId: string) {
+  // Obtener datos del turno
+  const { data: shift, error: shiftError } = await supabaseAdmin
+    .from('shifts')
+    .select(`
+      *,
+      employees (id, name)
+    `)
+    .eq('id', shiftId)
+    .single();
+
+  if (shiftError || !shift) {
+    return NextResponse.json({ error: 'Turno no encontrado' }, { status: 404 });
+  }
+
+  // Obtener resumen del turno
+  const { data: summary } = await supabaseAdmin
+    .from('v_shift_summary')
+    .select('*')
+    .eq('shift_id', shiftId)
+    .single();
+
+  // Obtener ventas del turno
+  const { data: sales } = await supabaseAdmin
+    .from('sales')
+    .select(`
+      id,
+      total,
+      payment_method,
+      voided,
+      created_at,
+      table_number,
+      fiado_customer_name,
+      fiado_amount,
+      employees (name)
+    `)
+    .eq('shift_id', shiftId)
+    .or('status.eq.closed,status.is.null')
+    .order('created_at', { ascending: true });
+
+  // Obtener productos vendidos en el turno (agrupados)
+  const { data: productsSold } = await supabaseAdmin
+    .from('sale_items')
+    .select(`
+      product_id,
+      quantity,
+      unit_price,
+      subtotal,
+      is_michelada,
+      combo_id,
+      products (id, name),
+      combos (id, name),
+      sales!inner (shift_id, voided, status)
+    `)
+    .eq('sales.shift_id', shiftId)
+    .eq('sales.voided', false);
+
+  // Agrupar productos vendidos
+  const productSummary: Record<string, {
+    product_id: string;
+    product_name: string;
+    quantity: number;
+    total: number;
+    is_combo: boolean;
+    combo_name?: string;
+  }> = {};
+
+  productsSold?.forEach((item) => {
+    const key = item.is_michelada
+      ? `${item.product_id}-michelada`
+      : item.combo_id
+        ? `${item.product_id}-combo-${item.combo_id}`
+        : item.product_id;
+
+    if (!productSummary[key]) {
+      productSummary[key] = {
+        product_id: item.product_id,
+        product_name: item.products?.name + (item.is_michelada ? ' (Michelada)' : ''),
+        quantity: 0,
+        total: 0,
+        is_combo: !!item.combo_id,
+        combo_name: item.combos?.name,
+      };
+    }
+    productSummary[key].quantity += item.quantity;
+    productSummary[key].total += item.subtotal;
+  });
+
+  // Calcular totales por método de pago
+  const paymentTotals = {
+    cash: 0,
+    transfer: 0,
+    mixed_cash: 0,
+    mixed_transfer: 0,
+    fiado: 0,
+    fiado_abonos: 0,
+  };
+
+  sales?.forEach((sale) => {
+    if (!sale.voided) {
+      if (sale.payment_method === 'cash') {
+        paymentTotals.cash += sale.total;
+      } else if (sale.payment_method === 'transfer') {
+        paymentTotals.transfer += sale.total;
+      } else if (sale.payment_method === 'mixed') {
+        // Para mixed, necesitamos los campos cash_amount y transfer_amount
+        // Por ahora usamos el total
+        paymentTotals.mixed_cash += sale.total * 0.5; // Aproximación
+        paymentTotals.mixed_transfer += sale.total * 0.5;
+      } else if (sale.payment_method === 'fiado') {
+        paymentTotals.fiado += sale.fiado_amount || sale.total;
+      }
+    }
+  });
+
+  return NextResponse.json({
+    shift: {
+      id: shift.id,
+      type: shift.type,
+      employee_name: shift.employees?.name,
+      start_time: shift.start_time,
+      end_time: shift.end_time,
+      cash_start: shift.cash_start,
+      cash_end: shift.cash_end,
+      notes: shift.notes,
+      is_active: shift.is_active,
+    },
+    summary: summary || {
+      total_sales: 0,
+      cash_sales: 0,
+      transfer_sales: 0,
+      transactions_count: 0,
+    },
+    sales: sales || [],
+    products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity),
+    payment_totals: paymentTotals,
+  });
+}
+
+// Reporte diario (ambos turnos)
+async function getDailyReport(date: string) {
+  const startOfDay = `${date}T00:00:00`;
+  const endOfDay = `${date}T23:59:59`;
+
+  // Obtener turnos del día
+  const { data: shifts } = await supabaseAdmin
+    .from('shifts')
+    .select(`
+      *,
+      employees (id, name)
+    `)
+    .gte('start_time', startOfDay)
+    .lte('start_time', endOfDay)
+    .order('start_time', { ascending: true });
+
+  // Obtener resúmenes de turnos
+  const shiftIds = shifts?.map(s => s.id) || [];
+
+  let summaries: Record<string, unknown>[] = [];
+  if (shiftIds.length > 0) {
+    const { data } = await supabaseAdmin
+      .from('v_shift_summary')
+      .select('*')
+      .in('shift_id', shiftIds);
+    summaries = data || [];
+  }
+
+  // Obtener todas las ventas del día
+  const { data: sales } = await supabaseAdmin
+    .from('sales')
+    .select(`
+      id,
+      shift_id,
+      total,
+      payment_method,
+      cash_amount,
+      transfer_amount,
+      voided,
+      created_at,
+      fiado_customer_name,
+      fiado_amount,
+      fiado_abono
+    `)
+    .gte('created_at', startOfDay)
+    .lte('created_at', endOfDay)
+    .or('status.eq.closed,status.is.null');
+
+  // Obtener productos vendidos
+  const { data: productsSold } = await supabaseAdmin
+    .from('sale_items')
+    .select(`
+      product_id,
+      quantity,
+      unit_price,
+      subtotal,
+      is_michelada,
+      combo_id,
+      products (id, name),
+      combos (id, name),
+      sales!inner (created_at, voided, status)
+    `)
+    .gte('sales.created_at', startOfDay)
+    .lte('sales.created_at', endOfDay)
+    .eq('sales.voided', false);
+
+  // Agrupar productos
+  const productSummary: Record<string, {
+    product_id: string;
+    product_name: string;
+    quantity: number;
+    total: number;
+  }> = {};
+
+  productsSold?.forEach((item) => {
+    const key = item.is_michelada
+      ? `${item.product_id}-michelada`
+      : item.product_id;
+
+    if (!productSummary[key]) {
+      productSummary[key] = {
+        product_id: item.product_id,
+        product_name: item.products?.name + (item.is_michelada ? ' (Michelada)' : ''),
+        quantity: 0,
+        total: 0,
+      };
+    }
+    productSummary[key].quantity += item.quantity;
+    productSummary[key].total += item.subtotal;
+  });
+
+  // Calcular totales del día
+  const dayTotals = {
+    total_sales: 0,
+    cash_sales: 0,
+    transfer_sales: 0,
+    transactions: 0,
+    voided_count: 0,
+    fiado_total: 0,
+    fiado_abonos: 0,
+  };
+
+  sales?.forEach((sale) => {
+    if (!sale.voided) {
+      dayTotals.total_sales += sale.total;
+      dayTotals.transactions++;
+
+      if (sale.payment_method === 'cash') {
+        dayTotals.cash_sales += sale.total;
+      } else if (sale.payment_method === 'transfer') {
+        dayTotals.transfer_sales += sale.total;
+      } else if (sale.payment_method === 'mixed') {
+        dayTotals.cash_sales += sale.cash_amount || 0;
+        dayTotals.transfer_sales += sale.transfer_amount || 0;
+      } else if (sale.payment_method === 'fiado') {
+        dayTotals.fiado_total += sale.fiado_amount || 0;
+        dayTotals.fiado_abonos += sale.fiado_abono || 0;
+        dayTotals.cash_sales += sale.fiado_abono || 0;
+      }
+    } else {
+      dayTotals.voided_count++;
+    }
+  });
+
+  // Construir reporte por turno
+  const shiftReports = shifts?.map(shift => {
+    const shiftSummary = summaries.find((s: { shift_id?: string }) => s.shift_id === shift.id);
+    const shiftSales = sales?.filter(s => s.shift_id === shift.id) || [];
+
+    return {
+      id: shift.id,
+      type: shift.type,
+      employee_name: shift.employees?.name,
+      start_time: shift.start_time,
+      end_time: shift.end_time,
+      cash_start: shift.cash_start,
+      cash_end: shift.cash_end,
+      notes: shift.notes,
+      is_active: shift.is_active,
+      summary: shiftSummary || null,
+      sales_count: shiftSales.filter(s => !s.voided).length,
+      total: shiftSales.filter(s => !s.voided).reduce((sum, s) => sum + s.total, 0),
+    };
+  }) || [];
+
+  return NextResponse.json({
+    date,
+    shifts: shiftReports,
+    day_totals: dayTotals,
+    products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity),
+  });
+}
+
+// Reporte de rango de fechas
+async function getDateRangeReport(startDate: string, endDate: string) {
+  const start = `${startDate}T00:00:00`;
+  const end = `${endDate}T23:59:59`;
+
+  // Obtener turnos en el rango
+  const { data: shifts } = await supabaseAdmin
+    .from('shifts')
+    .select(`
+      id,
+      type,
+      start_time,
+      end_time,
+      notes,
+      employees (name)
+    `)
+    .gte('start_time', start)
+    .lte('start_time', end)
+    .order('start_time', { ascending: true });
+
+  // Obtener ventas en el rango
+  const { data: sales } = await supabaseAdmin
+    .from('sales')
+    .select(`
+      id,
+      total,
+      payment_method,
+      cash_amount,
+      transfer_amount,
+      voided,
+      created_at,
+      fiado_amount,
+      fiado_abono
+    `)
+    .gte('created_at', start)
+    .lte('created_at', end)
+    .or('status.eq.closed,status.is.null');
+
+  // Calcular totales
+  const totals = {
+    total_sales: 0,
+    cash_sales: 0,
+    transfer_sales: 0,
+    transactions: 0,
+    voided_count: 0,
+    shifts_count: shifts?.length || 0,
+  };
+
+  sales?.forEach((sale) => {
+    if (!sale.voided) {
+      totals.total_sales += sale.total;
+      totals.transactions++;
+
+      if (sale.payment_method === 'cash') {
+        totals.cash_sales += sale.total;
+      } else if (sale.payment_method === 'transfer') {
+        totals.transfer_sales += sale.total;
+      } else if (sale.payment_method === 'mixed') {
+        totals.cash_sales += sale.cash_amount || 0;
+        totals.transfer_sales += sale.transfer_amount || 0;
+      } else if (sale.payment_method === 'fiado') {
+        totals.cash_sales += sale.fiado_abono || 0;
+      }
+    } else {
+      totals.voided_count++;
+    }
+  });
+
+  return NextResponse.json({
+    start_date: startDate,
+    end_date: endDate,
+    shifts: shifts || [],
+    totals,
+  });
+}
