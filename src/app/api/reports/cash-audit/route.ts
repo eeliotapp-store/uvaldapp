@@ -97,10 +97,17 @@ export async function GET(request: NextRequest) {
       const gapWithPrevious = previousShiftEnd !== null ? shift.cash_start - previousShiftEnd : null;
       const hasDiscrepancy = gapWithPrevious !== null && gapWithPrevious !== 0;
 
+      const getEmployeeName = () => {
+        for (const emp of shift.employees) {
+          if (emp.id === shift.employee_id) return emp.name;
+        }
+        return 'Unknown';
+      };
+
       auditEntries.push({
         shift_id: shift.id,
         employee_id: shift.employee_id,
-        employee_name: shift.employees?.name || 'Desconocido',
+        employee_name: getEmployeeName(),
         type: shift.type,
         start_time: shift.start_time,
         end_time: shift.end_time,
