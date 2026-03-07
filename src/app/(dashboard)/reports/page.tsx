@@ -32,6 +32,19 @@ interface ProductSummary {
   total: number;
 }
 
+interface EmployeeProductSummary {
+  employee_id: string;
+  employee_name: string;
+  products: ProductSummary[];
+  total: number;
+}
+
+interface ShiftTypeSummary {
+  total: number;
+  employees: EmployeeProductSummary[];
+  products: ProductSummary[];
+}
+
 interface DailyReport {
   date: string;
   shifts: ShiftReport[];
@@ -45,6 +58,10 @@ interface DailyReport {
     fiado_abonos: number;
   };
   products: ProductSummary[];
+  by_shift_type: {
+    day: ShiftTypeSummary;
+    night: ShiftTypeSummary;
+  };
 }
 
 interface SingleShiftReport {
@@ -413,9 +430,165 @@ function DailyReportView({
         </div>
       </div>
 
-      {/* Productos vendidos */}
+      {/* Ventas por Turno de Día */}
+      {report.by_shift_type?.day && report.by_shift_type.day.employees.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">☀️</span>
+            <div>
+              <h3 className="text-lg font-semibold">Turno Día</h3>
+              <p className="text-sm text-gray-500">
+                Total: {formatCurrency(report.by_shift_type.day.total)}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {report.by_shift_type.day.employees.map((emp) => (
+              <div key={emp.employee_id} className="border border-yellow-200 rounded-lg p-4 bg-yellow-50/50">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-semibold text-yellow-800">{emp.employee_name}</h4>
+                  <span className="font-bold text-yellow-700">{formatCurrency(emp.total)}</span>
+                </div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-yellow-200">
+                      <th className="text-left py-1 px-2">Producto</th>
+                      <th className="text-center py-1 px-2">Unidades</th>
+                      <th className="text-right py-1 px-2">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {emp.products.map((product, idx) => (
+                      <tr key={idx} className="border-b border-yellow-100">
+                        <td className="py-1 px-2">{product.product_name}</td>
+                        <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
+                        <td className="text-right py-1 px-2">{formatCurrency(product.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+
+          {/* Total del turno de día */}
+          <div className="mt-4 pt-4 border-t border-yellow-200">
+            <h4 className="font-semibold mb-2">Resumen Turno Día</h4>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-yellow-100">
+                  <th className="text-left py-2 px-2">Producto</th>
+                  <th className="text-center py-2 px-2">Unidades</th>
+                  <th className="text-right py-2 px-2">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.by_shift_type.day.products.map((product, idx) => (
+                  <tr key={idx} className="border-b border-gray-100">
+                    <td className="py-1 px-2">{product.product_name}</td>
+                    <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
+                    <td className="text-right py-1 px-2">{formatCurrency(product.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="font-bold bg-yellow-100">
+                  <td className="py-2 px-2">TOTAL TURNO DÍA</td>
+                  <td className="text-center py-2 px-2">
+                    {report.by_shift_type.day.products.reduce((sum, p) => sum + p.quantity, 0)}
+                  </td>
+                  <td className="text-right py-2 px-2">
+                    {formatCurrency(report.by_shift_type.day.total)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Ventas por Turno de Noche */}
+      {report.by_shift_type?.night && report.by_shift_type.night.employees.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-2xl">🌙</span>
+            <div>
+              <h3 className="text-lg font-semibold">Turno Noche</h3>
+              <p className="text-sm text-gray-500">
+                Total: {formatCurrency(report.by_shift_type.night.total)}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {report.by_shift_type.night.employees.map((emp) => (
+              <div key={emp.employee_id} className="border border-indigo-200 rounded-lg p-4 bg-indigo-50/50">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-semibold text-indigo-800">{emp.employee_name}</h4>
+                  <span className="font-bold text-indigo-700">{formatCurrency(emp.total)}</span>
+                </div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-indigo-200">
+                      <th className="text-left py-1 px-2">Producto</th>
+                      <th className="text-center py-1 px-2">Unidades</th>
+                      <th className="text-right py-1 px-2">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {emp.products.map((product, idx) => (
+                      <tr key={idx} className="border-b border-indigo-100">
+                        <td className="py-1 px-2">{product.product_name}</td>
+                        <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
+                        <td className="text-right py-1 px-2">{formatCurrency(product.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+
+          {/* Total del turno de noche */}
+          <div className="mt-4 pt-4 border-t border-indigo-200">
+            <h4 className="font-semibold mb-2">Resumen Turno Noche</h4>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200 bg-indigo-100">
+                  <th className="text-left py-2 px-2">Producto</th>
+                  <th className="text-center py-2 px-2">Unidades</th>
+                  <th className="text-right py-2 px-2">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.by_shift_type.night.products.map((product, idx) => (
+                  <tr key={idx} className="border-b border-gray-100">
+                    <td className="py-1 px-2">{product.product_name}</td>
+                    <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
+                    <td className="text-right py-1 px-2">{formatCurrency(product.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="font-bold bg-indigo-100">
+                  <td className="py-2 px-2">TOTAL TURNO NOCHE</td>
+                  <td className="text-center py-2 px-2">
+                    {report.by_shift_type.night.products.reduce((sum, p) => sum + p.quantity, 0)}
+                  </td>
+                  <td className="text-right py-2 px-2">
+                    {formatCurrency(report.by_shift_type.night.total)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Resumen Total del Día (todos los productos) */}
       <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
-        <h3 className="text-lg font-semibold mb-4">Productos Vendidos</h3>
+        <h3 className="text-lg font-semibold mb-4">Resumen Total del Día</h3>
         {report.products.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -438,8 +611,8 @@ function DailyReportView({
                 ))}
               </tbody>
               <tfoot>
-                <tr className="font-bold bg-gray-50">
-                  <td className="py-2 px-2">TOTAL</td>
+                <tr className="font-bold bg-blue-50">
+                  <td className="py-2 px-2">TOTAL DEL DÍA</td>
                   <td className="text-center py-2 px-2">
                     {report.products.reduce((sum, p) => sum + p.quantity, 0)}
                   </td>

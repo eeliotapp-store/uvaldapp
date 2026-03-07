@@ -205,7 +205,7 @@ async function getDailyReport(date: string) {
     summaries = data || [];
   }
 
-  // Obtener todas las ventas del día
+  // Obtener todas las ventas del día con info del turno
   const { data: sales } = await supabaseAdmin
     .from('sales')
     .select(`
@@ -219,13 +219,14 @@ async function getDailyReport(date: string) {
       created_at,
       fiado_customer_name,
       fiado_amount,
-      fiado_abono
+      fiado_abono,
+      shifts!inner (type)
     `)
     .gte('created_at', startOfDay)
     .lte('created_at', endOfDay)
     .or('status.eq.closed,status.is.null');
 
-  // Obtener productos vendidos
+  // Obtener productos vendidos con info del empleado que vendió
   const { data: productsSold } = await supabaseAdmin
     .from('sale_items')
     .select(`
@@ -235,15 +236,140 @@ async function getDailyReport(date: string) {
       subtotal,
       is_michelada,
       combo_id,
+      added_by_employee_id,
       products (id, name),
       combos (id, name),
-      sales!inner (created_at, voided, status)
+      sales!inner (id, shift_id, created_at, voided, status, shifts!inner (type))
     `)
     .gte('sales.created_at', startOfDay)
     .lte('sales.created_at', endOfDay)
     .eq('sales.voided', false);
 
-  // Agrupar productos
+  // Obtener nombres de empleados que vendieron
+  const employeeIds = new Set<string>();
+  productsSold?.forEach(item => {
+    if (item.added_by_employee_id) {
+      employeeIds.add(item.added_by_employee_id);
+    }
+  });
+
+  let employeeMap: Record<string, string> = {};
+  if (employeeIds.size > 0) {
+    const { data: employees } = await supabaseAdmin
+      .from('employees')
+      .select('id, name')
+      .in('id', Array.from(employeeIds));
+    if (employees) {
+      employeeMap = Object.fromEntries(employees.map(e => [e.id, e.name]));
+    }
+  }
+
+  // Agrupar productos por tipo de turno y empleada
+  interface ProductByEmployee {
+    employee_id: string;
+    employee_name: string;
+    products: Record<string, {
+      product_id: string;
+      product_name: string;
+      quantity: number;
+      total: number;
+    }>;
+    total: number;
+  }
+
+  interface ShiftTypeData {
+    employees: Record<string, ProductByEmployee>;
+    total: number;
+    products: Record<string, {
+      product_id: string;
+      product_name: string;
+      quantity: number;
+      total: number;
+    }>;
+  }
+
+  const byShiftType: Record<string, ShiftTypeData> = {
+    day: { employees: {}, total: 0, products: {} },
+    night: { employees: {}, total: 0, products: {} },
+  };
+
+  productsSold?.forEach((item) => {
+    const shiftType = (item.sales as { shifts?: { type?: string } })?.shifts?.type || 'day';
+    const employeeId = item.added_by_employee_id || 'unknown';
+    const employeeName = employeeId === 'unknown' ? 'Sin asignar' : (employeeMap[employeeId] || 'Desconocido');
+
+    const productKey = item.is_michelada
+      ? `${item.product_id}-michelada`
+      : item.product_id;
+    const productName = (item.products?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : '');
+
+    // Asegurar que existe la estructura para el tipo de turno
+    if (!byShiftType[shiftType]) {
+      byShiftType[shiftType] = { employees: {}, total: 0, products: {} };
+    }
+
+    // Agregar al resumen por empleada
+    if (!byShiftType[shiftType].employees[employeeId]) {
+      byShiftType[shiftType].employees[employeeId] = {
+        employee_id: employeeId,
+        employee_name: employeeName,
+        products: {},
+        total: 0,
+      };
+    }
+
+    const employeeData = byShiftType[shiftType].employees[employeeId];
+    if (!employeeData.products[productKey]) {
+      employeeData.products[productKey] = {
+        product_id: item.product_id,
+        product_name: productName,
+        quantity: 0,
+        total: 0,
+      };
+    }
+    employeeData.products[productKey].quantity += item.quantity;
+    employeeData.products[productKey].total += item.subtotal;
+    employeeData.total += item.subtotal;
+
+    // Agregar al total del turno
+    byShiftType[shiftType].total += item.subtotal;
+    if (!byShiftType[shiftType].products[productKey]) {
+      byShiftType[shiftType].products[productKey] = {
+        product_id: item.product_id,
+        product_name: productName,
+        quantity: 0,
+        total: 0,
+      };
+    }
+    byShiftType[shiftType].products[productKey].quantity += item.quantity;
+    byShiftType[shiftType].products[productKey].total += item.subtotal;
+  });
+
+  // Convertir a arrays ordenados
+  const shiftTypeSummary = {
+    day: {
+      total: byShiftType.day.total,
+      employees: Object.values(byShiftType.day.employees)
+        .map(emp => ({
+          ...emp,
+          products: Object.values(emp.products).sort((a, b) => b.quantity - a.quantity),
+        }))
+        .sort((a, b) => b.total - a.total),
+      products: Object.values(byShiftType.day.products).sort((a, b) => b.quantity - a.quantity),
+    },
+    night: {
+      total: byShiftType.night.total,
+      employees: Object.values(byShiftType.night.employees)
+        .map(emp => ({
+          ...emp,
+          products: Object.values(emp.products).sort((a, b) => b.quantity - a.quantity),
+        }))
+        .sort((a, b) => b.total - a.total),
+      products: Object.values(byShiftType.night.products).sort((a, b) => b.quantity - a.quantity),
+    },
+  };
+
+  // Agrupar productos general (para mantener compatibilidad)
   const productSummary: Record<string, {
     product_id: string;
     product_name: string;
@@ -301,7 +427,7 @@ async function getDailyReport(date: string) {
     }
   });
 
-  // Construir reporte por turno
+  // Construir reporte por turno (individual de cada empleada)
   const shiftReports = shifts?.map(shift => {
     const shiftSummary = summaries.find((s: { shift_id?: string }) => s.shift_id === shift.id);
     const shiftSales = sales?.filter(s => s.shift_id === shift.id) || [];
@@ -309,6 +435,7 @@ async function getDailyReport(date: string) {
     return {
       id: shift.id,
       type: shift.type,
+      employee_id: shift.employees?.id,
       employee_name: shift.employees?.name,
       start_time: shift.start_time,
       end_time: shift.end_time,
@@ -327,6 +454,7 @@ async function getDailyReport(date: string) {
     shifts: shiftReports,
     day_totals: dayTotals,
     products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity),
+    by_shift_type: shiftTypeSummary,
   });
 }
 
