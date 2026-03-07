@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { formatCurrency, formatDate, formatTime } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
+import Link from 'next/link';
 
 interface ShiftReport {
   id: string;
@@ -300,6 +301,18 @@ export default function ReportsPage() {
 
   return (
     <div className="p-4 max-w-4xl mx-auto">
+      {/* Link a auditoría de caja */}
+      <div className="mb-4 print:hidden">
+        <Link
+          href="/reports/cash-audit"
+          className="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg transition-colors"
+        >
+          <CashIcon className="w-5 h-5" />
+          <span>Auditoría de Caja</span>
+          <span className="text-xs bg-red-200 px-2 py-0.5 rounded">Control de efectivo</span>
+        </Link>
+      </div>
+
       <div className="flex justify-between items-center mb-6 print:hidden">
         <h1 className="text-2xl font-bold">Reportes</h1>
         <div className="flex gap-2">
@@ -950,6 +963,15 @@ function DownloadIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+  );
+}
+
+// Icono de caja/dinero
+function CashIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
     </svg>
   );
 }
