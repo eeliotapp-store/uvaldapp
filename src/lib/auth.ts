@@ -2,8 +2,14 @@ import { compare, hash } from 'bcrypt-ts';
 import { SignJWT, jwtVerify } from 'jose';
 import type { Employee, EmployeeRole } from '@/types/database';
 
+// Validar que JWT_SECRET esté configurado en producción
+const jwtSecretValue = process.env.JWT_SECRET;
+if (process.env.NODE_ENV === 'production' && (!jwtSecretValue || jwtSecretValue.length < 32)) {
+  throw new Error('JWT_SECRET debe estar configurado con al menos 32 caracteres en producción');
+}
+
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'desarrollo-local-cambiar-en-produccion'
+  jwtSecretValue || 'desarrollo-local-cambiar-en-produccion'
 );
 
 export interface JWTPayload {
