@@ -163,13 +163,162 @@ export default function ReportsPage() {
     window.print();
   };
 
+  // Función para descargar CSV
+  const downloadCSV = (filename: string, csvContent: string) => {
+    const BOM = '\uFEFF'; // Para que Excel/Sheets reconozca UTF-8
+    const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  };
+
+  // Exportar reporte diario a CSV
+  const exportDailyReportCSV = () => {
+    if (!dailyReport) return;
+
+    const lines: string[] = [];
+    const date = formatDate(dailyReport.date + 'T12:00:00');
+
+    // Encabezado
+    lines.push(`REPORTE DEL DÍA - ${date}`);
+    lines.push('');
+
+    // Resumen del día
+    lines.push('RESUMEN DEL DÍA');
+    lines.push('Concepto,Valor');
+    lines.push(`Total Ventas,${dailyReport.day_totals.total_sales}`);
+    lines.push(`Efectivo,${dailyReport.day_totals.cash_sales}`);
+    lines.push(`Transferencias,${dailyReport.day_totals.transfer_sales}`);
+    lines.push(`Transacciones,${dailyReport.day_totals.transactions}`);
+    if (dailyReport.day_totals.fiado_total > 0) {
+      lines.push(`Fiados,${dailyReport.day_totals.fiado_total}`);
+    }
+    lines.push('');
+
+    // Turno Día
+    if (dailyReport.by_shift_type?.day?.employees?.length > 0) {
+      lines.push('TURNO DÍA');
+      lines.push(`Total Turno Día,${dailyReport.by_shift_type.day.total}`);
+      lines.push('');
+
+      dailyReport.by_shift_type.day.employees.forEach(emp => {
+        lines.push(`Empleada: ${emp.employee_name}`);
+        lines.push('Producto,Unidades,Total');
+        emp.products.forEach(p => {
+          lines.push(`${p.product_name},${p.quantity},${p.total}`);
+        });
+        lines.push(`SUBTOTAL ${emp.employee_name},,${emp.total}`);
+        lines.push('');
+      });
+    }
+
+    // Turno Noche
+    if (dailyReport.by_shift_type?.night?.employees?.length > 0) {
+      lines.push('TURNO NOCHE');
+      lines.push(`Total Turno Noche,${dailyReport.by_shift_type.night.total}`);
+      lines.push('');
+
+      dailyReport.by_shift_type.night.employees.forEach(emp => {
+        lines.push(`Empleada: ${emp.employee_name}`);
+        lines.push('Producto,Unidades,Total');
+        emp.products.forEach(p => {
+          lines.push(`${p.product_name},${p.quantity},${p.total}`);
+        });
+        lines.push(`SUBTOTAL ${emp.employee_name},,${emp.total}`);
+        lines.push('');
+      });
+    }
+
+    // Resumen total de productos
+    lines.push('RESUMEN TOTAL DE PRODUCTOS');
+    lines.push('Producto,Unidades,Total');
+    dailyReport.products.forEach(p => {
+      lines.push(`${p.product_name},${p.quantity},${p.total}`);
+    });
+    lines.push(`TOTAL,,${dailyReport.products.reduce((sum, p) => sum + p.total, 0)}`);
+
+    const csvContent = lines.join('\n');
+    const filename = `reporte_${dailyReport.date}.csv`;
+    downloadCSV(filename, csvContent);
+  };
+
+  // Exportar reporte por turno a CSV
+  const exportShiftReportCSV = () => {
+    if (!shiftReport) return;
+
+    const lines: string[] = [];
+    const { shift, summary, products } = shiftReport;
+    const shiftType = shift.type === 'day' ? 'Día' : 'Noche';
+    const date = formatDate(shift.start_time);
+
+    // Encabezado
+    lines.push(`REPORTE DE TURNO ${shiftType.toUpperCase()} - ${date}`);
+    lines.push(`Empleado: ${shift.employee_name}`);
+    lines.push('');
+
+    // Resumen
+    lines.push('RESUMEN DE VENTAS');
+    lines.push('Concepto,Valor');
+    lines.push(`Total Ventas,${summary.total_sales}`);
+    lines.push(`Efectivo,${summary.cash_sales}`);
+    lines.push(`Transferencias,${summary.transfer_sales}`);
+    lines.push(`Transacciones,${summary.transactions_count}`);
+    lines.push('');
+
+    // Caja
+    lines.push('ESTADO DE CAJA');
+    lines.push(`Caja Inicial,${shift.cash_start}`);
+    lines.push(`Ventas Efectivo,${summary.cash_sales}`);
+    lines.push(`Caja Esperada,${shift.cash_start + summary.cash_sales}`);
+    if (shift.cash_end !== null) {
+      lines.push(`Caja Final,${shift.cash_end}`);
+      lines.push(`Diferencia,${shift.cash_end - shift.cash_start - summary.cash_sales}`);
+    }
+    lines.push('');
+
+    // Observaciones
+    if (shift.notes) {
+      lines.push('OBSERVACIONES');
+      lines.push(`"${shift.notes.replace(/"/g, '""')}"`);
+      lines.push('');
+    }
+
+    // Productos
+    lines.push('PRODUCTOS VENDIDOS');
+    lines.push('Producto,Unidades,Total');
+    products.forEach(p => {
+      lines.push(`${p.product_name},${p.quantity},${p.total}`);
+    });
+    lines.push(`TOTAL,,${products.reduce((sum, p) => sum + p.total, 0)}`);
+
+    const csvContent = lines.join('\n');
+    const filename = `reporte_turno_${shift.type}_${date.replace(/\//g, '-')}.csv`;
+    downloadCSV(filename, csvContent);
+  };
+
   return (
     <div className="p-4 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6 print:hidden">
         <h1 className="text-2xl font-bold">Reportes</h1>
-        <Button onClick={handlePrint} variant="outline">
-          Imprimir
-        </Button>
+        <div className="flex gap-2">
+          {reportType === 'daily' && dailyReport && (
+            <Button onClick={exportDailyReportCSV} variant="outline" className="flex items-center gap-1">
+              <DownloadIcon className="w-4 h-4" />
+              CSV
+            </Button>
+          )}
+          {reportType === 'shift' && shiftReport && (
+            <Button onClick={exportShiftReportCSV} variant="outline" className="flex items-center gap-1">
+              <DownloadIcon className="w-4 h-4" />
+              CSV
+            </Button>
+          )}
+          <Button onClick={handlePrint} variant="outline">
+            Imprimir
+          </Button>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -793,5 +942,14 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
         )}
       </div>
     </div>
+  );
+}
+
+// Icono de descarga
+function DownloadIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
   );
 }
