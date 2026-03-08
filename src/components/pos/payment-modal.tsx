@@ -183,20 +183,6 @@ export function PaymentModal({
         ))}
       </div>
 
-      {/* Campo de observaciones */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Observaciones (opcional)
-        </label>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
-          rows={2}
-        />
-      </div>
-
       {/* Total grande */}
       <div className="text-center py-6 bg-amber-50 rounded-xl mb-6">
         <p className="text-gray-600 text-sm mb-1">Total a pagar</p>
@@ -316,7 +302,7 @@ export function PaymentModal({
       </div>
 
       {cashReceivedNum > 0 && (
-        <div className="bg-gray-50 rounded-xl p-4 mb-6">
+        <div className="bg-gray-50 rounded-xl p-4 mb-4">
           <div className="flex justify-between mb-2">
             <span className="text-gray-600">Recibido:</span>
             <span className="font-bold">{formatCurrency(cashReceivedNum)}</span>
@@ -329,6 +315,20 @@ export function PaymentModal({
           </div>
         </div>
       )}
+
+      {/* Campo de observaciones */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Observaciones (opcional)
+        </label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+          rows={2}
+        />
+      </div>
 
       <div className="flex gap-3">
         <Button variant="outline" onClick={() => setStep('method')} className="flex-1">
@@ -352,7 +352,7 @@ export function PaymentModal({
         Total: <span className="font-bold text-gray-900">{formatCurrency(total)}</span>
       </p>
 
-      <div className="bg-blue-50 rounded-xl p-6 mb-6 text-center">
+      <div className="bg-blue-50 rounded-xl p-6 mb-4 text-center">
         <div className="text-4xl mb-3">📱</div>
         <p className="text-gray-700 mb-2">
           Solicita al cliente que realice la transferencia por:
@@ -363,6 +363,20 @@ export function PaymentModal({
         <p className="text-sm text-gray-500">
           Verifica el comprobante antes de confirmar
         </p>
+      </div>
+
+      {/* Campo de observaciones */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Observaciones (opcional)
+        </label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+          rows={2}
+        />
       </div>
 
       <div className="flex gap-3">
@@ -425,7 +439,7 @@ export function PaymentModal({
         </div>
 
         {(transferAmountNum > 0 || cashAmountMixedNum > 0) && (
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
+          <div className="bg-gray-50 rounded-xl p-4 mb-4">
             <div className="flex justify-between mb-1">
               <span className="text-gray-600">Transferencia:</span>
               <span className="font-medium text-blue-600">{formatCurrency(transferAmountNum)}</span>
@@ -448,6 +462,20 @@ export function PaymentModal({
             )}
           </div>
         )}
+
+        {/* Campo de observaciones */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Observaciones (opcional)
+          </label>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+            rows={2}
+          />
+        </div>
 
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => setStep('method')} className="flex-1">
