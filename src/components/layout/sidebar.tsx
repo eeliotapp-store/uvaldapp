@@ -10,6 +10,7 @@ const navigation = [
   { name: 'Iniciar Turno', href: '/shifts/start', icon: ClockIcon, ownerOnly: false, superAdminOnly: false },
   { name: 'Punto de Venta', href: '/pos', icon: CartIcon, ownerOnly: false, superAdminOnly: false },
   { name: 'Ventas', href: '/sales', icon: ReceiptIcon, ownerOnly: false, superAdminOnly: false },
+  { name: 'Observaciones', href: '/observations', icon: NoteIcon, ownerOnly: false, superAdminOnly: false },
   { name: 'Inventario', href: '/inventory', icon: BoxIcon, ownerOnly: false, superAdminOnly: false },
   { name: 'Cerrar Turno', href: '/shifts/close', icon: ClockOffIcon, ownerOnly: false, superAdminOnly: false },
   { name: 'Historial Turnos', href: '/shifts/history', icon: HistoryIcon, ownerOnly: true, superAdminOnly: false },
@@ -247,6 +248,14 @@ function AuditIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+    </svg>
+  );
+}
+
+function NoteIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
     </svg>
   );
 }
