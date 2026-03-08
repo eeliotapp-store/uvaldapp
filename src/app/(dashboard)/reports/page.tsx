@@ -94,7 +94,58 @@ interface SingleShiftReport {
   };
 }
 
-type ReportType = 'daily' | 'shift';
+interface RangeReport {
+  start_date: string;
+  end_date: string;
+  totals: {
+    total_sales: number;
+    cash_sales: number;
+    transfer_sales: number;
+    transactions: number;
+    voided_count: number;
+    shifts_count: number;
+    fiado_total: number;
+    fiado_abonos: number;
+  };
+  products: ProductSummary[];
+  by_employee: EmployeeProductSummary[];
+  daily_breakdown: {
+    date: string;
+    total: number;
+    transactions: number;
+    cash: number;
+    transfer: number;
+  }[];
+}
+
+interface RankingProduct {
+  rank: number;
+  product_id: string;
+  product_name: string;
+  category: string | null;
+  quantity: number;
+  total: number;
+}
+
+interface RankingReport {
+  period: string;
+  start_date: string;
+  end_date: string;
+  ranking: RankingProduct[];
+  summary: {
+    total_products: number;
+    total_quantity: number;
+    total_revenue: number;
+  };
+  by_category: {
+    category: string;
+    quantity: number;
+    total: number;
+    products: number;
+  }[];
+}
+
+type ReportType = 'daily' | 'shift' | 'range' | 'ranking';
 
 export default function ReportsPage() {
   const employee = useAuthStore((state) => state.employee);
@@ -103,6 +154,15 @@ export default function ReportsPage() {
   const [dailyReport, setDailyReport] = useState<DailyReport | null>(null);
   const [shiftReport, setShiftReport] = useState<SingleShiftReport | null>(null);
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
+  const [rangeReport, setRangeReport] = useState<RangeReport | null>(null);
+  const [rankingReport, setRankingReport] = useState<RankingReport | null>(null);
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [rankingPeriod, setRankingPeriod] = useState<'day' | 'week' | 'month' | 'year' | 'all'>('week');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -156,9 +216,51 @@ export default function ReportsPage() {
     }
   };
 
+  const fetchRangeReport = async (start: string, end: string) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/reports/shifts?start_date=${start}&end_date=${end}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cargar reporte');
+      }
+
+      setRangeReport(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cargar reporte');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchRankingReport = async (period: string) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/reports/ranking?period=${period}&limit=20`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cargar ranking');
+      }
+
+      setRankingReport(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cargar ranking');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchDailyReport(selectedDate);
-  }, [selectedDate]);
+    if (reportType === 'daily') {
+      fetchDailyReport(selectedDate);
+    } else if (reportType === 'ranking') {
+      fetchRankingReport(rankingPeriod);
+    }
+  }, [selectedDate, reportType, rankingPeriod]);
 
   const handlePrint = () => {
     window.print();
@@ -299,6 +401,105 @@ export default function ReportsPage() {
     downloadCSV(filename, csvContent);
   };
 
+  // Exportar reporte de rango de fechas a CSV
+  const exportRangeReportCSV = () => {
+    if (!rangeReport) return;
+
+    const lines: string[] = [];
+
+    // Encabezado
+    lines.push(`REPORTE DE VENTAS - ${rangeReport.start_date} a ${rangeReport.end_date}`);
+    lines.push('');
+
+    // Resumen
+    lines.push('RESUMEN DEL PERIODO');
+    lines.push('Concepto,Valor');
+    lines.push(`Total Ventas,${rangeReport.totals.total_sales}`);
+    lines.push(`Efectivo,${rangeReport.totals.cash_sales}`);
+    lines.push(`Transferencias,${rangeReport.totals.transfer_sales}`);
+    lines.push(`Transacciones,${rangeReport.totals.transactions}`);
+    lines.push(`Turnos,${rangeReport.totals.shifts_count}`);
+    if (rangeReport.totals.fiado_total > 0) {
+      lines.push(`Fiados,${rangeReport.totals.fiado_total}`);
+    }
+    lines.push('');
+
+    // Desglose por día
+    lines.push('VENTAS POR DÍA');
+    lines.push('Fecha,Total,Transacciones,Efectivo,Transferencias');
+    rangeReport.daily_breakdown.forEach(day => {
+      lines.push(`${day.date},${day.total},${day.transactions},${day.cash},${day.transfer}`);
+    });
+    lines.push('');
+
+    // Por empleada
+    if (rangeReport.by_employee.length > 0) {
+      lines.push('VENTAS POR EMPLEADA');
+      rangeReport.by_employee.forEach(emp => {
+        lines.push(`${emp.employee_name},${emp.total}`);
+      });
+      lines.push('');
+    }
+
+    // Productos
+    lines.push('PRODUCTOS VENDIDOS');
+    lines.push('Producto,Unidades,Total');
+    rangeReport.products.forEach(p => {
+      lines.push(`${p.product_name},${p.quantity},${p.total}`);
+    });
+    lines.push(`TOTAL,,${rangeReport.products.reduce((sum, p) => sum + p.total, 0)}`);
+
+    const csvContent = lines.join('\n');
+    const filename = `reporte_${rangeReport.start_date}_a_${rangeReport.end_date}.csv`;
+    downloadCSV(filename, csvContent);
+  };
+
+  // Exportar ranking a CSV
+  const exportRankingCSV = () => {
+    if (!rankingReport) return;
+
+    const lines: string[] = [];
+    const periodName = {
+      day: 'Hoy',
+      week: 'Última semana',
+      month: 'Último mes',
+      year: 'Último año',
+      all: 'Todo el tiempo',
+      custom: 'Personalizado',
+    }[rankingReport.period] || rankingReport.period;
+
+    // Encabezado
+    lines.push(`RANKING DE PRODUCTOS MÁS VENDIDOS - ${periodName}`);
+    lines.push(`Período: ${rankingReport.start_date} a ${rankingReport.end_date}`);
+    lines.push('');
+
+    // Resumen
+    lines.push('RESUMEN');
+    lines.push(`Total Productos Diferentes,${rankingReport.summary.total_products}`);
+    lines.push(`Total Unidades Vendidas,${rankingReport.summary.total_quantity}`);
+    lines.push(`Total Ingresos,${rankingReport.summary.total_revenue}`);
+    lines.push('');
+
+    // Ranking
+    lines.push('RANKING');
+    lines.push('Posición,Producto,Categoría,Unidades,Total');
+    rankingReport.ranking.forEach(p => {
+      lines.push(`${p.rank},${p.product_name},${p.category || 'Sin categoría'},${p.quantity},${p.total}`);
+    });
+    lines.push('');
+
+    // Por categoría
+    lines.push('VENTAS POR CATEGORÍA');
+    lines.push('Categoría,Unidades,Total,Productos');
+    rankingReport.by_category.forEach(c => {
+      lines.push(`${c.category},${c.quantity},${c.total},${c.products}`);
+    });
+
+    const csvContent = lines.join('\n');
+    const filename = `ranking_${rankingReport.period}_${rankingReport.end_date}.csv`;
+    downloadCSV(filename, csvContent);
+  };
+
   return (
     <div className="p-4 max-w-4xl mx-auto">
       {/* Link a auditoría de caja */}
@@ -328,6 +529,18 @@ export default function ReportsPage() {
               CSV
             </Button>
           )}
+          {reportType === 'range' && rangeReport && (
+            <Button onClick={exportRangeReportCSV} variant="outline" className="flex items-center gap-1">
+              <DownloadIcon className="w-4 h-4" />
+              CSV
+            </Button>
+          )}
+          {reportType === 'ranking' && rankingReport && (
+            <Button onClick={exportRankingCSV} variant="outline" className="flex items-center gap-1">
+              <DownloadIcon className="w-4 h-4" />
+              CSV
+            </Button>
+          )}
           <Button onClick={handlePrint} variant="outline">
             Imprimir
           </Button>
@@ -347,25 +560,31 @@ export default function ReportsPage() {
                 setReportType(e.target.value as ReportType);
                 setShiftReport(null);
                 setSelectedShiftId(null);
+                setRangeReport(null);
+                setRankingReport(null);
               }}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="daily">Reporte del Día</option>
               <option value="shift">Reporte por Turno</option>
+              <option value="range">Rango de Fechas</option>
+              <option value="ranking">Ranking de Productos</option>
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Fecha
-            </label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+          {(reportType === 'daily' || reportType === 'shift') && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Fecha
+              </label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          )}
 
           {reportType === 'shift' && dailyReport && dailyReport.shifts.length > 0 && (
             <div>
@@ -387,6 +606,55 @@ export default function ReportsPage() {
                     {shift.type === 'day' ? 'Día' : 'Noche'} - {shift.employee_name}
                   </option>
                 ))}
+              </select>
+            </div>
+          )}
+
+          {reportType === 'range' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha Inicio
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha Fin
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <Button onClick={() => fetchRangeReport(startDate, endDate)}>
+                Generar Reporte
+              </Button>
+            </>
+          )}
+
+          {reportType === 'ranking' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Período
+              </label>
+              <select
+                value={rankingPeriod}
+                onChange={(e) => setRankingPeriod(e.target.value as typeof rankingPeriod)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="day">Hoy</option>
+                <option value="week">Última Semana</option>
+                <option value="month">Último Mes</option>
+                <option value="year">Último Año</option>
+                <option value="all">Todo el Tiempo</option>
               </select>
             </div>
           )}
@@ -426,6 +694,22 @@ export default function ReportsPage() {
             <div className="bg-white rounded-xl shadow-sm p-8 text-center">
               <p className="text-gray-500">Selecciona un turno para ver el reporte</p>
             </div>
+          )}
+
+          {/* Reporte de Rango de Fechas */}
+          {reportType === 'range' && rangeReport && (
+            <RangeReportView report={rangeReport} />
+          )}
+
+          {reportType === 'range' && !rangeReport && (
+            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+              <p className="text-gray-500">Selecciona un rango de fechas y haz clic en &quot;Generar Reporte&quot;</p>
+            </div>
+          )}
+
+          {/* Ranking de Productos */}
+          {reportType === 'ranking' && rankingReport && (
+            <RankingReportView report={rankingReport} />
           )}
         </>
       )}
@@ -955,6 +1239,353 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
         )}
       </div>
     </div>
+  );
+}
+
+// Vista de reporte de rango de fechas
+function RangeReportView({ report }: { report: RangeReport }) {
+  return (
+    <div className="space-y-6">
+      {/* Encabezado */}
+      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <h2 className="text-xl font-bold mb-2">
+          Reporte de Ventas
+        </h2>
+        <p className="text-gray-500">
+          {formatDate(report.start_date + 'T12:00:00')} - {formatDate(report.end_date + 'T12:00:00')}
+        </p>
+      </div>
+
+      {/* Resumen del período */}
+      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <h3 className="text-lg font-semibold mb-4">Resumen del Período</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <p className="text-sm text-blue-600">Total Ventas</p>
+            <p className="text-2xl font-bold text-blue-700">
+              {formatCurrency(report.totals.total_sales)}
+            </p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <p className="text-sm text-green-600">Efectivo</p>
+            <p className="text-2xl font-bold text-green-700">
+              {formatCurrency(report.totals.cash_sales)}
+            </p>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <p className="text-sm text-purple-600">Transferencias</p>
+            <p className="text-2xl font-bold text-purple-700">
+              {formatCurrency(report.totals.transfer_sales)}
+            </p>
+          </div>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <p className="text-sm text-gray-600">Transacciones</p>
+            <p className="text-2xl font-bold text-gray-700">
+              {report.totals.transactions}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+          <div className="bg-orange-50 p-3 rounded-lg">
+            <p className="text-orange-600">Turnos</p>
+            <p className="text-lg font-bold text-orange-700">{report.totals.shifts_count}</p>
+          </div>
+          {report.totals.fiado_total > 0 && (
+            <div className="bg-yellow-50 p-3 rounded-lg">
+              <p className="text-yellow-600">Fiados</p>
+              <p className="text-lg font-bold text-yellow-700">{formatCurrency(report.totals.fiado_total)}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Desglose por día */}
+      {report.daily_breakdown.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+          <h3 className="text-lg font-semibold mb-4">Ventas por Día</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-2">Fecha</th>
+                  <th className="text-right py-2 px-2">Total</th>
+                  <th className="text-right py-2 px-2">Efectivo</th>
+                  <th className="text-right py-2 px-2">Transfer</th>
+                  <th className="text-center py-2 px-2">Ventas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.daily_breakdown.map((day, idx) => (
+                  <tr key={idx} className="border-b border-gray-100">
+                    <td className="py-2 px-2">{formatDate(day.date + 'T12:00:00')}</td>
+                    <td className="text-right py-2 px-2 font-medium">{formatCurrency(day.total)}</td>
+                    <td className="text-right py-2 px-2 text-green-600">{formatCurrency(day.cash)}</td>
+                    <td className="text-right py-2 px-2 text-purple-600">{formatCurrency(day.transfer)}</td>
+                    <td className="text-center py-2 px-2">{day.transactions}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="font-bold bg-blue-50">
+                  <td className="py-2 px-2">TOTAL</td>
+                  <td className="text-right py-2 px-2">{formatCurrency(report.totals.total_sales)}</td>
+                  <td className="text-right py-2 px-2 text-green-600">{formatCurrency(report.totals.cash_sales)}</td>
+                  <td className="text-right py-2 px-2 text-purple-600">{formatCurrency(report.totals.transfer_sales)}</td>
+                  <td className="text-center py-2 px-2">{report.totals.transactions}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Ventas por empleada */}
+      {report.by_employee.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+          <h3 className="text-lg font-semibold mb-4">Ventas por Empleada</h3>
+          <div className="space-y-4">
+            {report.by_employee.map((emp) => (
+              <div key={emp.employee_id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-semibold">{emp.employee_name}</h4>
+                  <span className="font-bold text-blue-600">{formatCurrency(emp.total)}</span>
+                </div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="text-left py-1 px-2">Producto</th>
+                      <th className="text-center py-1 px-2">Unidades</th>
+                      <th className="text-right py-1 px-2">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {emp.products.map((product, idx) => (
+                      <tr key={idx} className="border-b border-gray-100">
+                        <td className="py-1 px-2">{product.product_name}</td>
+                        <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
+                        <td className="text-right py-1 px-2">{formatCurrency(product.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Productos vendidos */}
+      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <h3 className="text-lg font-semibold mb-4">Resumen de Productos</h3>
+        {report.products.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-2">Producto</th>
+                  <th className="text-center py-2 px-2">Unidades</th>
+                  <th className="text-right py-2 px-2">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.products.map((product, index) => (
+                  <tr key={index} className="border-b border-gray-100">
+                    <td className="py-2 px-2">{product.product_name}</td>
+                    <td className="text-center py-2 px-2 font-medium">{product.quantity}</td>
+                    <td className="text-right py-2 px-2 font-medium">
+                      {formatCurrency(product.total)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="font-bold bg-blue-50">
+                  <td className="py-2 px-2">TOTAL</td>
+                  <td className="text-center py-2 px-2">
+                    {report.products.reduce((sum, p) => sum + p.quantity, 0)}
+                  </td>
+                  <td className="text-right py-2 px-2">
+                    {formatCurrency(report.products.reduce((sum, p) => sum + p.total, 0))}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 py-4">No hay productos vendidos en este período</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Vista de ranking de productos
+function RankingReportView({ report }: { report: RankingReport }) {
+  const periodName = {
+    day: 'Hoy',
+    week: 'Última Semana',
+    month: 'Último Mes',
+    year: 'Último Año',
+    all: 'Todo el Tiempo',
+    custom: 'Período Personalizado',
+  }[report.period] || report.period;
+
+  return (
+    <div className="space-y-6">
+      {/* Encabezado */}
+      <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-sm p-6 text-white print:bg-amber-100 print:text-amber-900">
+        <div className="flex items-center gap-3 mb-2">
+          <TrophyIcon className="w-8 h-8" />
+          <h2 className="text-xl font-bold">Ranking de Productos Más Vendidos</h2>
+        </div>
+        <p className="opacity-90">
+          {periodName} ({formatDate(report.start_date + 'T12:00:00')} - {formatDate(report.end_date + 'T12:00:00')})
+        </p>
+      </div>
+
+      {/* Resumen */}
+      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <h3 className="text-lg font-semibold mb-4">Resumen</h3>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-amber-50 p-4 rounded-lg text-center">
+            <p className="text-sm text-amber-600">Productos Diferentes</p>
+            <p className="text-2xl font-bold text-amber-700">
+              {report.summary.total_products}
+            </p>
+          </div>
+          <div className="bg-orange-50 p-4 rounded-lg text-center">
+            <p className="text-sm text-orange-600">Unidades Vendidas</p>
+            <p className="text-2xl font-bold text-orange-700">
+              {report.summary.total_quantity}
+            </p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg text-center">
+            <p className="text-sm text-green-600">Total Ingresos</p>
+            <p className="text-2xl font-bold text-green-700">
+              {formatCurrency(report.summary.total_revenue)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Top 3 Podio */}
+      {report.ranking.length >= 3 && (
+        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+          <h3 className="text-lg font-semibold mb-4 text-center">Top 3</h3>
+          <div className="flex justify-center items-end gap-4">
+            {/* 2do lugar */}
+            <div className="flex flex-col items-center">
+              <div className="bg-gray-200 w-20 h-20 rounded-full flex items-center justify-center mb-2">
+                <span className="text-2xl font-bold text-gray-600">2</span>
+              </div>
+              <p className="text-sm font-medium text-center max-w-24 truncate">{report.ranking[1]?.product_name}</p>
+              <p className="text-lg font-bold text-gray-600">{report.ranking[1]?.quantity}</p>
+            </div>
+            {/* 1er lugar */}
+            <div className="flex flex-col items-center -mt-4">
+              <div className="bg-amber-400 w-24 h-24 rounded-full flex items-center justify-center mb-2 shadow-lg">
+                <span className="text-3xl font-bold text-white">1</span>
+              </div>
+              <p className="text-sm font-medium text-center max-w-28 truncate">{report.ranking[0]?.product_name}</p>
+              <p className="text-xl font-bold text-amber-600">{report.ranking[0]?.quantity}</p>
+            </div>
+            {/* 3er lugar */}
+            <div className="flex flex-col items-center">
+              <div className="bg-orange-300 w-16 h-16 rounded-full flex items-center justify-center mb-2">
+                <span className="text-xl font-bold text-orange-800">3</span>
+              </div>
+              <p className="text-sm font-medium text-center max-w-20 truncate">{report.ranking[2]?.product_name}</p>
+              <p className="text-lg font-bold text-orange-600">{report.ranking[2]?.quantity}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tabla completa de ranking */}
+      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <h3 className="text-lg font-semibold mb-4">Ranking Completo</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-center py-2 px-2 w-16">#</th>
+                <th className="text-left py-2 px-2">Producto</th>
+                <th className="text-left py-2 px-2">Categoría</th>
+                <th className="text-center py-2 px-2">Unidades</th>
+                <th className="text-right py-2 px-2">Ingresos</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.ranking.map((product) => (
+                <tr key={`${product.product_id}-${product.rank}`} className={`border-b border-gray-100 ${product.rank <= 3 ? 'bg-amber-50' : ''}`}>
+                  <td className="text-center py-2 px-2">
+                    {product.rank <= 3 ? (
+                      <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold ${
+                        product.rank === 1 ? 'bg-amber-500' : product.rank === 2 ? 'bg-gray-400' : 'bg-orange-400'
+                      }`}>
+                        {product.rank}
+                      </span>
+                    ) : (
+                      <span className="text-gray-500">{product.rank}</span>
+                    )}
+                  </td>
+                  <td className="py-2 px-2 font-medium">{product.product_name}</td>
+                  <td className="py-2 px-2 text-gray-500">{product.category || 'Sin categoría'}</td>
+                  <td className="text-center py-2 px-2 font-bold">{product.quantity}</td>
+                  <td className="text-right py-2 px-2 font-medium text-green-600">
+                    {formatCurrency(product.total)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Ventas por categoría */}
+      {report.by_category.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+          <h3 className="text-lg font-semibold mb-4">Ventas por Categoría</h3>
+          <div className="space-y-3">
+            {report.by_category.map((cat, idx) => {
+              const percentage = report.summary.total_quantity > 0
+                ? (cat.quantity / report.summary.total_quantity) * 100
+                : 0;
+              return (
+                <div key={idx} className="flex items-center gap-4">
+                  <div className="w-32 text-sm font-medium truncate">{cat.category}</div>
+                  <div className="flex-1">
+                    <div className="bg-gray-200 rounded-full h-6 relative">
+                      <div
+                        className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-full h-6 flex items-center justify-end pr-2"
+                        style={{ width: `${Math.max(percentage, 5)}%` }}
+                      >
+                        <span className="text-xs font-bold text-white">{percentage.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="w-20 text-right text-sm font-bold">{cat.quantity} uds</div>
+                  <div className="w-24 text-right text-sm font-medium text-green-600">
+                    {formatCurrency(cat.total)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Icono de trofeo
+function TrophyIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 6a2 2 0 100 4 2 2 0 000-4z"/>
+      <path fillRule="evenodd" d="M6 3a1 1 0 00-1 1v1H4a2 2 0 00-2 2v1a4 4 0 004 4h.5c.3 1.2.9 2.3 1.6 3.2L7 17.1v1.4l-1.7 1.7a1 1 0 00.7 1.7h12a1 1 0 00.7-1.7L17 18.5v-1.4l-1.1-1.9c.7-.9 1.3-2 1.6-3.2H18a4 4 0 004-4V6a2 2 0 00-2-2h-1V4a1 1 0 00-1-1H6zm0 2h12v5a6 6 0 01-12 0V5zm-2 2H3v1a2 2 0 002 2h.1A8 8 0 014 7zm16 0h1v1a2 2 0 01-2 2h-.1c.1-.6.1-1.3.1-2V7z" clipRule="evenodd"/>
+    </svg>
   );
 }
 

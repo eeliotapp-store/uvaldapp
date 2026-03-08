@@ -481,7 +481,9 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       start_time,
       end_time,
       notes,
-      employees (name)
+      cash_start,
+      cash_end,
+      employees (id, name)
     `)
     .gte('start_time', start)
     .lte('start_time', end)
@@ -505,6 +507,109 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     .lte('created_at', end)
     .or('status.eq.closed,status.is.null');
 
+  // Obtener productos vendidos en el rango
+  const { data: productsSold } = await supabaseAdmin
+    .from('sale_items')
+    .select(`
+      product_id,
+      quantity,
+      unit_price,
+      subtotal,
+      is_michelada,
+      combo_id,
+      added_by_employee_id,
+      products (id, name),
+      combos (id, name),
+      sales!inner (id, created_at, voided, status)
+    `)
+    .gte('sales.created_at', start)
+    .lte('sales.created_at', end)
+    .eq('sales.voided', false);
+
+  // Obtener nombres de empleados
+  const employeeIds = new Set<string>();
+  productsSold?.forEach(item => {
+    if (item.added_by_employee_id) {
+      employeeIds.add(item.added_by_employee_id);
+    }
+  });
+
+  let employeeMap: Record<string, string> = {};
+  if (employeeIds.size > 0) {
+    const { data: employees } = await supabaseAdmin
+      .from('employees')
+      .select('id, name')
+      .in('id', Array.from(employeeIds));
+    if (employees) {
+      employeeMap = Object.fromEntries(employees.map(e => [e.id, e.name]));
+    }
+  }
+
+  // Agrupar productos
+  const productSummary: Record<string, {
+    product_id: string;
+    product_name: string;
+    quantity: number;
+    total: number;
+  }> = {};
+
+  // Agrupar por empleada
+  const byEmployee: Record<string, {
+    employee_id: string;
+    employee_name: string;
+    products: Record<string, {
+      product_id: string;
+      product_name: string;
+      quantity: number;
+      total: number;
+    }>;
+    total: number;
+  }> = {};
+
+  productsSold?.forEach((item) => {
+    const product = item.products as unknown as { id: string; name: string } | null;
+    const key = item.is_michelada
+      ? `${item.product_id}-michelada`
+      : item.product_id;
+    const productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : '');
+
+    // Agregar al resumen general
+    if (!productSummary[key]) {
+      productSummary[key] = {
+        product_id: item.product_id,
+        product_name: productName,
+        quantity: 0,
+        total: 0,
+      };
+    }
+    productSummary[key].quantity += item.quantity;
+    productSummary[key].total += item.subtotal;
+
+    // Agregar por empleada
+    const employeeId = item.added_by_employee_id || 'unknown';
+    const employeeName = employeeId === 'unknown' ? 'Sin asignar' : (employeeMap[employeeId] || 'Desconocido');
+
+    if (!byEmployee[employeeId]) {
+      byEmployee[employeeId] = {
+        employee_id: employeeId,
+        employee_name: employeeName,
+        products: {},
+        total: 0,
+      };
+    }
+    if (!byEmployee[employeeId].products[key]) {
+      byEmployee[employeeId].products[key] = {
+        product_id: item.product_id,
+        product_name: productName,
+        quantity: 0,
+        total: 0,
+      };
+    }
+    byEmployee[employeeId].products[key].quantity += item.quantity;
+    byEmployee[employeeId].products[key].total += item.subtotal;
+    byEmployee[employeeId].total += item.subtotal;
+  });
+
   // Calcular totales
   const totals = {
     total_sales: 0,
@@ -513,6 +618,8 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     transactions: 0,
     voided_count: 0,
     shifts_count: shifts?.length || 0,
+    fiado_total: 0,
+    fiado_abonos: 0,
   };
 
   sales?.forEach((sale) => {
@@ -528,6 +635,8 @@ async function getDateRangeReport(startDate: string, endDate: string) {
         totals.cash_sales += sale.cash_amount || 0;
         totals.transfer_sales += sale.transfer_amount || 0;
       } else if (sale.payment_method === 'fiado') {
+        totals.fiado_total += sale.fiado_amount || 0;
+        totals.fiado_abonos += sale.fiado_abono || 0;
         totals.cash_sales += sale.fiado_abono || 0;
       }
     } else {
@@ -535,10 +644,58 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     }
   });
 
+  // Agrupar ventas por día
+  const salesByDay: Record<string, {
+    date: string;
+    total: number;
+    transactions: number;
+    cash: number;
+    transfer: number;
+  }> = {};
+
+  sales?.forEach((sale) => {
+    if (!sale.voided) {
+      const day = sale.created_at.split('T')[0];
+      if (!salesByDay[day]) {
+        salesByDay[day] = {
+          date: day,
+          total: 0,
+          transactions: 0,
+          cash: 0,
+          transfer: 0,
+        };
+      }
+      salesByDay[day].total += sale.total;
+      salesByDay[day].transactions++;
+
+      if (sale.payment_method === 'cash') {
+        salesByDay[day].cash += sale.total;
+      } else if (sale.payment_method === 'transfer') {
+        salesByDay[day].transfer += sale.total;
+      } else if (sale.payment_method === 'mixed') {
+        salesByDay[day].cash += sale.cash_amount || 0;
+        salesByDay[day].transfer += sale.transfer_amount || 0;
+      } else if (sale.payment_method === 'fiado') {
+        salesByDay[day].cash += sale.fiado_abono || 0;
+      }
+    }
+  });
+
   return NextResponse.json({
     start_date: startDate,
     end_date: endDate,
-    shifts: shifts || [],
+    shifts: shifts?.map(s => ({
+      ...s,
+      employee_name: (s.employees as unknown as { name: string } | null)?.name,
+    })) || [],
     totals,
+    products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity),
+    by_employee: Object.values(byEmployee)
+      .map(emp => ({
+        ...emp,
+        products: Object.values(emp.products).sort((a, b) => b.quantity - a.quantity),
+      }))
+      .sort((a, b) => b.total - a.total),
+    daily_breakdown: Object.values(salesByDay).sort((a, b) => a.date.localeCompare(b.date)),
   });
 }
