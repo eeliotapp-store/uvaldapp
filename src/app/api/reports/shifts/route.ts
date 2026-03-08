@@ -112,14 +112,18 @@ async function getShiftReport(shiftId: string) {
         ? `${item.product_id}-combo-${item.combo_id}`
         : item.product_id;
 
+    // Cast de tipos para relaciones de Supabase (relaciones 1:1)
+    const product = item.products as unknown as { id: string; name: string } | null;
+    const combo = item.combos as unknown as { id: string; name: string } | null;
+
     if (!productSummary[key]) {
       productSummary[key] = {
         product_id: item.product_id,
-        product_name: item.products?.name + (item.is_michelada ? ' (Michelada)' : ''),
+        product_name: (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : ''),
         quantity: 0,
         total: 0,
         is_combo: !!item.combo_id,
-        combo_name: item.combos?.name,
+        combo_name: combo?.name,
       };
     }
     productSummary[key].quantity += item.quantity;
@@ -301,7 +305,9 @@ async function getDailyReport(date: string) {
     const productKey = item.is_michelada
       ? `${item.product_id}-michelada`
       : item.product_id;
-    const productName = (item.products?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : '');
+    // Cast de tipos para relaciones de Supabase (relaciones 1:1)
+    const product = item.products as unknown as { id: string; name: string } | null;
+    const productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : '');
 
     // Asegurar que existe la estructura para el tipo de turno
     if (!byShiftType[shiftType]) {
@@ -382,10 +388,13 @@ async function getDailyReport(date: string) {
       ? `${item.product_id}-michelada`
       : item.product_id;
 
+    // Cast de tipos para relaciones de Supabase (relaciones 1:1)
+    const product = item.products as unknown as { id: string; name: string } | null;
+
     if (!productSummary[key]) {
       productSummary[key] = {
         product_id: item.product_id,
-        product_name: item.products?.name + (item.is_michelada ? ' (Michelada)' : ''),
+        product_name: (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : ''),
         quantity: 0,
         total: 0,
       };
