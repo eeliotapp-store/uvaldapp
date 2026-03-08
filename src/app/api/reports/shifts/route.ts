@@ -157,6 +157,18 @@ async function getShiftReport(shiftId: string) {
     }
   });
 
+  // Obtener observaciones del turno
+  const { data: observations } = await supabaseAdmin
+    .from('observations')
+    .select(`
+      id,
+      content,
+      created_at,
+      employees (id, name)
+    `)
+    .eq('shift_id', shiftId)
+    .order('created_at', { ascending: true });
+
   return NextResponse.json({
     shift: {
       id: shift.id,
@@ -178,6 +190,12 @@ async function getShiftReport(shiftId: string) {
     sales: sales || [],
     products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity),
     payment_totals: paymentTotals,
+    observations: observations?.map(obs => ({
+      id: obs.id,
+      content: obs.content,
+      created_at: obs.created_at,
+      employee_name: (obs.employees as unknown as { name: string } | null)?.name || 'Desconocido',
+    })) || [],
   });
 }
 
@@ -436,10 +454,26 @@ async function getDailyReport(date: string) {
     }
   });
 
+  // Obtener observaciones del día
+  const { data: observations } = await supabaseAdmin
+    .from('observations')
+    .select(`
+      id,
+      content,
+      created_at,
+      shift_id,
+      employees (id, name),
+      shifts (id, type)
+    `)
+    .gte('created_at', startOfDay)
+    .lte('created_at', endOfDay)
+    .order('created_at', { ascending: true });
+
   // Construir reporte por turno (individual de cada empleada)
   const shiftReports = shifts?.map(shift => {
     const shiftSummary = summaries.find((s: { shift_id?: string }) => s.shift_id === shift.id);
     const shiftSales = sales?.filter(s => s.shift_id === shift.id) || [];
+    const shiftObservations = observations?.filter(o => o.shift_id === shift.id) || [];
 
     return {
       id: shift.id,
@@ -455,6 +489,12 @@ async function getDailyReport(date: string) {
       summary: shiftSummary || null,
       sales_count: shiftSales.filter(s => !s.voided).length,
       total: shiftSales.filter(s => !s.voided).reduce((sum, s) => sum + s.total, 0),
+      observations: shiftObservations.map(obs => ({
+        id: obs.id,
+        content: obs.content,
+        created_at: obs.created_at,
+        employee_name: (obs.employees as unknown as { name: string } | null)?.name || 'Desconocido',
+      })),
     };
   }) || [];
 
@@ -464,6 +504,13 @@ async function getDailyReport(date: string) {
     day_totals: dayTotals,
     products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity),
     by_shift_type: shiftTypeSummary,
+    observations: observations?.map(obs => ({
+      id: obs.id,
+      content: obs.content,
+      created_at: obs.created_at,
+      employee_name: (obs.employees as unknown as { name: string } | null)?.name || 'Desconocido',
+      shift_type: (obs.shifts as unknown as { type: string } | null)?.type || 'unknown',
+    })) || [],
   });
 }
 
@@ -681,6 +728,20 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     }
   });
 
+  // Obtener observaciones del rango
+  const { data: observations } = await supabaseAdmin
+    .from('observations')
+    .select(`
+      id,
+      content,
+      created_at,
+      employees (id, name),
+      shifts (id, type)
+    `)
+    .gte('created_at', start)
+    .lte('created_at', end)
+    .order('created_at', { ascending: true });
+
   return NextResponse.json({
     start_date: startDate,
     end_date: endDate,
@@ -697,5 +758,12 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       }))
       .sort((a, b) => b.total - a.total),
     daily_breakdown: Object.values(salesByDay).sort((a, b) => a.date.localeCompare(b.date)),
+    observations: observations?.map(obs => ({
+      id: obs.id,
+      content: obs.content,
+      created_at: obs.created_at,
+      employee_name: (obs.employees as unknown as { name: string } | null)?.name || 'Desconocido',
+      shift_type: (obs.shifts as unknown as { type: string } | null)?.type || 'unknown',
+    })) || [],
   });
 }

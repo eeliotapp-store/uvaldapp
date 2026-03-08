@@ -6,6 +6,14 @@ import { Button } from '@/components/ui/button';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import Link from 'next/link';
 
+interface Observation {
+  id: string;
+  content: string;
+  created_at: string;
+  employee_name: string;
+  shift_type?: string;
+}
+
 interface ShiftReport {
   id: string;
   type: 'day' | 'night';
@@ -24,6 +32,7 @@ interface ShiftReport {
   } | null;
   sales_count: number;
   total: number;
+  observations?: Observation[];
 }
 
 interface ProductSummary {
@@ -63,6 +72,7 @@ interface DailyReport {
     day: ShiftTypeSummary;
     night: ShiftTypeSummary;
   };
+  observations?: Observation[];
 }
 
 interface SingleShiftReport {
@@ -92,6 +102,7 @@ interface SingleShiftReport {
     fiado: number;
     fiado_abonos: number;
   };
+  observations?: Observation[];
 }
 
 interface RangeReport {
@@ -116,6 +127,7 @@ interface RangeReport {
     cash: number;
     transfer: number;
   }[];
+  observations?: Observation[];
 }
 
 interface RankingProduct {
@@ -1073,12 +1085,50 @@ function DailyReportView({
           <p className="text-center text-gray-500 py-4">No hay productos vendidos</p>
         )}
       </div>
+
+      {/* Observaciones del día */}
+      {report.observations && report.observations.length > 0 && (
+        <div className="bg-amber-50 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200">
+          <h3 className="text-lg font-semibold mb-4 text-amber-800 flex items-center gap-2">
+            <NoteIcon className="w-5 h-5" />
+            Observaciones del Día ({report.observations.length})
+          </h3>
+          <div className="space-y-3">
+            {report.observations.map((obs) => (
+              <div key={obs.id} className="bg-white p-3 rounded-lg border border-amber-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium text-amber-900">{obs.employee_name}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded ${
+                    obs.shift_type === 'day'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-indigo-100 text-indigo-800'
+                  }`}>
+                    {obs.shift_type === 'day' ? 'Día' : 'Noche'}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatTime(obs.created_at)}
+                  </span>
+                </div>
+                <p className="text-gray-700">{obs.content}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
+function NoteIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </svg>
+  );
+}
+
 function ShiftReportView({ report }: { report: SingleShiftReport }) {
-  const { shift, summary, products, payment_totals } = report;
+  const { shift, summary, products, payment_totals, observations } = report;
 
   return (
     <div className="space-y-6">
@@ -1238,6 +1288,29 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
           <p className="text-center text-gray-500 py-4">No hay productos vendidos en este turno</p>
         )}
       </div>
+
+      {/* Observaciones del turno */}
+      {observations && observations.length > 0 && (
+        <div className="bg-amber-50 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200">
+          <h3 className="text-lg font-semibold mb-4 text-amber-800 flex items-center gap-2">
+            <NoteIcon className="w-5 h-5" />
+            Observaciones del Turno ({observations.length})
+          </h3>
+          <div className="space-y-3">
+            {observations.map((obs) => (
+              <div key={obs.id} className="bg-white p-3 rounded-lg border border-amber-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium text-amber-900">{obs.employee_name}</span>
+                  <span className="text-xs text-gray-500">
+                    {formatTime(obs.created_at)}
+                  </span>
+                </div>
+                <p className="text-gray-700">{obs.content}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1416,6 +1489,36 @@ function RangeReportView({ report }: { report: RangeReport }) {
           <p className="text-center text-gray-500 py-4">No hay productos vendidos en este período</p>
         )}
       </div>
+
+      {/* Observaciones del período */}
+      {report.observations && report.observations.length > 0 && (
+        <div className="bg-amber-50 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200">
+          <h3 className="text-lg font-semibold mb-4 text-amber-800 flex items-center gap-2">
+            <NoteIcon className="w-5 h-5" />
+            Observaciones del Período ({report.observations.length})
+          </h3>
+          <div className="space-y-3">
+            {report.observations.map((obs) => (
+              <div key={obs.id} className="bg-white p-3 rounded-lg border border-amber-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium text-amber-900">{obs.employee_name}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded ${
+                    obs.shift_type === 'day'
+                      ? 'bg-yellow-100 text-yellow-800'
+                      : 'bg-indigo-100 text-indigo-800'
+                  }`}>
+                    {obs.shift_type === 'day' ? 'Día' : 'Noche'}
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatDate(obs.created_at)} {formatTime(obs.created_at)}
+                  </span>
+                </div>
+                <p className="text-gray-700">{obs.content}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
