@@ -15,6 +15,8 @@ interface PaymentResult {
   cashChange: number;
   transferAmount: number;
   cashAmount: number;
+  notes?: string;
+  closeNotes?: string;
 }
 
 interface PaymentModalProps {
@@ -36,6 +38,7 @@ export function PaymentModal({
 }: PaymentModalProps) {
   const [step, setStep] = useState<PaymentStep>('bill');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [notes, setNotes] = useState<string>('');
 
   // Para pago en efectivo
   const [cashReceived, setCashReceived] = useState<string>('');
@@ -88,6 +91,8 @@ export function PaymentModal({
         cashChange: change,
         transferAmount: 0,
         cashAmount: total,
+        notes: notes || undefined,
+        closeNotes: notes || undefined,
       };
     } else if (paymentMethod === 'transfer') {
       result = {
@@ -96,6 +101,8 @@ export function PaymentModal({
         cashChange: 0,
         transferAmount: total,
         cashAmount: 0,
+        notes: notes || undefined,
+        closeNotes: notes || undefined,
       };
     } else {
       // mixed
@@ -105,6 +112,8 @@ export function PaymentModal({
         cashChange: change,
         transferAmount: transferAmountNum,
         cashAmount: cashAmountMixedNum - change,
+        notes: notes || undefined,
+        closeNotes: notes || undefined,
       };
     }
 
@@ -172,6 +181,20 @@ export function PaymentModal({
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Campo de observaciones */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Observaciones (opcional)
+        </label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+          rows={2}
+        />
       </div>
 
       {/* Total grande */}

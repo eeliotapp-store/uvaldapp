@@ -83,6 +83,8 @@ export default function POSPage() {
     cashChange: number;
     transferAmount: number;
     cashAmount: number;
+    notes?: string;
+    closeNotes?: string;
   }) => {
     if (!employee || !currentShift) {
       setError('Debes iniciar un turno antes de vender');
@@ -126,6 +128,9 @@ export default function POSPage() {
           cash_change: result.cashChange,
           transfer_amount: result.transferAmount,
           cash_amount: result.cashAmount,
+          notes: result.notes,
+          close_notes: result.closeNotes,
+          close: true,
         }),
       });
 

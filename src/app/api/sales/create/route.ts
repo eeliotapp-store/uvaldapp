@@ -35,6 +35,9 @@ interface CreateSaleRequest {
   fiado_customer_name?: string;
   fiado_amount?: number;
   fiado_abono?: number;
+  // Observaciones
+  notes?: string;
+  close_notes?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -56,6 +59,8 @@ export async function POST(request: NextRequest) {
       fiado_customer_name,
       fiado_amount = 0,
       fiado_abono = 0,
+      notes,
+      close_notes,
     } = body;
 
     // Validaciones básicas
@@ -180,6 +185,8 @@ export async function POST(request: NextRequest) {
       status: close ? 'closed' : 'open',
       opened_by_employee_id: employee_id,
       closed_by_employee_id: close ? employee_id : null,
+      notes: notes || null,
+      close_notes: close ? (close_notes || null) : null,
     };
 
     // Si se cierra, agregar datos de pago

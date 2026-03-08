@@ -13,6 +13,8 @@ interface CloseTabRequest {
   fiado_customer_name?: string;
   fiado_amount?: number;
   fiado_abono?: number;
+  // Observaciones al cerrar
+  close_notes?: string;
 }
 
 // POST: Cerrar una cuenta abierta (procesar pago)
@@ -33,6 +35,7 @@ export async function POST(
       fiado_customer_name,
       fiado_amount = 0,
       fiado_abono = 0,
+      close_notes,
     } = body;
 
     if (!payment_method || !employee_id) {
@@ -95,6 +98,7 @@ export async function POST(
       status: 'closed',
       payment_method,
       closed_by_employee_id: employee_id,
+      close_notes: close_notes || null,
     };
 
     if (payment_method === 'cash') {

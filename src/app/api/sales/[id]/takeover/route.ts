@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase/server';
 interface TakeoverRequest {
   new_employee_id: string;
   new_shift_id: string;
+  takeover_notes?: string;
 }
 
 // POST: Traspasar una cuenta abierta a otro empleado
@@ -14,7 +15,7 @@ export async function POST(
   try {
     const { id } = await params;
     const body: TakeoverRequest = await request.json();
-    const { new_employee_id, new_shift_id } = body;
+    const { new_employee_id, new_shift_id, takeover_notes } = body;
 
     if (!new_employee_id || !new_shift_id) {
       return NextResponse.json(
@@ -67,6 +68,7 @@ export async function POST(
         shift_id: new_shift_id,
         taken_over_by_employee_id: new_employee_id,
         taken_over_at: new Date().toISOString(),
+        takeover_notes: takeover_notes || null,
         // Si opened_by_employee_id es null, significa que es la primera vez
         // Guardamos el employee_id original como quien la abrió
         opened_by_employee_id: sale.opened_by_employee_id || sale.employee_id,

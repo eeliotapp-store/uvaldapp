@@ -35,6 +35,10 @@ interface SaleWithDetails {
   closed_by?: { id: string; name: string } | null;
   taken_over_by?: { id: string; name: string } | null;
   shifts: { id: string; type: string };
+  // Observaciones
+  notes: string | null;
+  close_notes: string | null;
+  takeover_notes: string | null;
   sale_items: {
     id: string;
     quantity: number;
@@ -2293,6 +2297,33 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
               )}
             </div>
           </div>
+
+          {/* Observaciones */}
+          {(sale.notes || sale.close_notes || sale.takeover_notes) && (
+            <div className="bg-yellow-50 rounded-lg p-3 mt-2 border border-yellow-200">
+              <p className="text-xs font-medium text-yellow-800 mb-2">Observaciones:</p>
+              <div className="space-y-2 text-sm">
+                {sale.notes && (
+                  <div>
+                    <span className="text-yellow-700 font-medium">General: </span>
+                    <span className="text-yellow-900">{sale.notes}</span>
+                  </div>
+                )}
+                {sale.takeover_notes && (
+                  <div>
+                    <span className="text-yellow-700 font-medium">Al retomar: </span>
+                    <span className="text-yellow-900">{sale.takeover_notes}</span>
+                  </div>
+                )}
+                {sale.close_notes && (
+                  <div>
+                    <span className="text-yellow-700 font-medium">Al cerrar: </span>
+                    <span className="text-yellow-900">{sale.close_notes}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Método de pago:</span>
