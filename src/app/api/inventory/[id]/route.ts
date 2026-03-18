@@ -59,10 +59,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
 
-    // Solo owner y superadmin pueden editar entradas de inventario
-    if (payload.role !== 'owner' && payload.role !== 'superadmin') {
-      return NextResponse.json({ error: 'No tienes permisos para editar inventario' }, { status: 403 });
-    }
+    // Cualquier empleado autenticado puede editar inventario
 
     const { id } = await params;
     const body = await request.json();
