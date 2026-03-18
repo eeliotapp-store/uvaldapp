@@ -592,6 +592,13 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Si el proveedor de la entrada no está en la lista (fue desactivado), agregarlo
+  const availableSuppliers = suppliers.some(s => s.id === entry.supplier_id)
+    ? suppliers
+    : entry.suppliers
+      ? [...suppliers, { id: entry.supplier_id, name: `${entry.suppliers.name} (inactivo)`, active: false } as Supplier]
+      : suppliers;
+
   // Calcular precio total basado en cantidad inicial y precio unitario
   const purchasePrice = parseFloat(formData.purchase_price) || 0;
   const initialQty = parseInt(formData.initial_quantity) || 0;
@@ -659,7 +666,7 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             >
               <option value="">Seleccionar proveedor...</option>
-              {suppliers.map((s) => (
+              {availableSuppliers.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
             </select>
