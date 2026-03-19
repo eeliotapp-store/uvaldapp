@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useAuthStore, isOwner, isSuperAdmin } from '@/stores/auth-store';
 import type { CurrentStock, Supplier } from '@/types/database';
 
 type TabType = 'stock' | 'history';
@@ -35,6 +36,9 @@ interface InventoryCount {
 }
 
 export default function InventoryPage() {
+  const employee = useAuthStore((state) => state.employee);
+  const canResetStock = employee && (isOwner(employee.role) || isSuperAdmin(employee.role));
+
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [stock, setStock] = useState<CurrentStock[]>([]);
   const [history, setHistory] = useState<InventoryEntry[]>([]);
@@ -44,6 +48,7 @@ export default function InventoryPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [showCountModal, setShowCountModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<InventoryEntry | null>(null);
   const [selectedStockItem, setSelectedStockItem] = useState<CurrentStock | null>(null);
 
@@ -105,7 +110,18 @@ export default function InventoryPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Inventario</h1>
-        <Button onClick={() => setShowAddModal(true)}>+ Agregar Stock</Button>
+        <div className="flex gap-2">
+          {canResetStock && (
+            <Button
+              variant="outline"
+              onClick={() => setShowResetModal(true)}
+              className="text-red-600 border-red-200 hover:bg-red-50"
+            >
+              Resetear Stock
+            </Button>
+          )}
+          <Button onClick={() => setShowAddModal(true)}>+ Agregar Stock</Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -422,6 +438,17 @@ export default function InventoryPage() {
           onSuccess={() => {
             setShowCountModal(false);
             setSelectedStockItem(null);
+            loadData();
+          }}
+        />
+      )}
+
+      {/* Reset Stock Modal */}
+      {showResetModal && (
+        <ResetStockModal
+          onClose={() => setShowResetModal(false)}
+          onSuccess={() => {
+            setShowResetModal(false);
             loadData();
           }}
         />
@@ -1010,6 +1037,112 @@ function CountInventoryModal({ item, onClose, onSuccess }: CountInventoryModalPr
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
               {isLoading ? 'Guardando...' : 'Registrar Conteo'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface ResetStockModalProps {
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function ResetStockModal({ onClose, onSuccess }: ResetStockModalProps) {
+  const [confirmText, setConfirmText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (confirmText !== 'RESETEAR') {
+      setError('Debes escribir RESETEAR para confirmar');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/inventory/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Error al resetear stock');
+        return;
+      }
+
+      onSuccess();
+    } catch (err) {
+      console.error('Error resetting stock:', err);
+      setError('Error al resetear stock');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+            <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">Resetear Todo el Stock</h2>
+            <p className="text-sm text-gray-500">Esta acción es irreversible</p>
+          </div>
+        </div>
+
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <p className="text-sm text-red-700">
+            <strong>Advertencia:</strong> Esta acción pondrá todas las cantidades de inventario en 0.
+            Use esto solo si está iniciando el sistema desde cero.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Escribe <strong>RESETEAR</strong> para confirmar
+            </label>
+            <input
+              type="text"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
+              placeholder="RESETEAR"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
+            />
+          </div>
+
+          {error && (
+            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading || confirmText !== 'RESETEAR'}
+              className="flex-1 bg-red-600 hover:bg-red-700"
+            >
+              {isLoading ? 'Reseteando...' : 'Resetear Stock'}
             </Button>
           </div>
         </form>
