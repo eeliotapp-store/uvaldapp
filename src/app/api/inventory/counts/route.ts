@@ -51,7 +51,64 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST: Registrar un conteo de inventario
+// Función para ajustar el inventario cuando hay diferencia
+async function adjustInventory(productId: string, systemStock: number, realStock: number) {
+  const difference = realStock - systemStock;
+
+  if (difference === 0) return; // No hay diferencia, no hacer nada
+
+  // Obtener las entradas de inventario del producto ordenadas por fecha (más recientes primero)
+  const { data: entries, error: fetchError } = await supabaseAdmin
+    .from('inventory')
+    .select('id, quantity')
+    .eq('product_id', productId)
+    .gt('quantity', 0)
+    .order('created_at', { ascending: false });
+
+  if (fetchError) {
+    console.error('Error fetching inventory entries:', fetchError);
+    throw fetchError;
+  }
+
+  if (difference > 0) {
+    // Hay más stock del que dice el sistema - agregar al entry más reciente
+    if (entries && entries.length > 0) {
+      const { error: updateError } = await supabaseAdmin
+        .from('inventory')
+        .update({ quantity: entries[0].quantity + difference })
+        .eq('id', entries[0].id);
+
+      if (updateError) {
+        console.error('Error updating inventory:', updateError);
+        throw updateError;
+      }
+    }
+  } else {
+    // Hay menos stock del que dice el sistema - reducir de los entries
+    let remaining = Math.abs(difference);
+
+    for (const entry of entries || []) {
+      if (remaining <= 0) break;
+
+      const reduction = Math.min(entry.quantity, remaining);
+      const newQuantity = entry.quantity - reduction;
+
+      const { error: updateError } = await supabaseAdmin
+        .from('inventory')
+        .update({ quantity: newQuantity })
+        .eq('id', entry.id);
+
+      if (updateError) {
+        console.error('Error updating inventory entry:', updateError);
+        throw updateError;
+      }
+
+      remaining -= reduction;
+    }
+  }
+}
+
+// POST: Registrar un conteo de inventario y ajustar stock
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get('auth-token')?.value;
@@ -74,22 +131,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (real_stock < 0) {
+    const realStockNum = parseInt(real_stock);
+    const systemStockNum = parseInt(system_stock);
+
+    if (realStockNum < 0) {
       return NextResponse.json(
         { error: 'El stock real no puede ser negativo' },
         { status: 400 }
       );
     }
 
-    // Insertar el conteo
+    // 1. Insertar el conteo en el historial
     const { data, error } = await supabaseAdmin
       .from('inventory_counts')
       .insert({
         product_id,
         shift_id: shift_id || null,
         employee_id: payload.employee_id,
-        system_stock: parseInt(system_stock),
-        real_stock: parseInt(real_stock),
+        system_stock: systemStockNum,
+        real_stock: realStockNum,
         notes: notes || null,
       })
       .select(`
@@ -107,9 +167,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 2. Ajustar el inventario real si hay diferencia
+    try {
+      await adjustInventory(product_id, systemStockNum, realStockNum);
+    } catch (adjustError) {
+      console.error('Error adjusting inventory:', adjustError);
+      // El conteo ya se guardó, pero no se pudo ajustar el inventario
+      // Continuamos y reportamos el problema
+    }
+
     return NextResponse.json({
       success: true,
       count: data,
+      adjusted: realStockNum !== systemStockNum,
+      difference: realStockNum - systemStockNum,
     });
   } catch (error) {
     console.error('Inventory count error:', error);

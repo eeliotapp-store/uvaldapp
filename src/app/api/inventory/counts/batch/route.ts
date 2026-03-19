@@ -2,7 +2,64 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import { verifyToken } from '@/lib/auth';
 
-// POST: Registrar múltiples conteos de inventario
+// Función para ajustar el inventario cuando hay diferencia
+async function adjustInventory(productId: string, systemStock: number, realStock: number) {
+  const difference = realStock - systemStock;
+
+  if (difference === 0) return; // No hay diferencia, no hacer nada
+
+  // Obtener las entradas de inventario del producto ordenadas por fecha (más recientes primero)
+  const { data: entries, error: fetchError } = await supabaseAdmin
+    .from('inventory')
+    .select('id, quantity')
+    .eq('product_id', productId)
+    .gt('quantity', 0)
+    .order('created_at', { ascending: false });
+
+  if (fetchError) {
+    console.error('Error fetching inventory entries:', fetchError);
+    throw fetchError;
+  }
+
+  if (difference > 0) {
+    // Hay más stock del que dice el sistema - agregar al entry más reciente
+    if (entries && entries.length > 0) {
+      const { error: updateError } = await supabaseAdmin
+        .from('inventory')
+        .update({ quantity: entries[0].quantity + difference })
+        .eq('id', entries[0].id);
+
+      if (updateError) {
+        console.error('Error updating inventory:', updateError);
+        throw updateError;
+      }
+    }
+  } else {
+    // Hay menos stock del que dice el sistema - reducir de los entries
+    let remaining = Math.abs(difference);
+
+    for (const entry of entries || []) {
+      if (remaining <= 0) break;
+
+      const reduction = Math.min(entry.quantity, remaining);
+      const newQuantity = entry.quantity - reduction;
+
+      const { error: updateError } = await supabaseAdmin
+        .from('inventory')
+        .update({ quantity: newQuantity })
+        .eq('id', entry.id);
+
+      if (updateError) {
+        console.error('Error updating inventory entry:', updateError);
+        throw updateError;
+      }
+
+      remaining -= reduction;
+    }
+  }
+}
+
+// POST: Registrar múltiples conteos de inventario y ajustar stock
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get('auth-token')?.value;
@@ -58,7 +115,7 @@ export async function POST(request: NextRequest) {
       notes: count.notes || null,
     }));
 
-    // Insertar todos los conteos
+    // 1. Insertar todos los conteos en el historial
     const { data, error } = await supabaseAdmin
       .from('inventory_counts')
       .insert(records)
@@ -72,10 +129,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 2. Ajustar el inventario real para cada producto con diferencia
+    let adjustedCount = 0;
+    const adjustmentErrors: string[] = [];
+
+    for (const count of counts) {
+      const systemStock = parseInt(String(count.system_stock));
+      const realStock = parseInt(String(count.real_stock));
+
+      if (systemStock !== realStock) {
+        try {
+          await adjustInventory(count.product_id, systemStock, realStock);
+          adjustedCount++;
+        } catch (adjustError) {
+          console.error(`Error adjusting inventory for product ${count.product_id}:`, adjustError);
+          adjustmentErrors.push(count.product_id);
+        }
+      }
+    }
+
     return NextResponse.json({
       success: true,
       counts: data,
-      message: `${data.length} conteos registrados correctamente`,
+      message: `${data.length} conteos registrados, ${adjustedCount} ajustes de inventario realizados`,
+      adjustedCount,
+      adjustmentErrors: adjustmentErrors.length > 0 ? adjustmentErrors : undefined,
     });
   } catch (error) {
     console.error('Batch inventory count error:', error);
