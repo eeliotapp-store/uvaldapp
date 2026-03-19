@@ -23,18 +23,6 @@ interface InventoryEntry {
   employees: { name: string } | null;
 }
 
-interface InventoryCount {
-  id: string;
-  product_id: string;
-  employee_id: string;
-  system_stock: number;
-  real_stock: number;
-  difference: number;
-  notes: string | null;
-  created_at: string;
-  employee_name: string;
-}
-
 export default function InventoryPage() {
   const employee = useAuthStore((state) => state.employee);
   const canResetStock = employee && (isOwner(employee.role) || isSuperAdmin(employee.role));
@@ -43,7 +31,6 @@ export default function InventoryPage() {
   const [stock, setStock] = useState<CurrentStock[]>([]);
   const [history, setHistory] = useState<InventoryEntry[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [inventoryCounts, setInventoryCounts] = useState<InventoryCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
@@ -59,27 +46,20 @@ export default function InventoryPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [stockResponse, suppliersResponse, historyResponse, countsResponse] = await Promise.all([
+      const [stockResponse, suppliersResponse, historyResponse] = await Promise.all([
         supabase.from('v_current_stock').select('*').order('product_name'),
         supabase.from('suppliers').select('*').eq('active', true),
         fetch('/api/inventory?limit=200').then(r => r.json()),
-        fetch('/api/inventory/counts?latest=true').then(r => r.json()),
       ]);
 
       setStock((stockResponse.data as CurrentStock[]) || []);
       setSuppliers((suppliersResponse.data as Supplier[]) || []);
       setHistory(historyResponse.inventory || []);
-      setInventoryCounts(countsResponse.counts || []);
     } catch (error) {
       console.error('Error loading inventory:', error);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Función para obtener el último conteo de un producto
-  const getLatestCount = (productId: string): InventoryCount | undefined => {
-    return inventoryCounts.find(c => c.product_id === productId);
   };
 
   const handleCount = (item: CurrentStock) => {
@@ -181,16 +161,10 @@ export default function InventoryPage() {
                     Producto
                   </th>
                   <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
-                    Stock Sistema
+                    Stock
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
-                    Stock Real
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
-                    Diferencia
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Último Conteo
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">
+                    Precio
                   </th>
                   <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
                     Estado
@@ -201,99 +175,51 @@ export default function InventoryPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {stock.map((item) => {
-                  const lastCount = getLatestCount(item.product_id);
-                  const difference = lastCount ? lastCount.difference : null;
-
-                  return (
-                    <tr key={item.product_id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <div>
-                          <span className="font-medium text-gray-900">
-                            {item.product_name}
-                          </span>
-                          <p className="text-xs text-gray-500 capitalize">
-                            {item.category.replace('_', ' ')}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span
-                          className={`font-bold ${
-                            item.is_low_stock ? 'text-red-600' : 'text-gray-900'
-                          }`}
-                        >
-                          {item.current_stock}
+                {stock.map((item) => (
+                  <tr key={item.product_id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div>
+                        <span className="font-medium text-gray-900">
+                          {item.product_name}
                         </span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {lastCount ? (
-                          <span className="font-bold text-blue-600">
-                            {lastCount.real_stock}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {difference !== null ? (
-                          <span
-                            className={`font-bold ${
-                              difference > 0
-                                ? 'text-green-600'
-                                : difference < 0
-                                ? 'text-red-600'
-                                : 'text-gray-600'
-                            }`}
-                          >
-                            {difference > 0 ? '+' : ''}{difference}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        {lastCount ? (
-                          <div className="text-xs">
-                            <p className="font-medium text-gray-700">{lastCount.employee_name}</p>
-                            <p className="text-gray-500">
-                              {new Date(lastCount.created_at).toLocaleDateString('es-CO', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                            {lastCount.notes && (
-                              <p className="text-amber-600 italic mt-1">{lastCount.notes}</p>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400">Sin conteo</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        {item.is_low_stock ? (
-                          <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                            Bajo
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                            OK
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => handleCount(item)}
-                          className="px-3 py-1.5 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 font-medium"
-                        >
-                          Contar
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        <p className="text-xs text-gray-500 capitalize">
+                          {item.category.replace('_', ' ')}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span
+                        className={`text-lg font-bold ${
+                          item.is_low_stock ? 'text-red-600' : 'text-gray-900'
+                        }`}
+                      >
+                        {item.current_stock}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-600">
+                      {formatCurrency(item.sale_price)}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {item.is_low_stock ? (
+                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                          Bajo
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                          OK
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => handleCount(item)}
+                        className="px-3 py-1.5 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 font-medium"
+                      >
+                        Contar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
