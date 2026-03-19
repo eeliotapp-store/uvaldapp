@@ -22,15 +22,30 @@ interface InventoryEntry {
   employees: { name: string } | null;
 }
 
+interface InventoryCount {
+  id: string;
+  product_id: string;
+  employee_id: string;
+  system_stock: number;
+  real_stock: number;
+  difference: number;
+  notes: string | null;
+  created_at: string;
+  employee_name: string;
+}
+
 export default function InventoryPage() {
   const [activeTab, setActiveTab] = useState<TabType>('stock');
   const [stock, setStock] = useState<CurrentStock[]>([]);
   const [history, setHistory] = useState<InventoryEntry[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [inventoryCounts, setInventoryCounts] = useState<InventoryCount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [showCountModal, setShowCountModal] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<InventoryEntry | null>(null);
+  const [selectedStockItem, setSelectedStockItem] = useState<CurrentStock | null>(null);
 
   useEffect(() => {
     loadData();
@@ -39,20 +54,32 @@ export default function InventoryPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [stockResponse, suppliersResponse, historyResponse] = await Promise.all([
+      const [stockResponse, suppliersResponse, historyResponse, countsResponse] = await Promise.all([
         supabase.from('v_current_stock').select('*').order('product_name'),
         supabase.from('suppliers').select('*').eq('active', true),
         fetch('/api/inventory?limit=200').then(r => r.json()),
+        fetch('/api/inventory/counts?latest=true').then(r => r.json()),
       ]);
 
       setStock((stockResponse.data as CurrentStock[]) || []);
       setSuppliers((suppliersResponse.data as Supplier[]) || []);
       setHistory(historyResponse.inventory || []);
+      setInventoryCounts(countsResponse.counts || []);
     } catch (error) {
       console.error('Error loading inventory:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Función para obtener el último conteo de un producto
+  const getLatestCount = (productId: string): InventoryCount | undefined => {
+    return inventoryCounts.find(c => c.product_id === productId);
+  };
+
+  const handleCount = (item: CurrentStock) => {
+    setSelectedStockItem(item);
+    setShowCountModal(true);
   };
 
   const handleAdjust = (entry: InventoryEntry) => {
@@ -137,64 +164,120 @@ export default function InventoryPage() {
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
                     Producto
                   </th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+                    Stock Sistema
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+                    Stock Real
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+                    Diferencia
+                  </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
-                    Categoria
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
-                    Stock
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
-                    Minimo
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">
-                    Precio Venta
+                    Último Conteo
                   </th>
                   <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
                     Estado
                   </th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+                    Acción
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {stock.map((item) => (
-                  <tr key={item.product_id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <span className="font-medium text-gray-900">
-                        {item.product_name}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="text-sm text-gray-600 capitalize">
-                        {item.category.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span
-                        className={`font-bold ${
-                          item.is_low_stock ? 'text-red-600' : 'text-gray-900'
-                        }`}
-                      >
-                        {item.current_stock}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center text-gray-600">
-                      {item.min_stock}
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium text-gray-900">
-                      {formatCurrency(item.sale_price)}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {item.is_low_stock ? (
-                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                          Bajo
+                {stock.map((item) => {
+                  const lastCount = getLatestCount(item.product_id);
+                  const difference = lastCount ? lastCount.difference : null;
+
+                  return (
+                    <tr key={item.product_id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div>
+                          <span className="font-medium text-gray-900">
+                            {item.product_name}
+                          </span>
+                          <p className="text-xs text-gray-500 capitalize">
+                            {item.category.replace('_', ' ')}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span
+                          className={`font-bold ${
+                            item.is_low_stock ? 'text-red-600' : 'text-gray-900'
+                          }`}
+                        >
+                          {item.current_stock}
                         </span>
-                      ) : (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                          OK
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {lastCount ? (
+                          <span className="font-bold text-blue-600">
+                            {lastCount.real_stock}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {difference !== null ? (
+                          <span
+                            className={`font-bold ${
+                              difference > 0
+                                ? 'text-green-600'
+                                : difference < 0
+                                ? 'text-red-600'
+                                : 'text-gray-600'
+                            }`}
+                          >
+                            {difference > 0 ? '+' : ''}{difference}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {lastCount ? (
+                          <div className="text-xs">
+                            <p className="font-medium text-gray-700">{lastCount.employee_name}</p>
+                            <p className="text-gray-500">
+                              {new Date(lastCount.created_at).toLocaleDateString('es-CO', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                            {lastCount.notes && (
+                              <p className="text-amber-600 italic mt-1">{lastCount.notes}</p>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">Sin conteo</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {item.is_low_stock ? (
+                          <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                            Bajo
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            OK
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => handleCount(item)}
+                          className="px-3 py-1.5 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 font-medium"
+                        >
+                          Contar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -323,6 +406,22 @@ export default function InventoryPage() {
           onSuccess={() => {
             setShowAdjustModal(false);
             setSelectedEntry(null);
+            loadData();
+          }}
+        />
+      )}
+
+      {/* Count Inventory Modal */}
+      {showCountModal && selectedStockItem && (
+        <CountInventoryModal
+          item={selectedStockItem}
+          onClose={() => {
+            setShowCountModal(false);
+            setSelectedStockItem(null);
+          }}
+          onSuccess={() => {
+            setShowCountModal(false);
+            setSelectedStockItem(null);
             loadData();
           }}
         />
@@ -772,6 +871,145 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
             </Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
               {isLoading ? 'Guardando...' : 'Guardar Cambios'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface CountInventoryModalProps {
+  item: CurrentStock;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
+function CountInventoryModal({ item, onClose, onSuccess }: CountInventoryModalProps) {
+  const [realStock, setRealStock] = useState(item.current_stock.toString());
+  const [notes, setNotes] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const systemStock = item.current_stock;
+  const realStockNum = parseInt(realStock) || 0;
+  const difference = realStockNum - systemStock;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/inventory/counts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: item.product_id,
+          system_stock: systemStock,
+          real_stock: realStockNum,
+          notes: notes.trim() || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Error al registrar conteo');
+        return;
+      }
+
+      onSuccess();
+    } catch (err) {
+      console.error('Error creating count:', err);
+      setError('Error al registrar conteo');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+        <h2 className="text-xl font-bold mb-2">Registrar Conteo</h2>
+        <p className="text-gray-600 mb-4">{item.product_name}</p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Comparación de stocks */}
+          <div className="bg-blue-50 rounded-lg p-4">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-1">Stock Sistema</p>
+                <p className="text-2xl font-bold text-gray-900">{systemStock}</p>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-1">Stock Real</p>
+                <input
+                  type="number"
+                  value={realStock}
+                  onChange={(e) => setRealStock(e.target.value)}
+                  min="0"
+                  required
+                  className="w-full px-2 py-1 text-2xl font-bold text-center border-2 border-blue-300 rounded-lg focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-500 mb-1">Diferencia</p>
+                <p
+                  className={`text-2xl font-bold ${
+                    difference > 0
+                      ? 'text-green-600'
+                      : difference < 0
+                      ? 'text-red-600'
+                      : 'text-gray-600'
+                  }`}
+                >
+                  {difference > 0 ? '+' : ''}{difference}
+                </p>
+              </div>
+            </div>
+
+            {difference !== 0 && (
+              <div className={`mt-3 p-2 rounded-lg text-sm text-center ${
+                difference > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+              }`}>
+                {difference > 0
+                  ? `Hay ${difference} unidades de más (sobrante)`
+                  : `Faltan ${Math.abs(difference)} unidades (faltante)`
+                }
+              </div>
+            )}
+          </div>
+
+          {/* Notas */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Notas (opcional)
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Ej: Encontré 2 rotas, se devolvieron al proveedor..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 resize-none"
+              rows={2}
+            />
+          </div>
+
+          {error && (
+            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+          )}
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isLoading} className="flex-1">
+              {isLoading ? 'Guardando...' : 'Registrar Conteo'}
             </Button>
           </div>
         </form>

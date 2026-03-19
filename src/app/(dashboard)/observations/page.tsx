@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { formatDate, formatTime } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { ShiftGuard } from '@/components/shift-guard';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { useShiftStore } from '@/stores/shift-store';
 
@@ -17,6 +18,14 @@ interface Observation {
 }
 
 export default function ObservationsPage() {
+  return (
+    <ShiftGuard>
+      <ObservationsContent />
+    </ShiftGuard>
+  );
+}
+
+function ObservationsContent() {
   const employee = useAuthStore((state) => state.employee);
   const { currentShift } = useShiftStore();
   const [observations, setObservations] = useState<Observation[]>([]);

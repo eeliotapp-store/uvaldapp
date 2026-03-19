@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { formatCurrency, formatDate, formatTime } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { ShiftGuard } from '@/components/shift-guard';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { useShiftStore } from '@/stores/shift-store';
 import { supabase } from '@/lib/supabase/client';
@@ -75,6 +76,14 @@ interface CartComboItem {
 }
 
 export default function SalesPage() {
+  return (
+    <ShiftGuard>
+      <SalesContent />
+    </ShiftGuard>
+  );
+}
+
+function SalesContent() {
   const employee = useAuthStore((state) => state.employee);
   const { currentShift, setShift, openCashRegister, addCashSale, addTransferSale, addMixedSale } = useShiftStore();
   const [sales, setSales] = useState<SaleWithDetails[]>([]);

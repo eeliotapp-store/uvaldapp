@@ -7,6 +7,7 @@ import { Cart } from '@/components/pos/cart';
 import { PaymentModal } from '@/components/pos/payment-modal';
 import { OpenCashRegisterModal } from '@/components/pos/open-cash-register-modal';
 import { CashRegisterStatus } from '@/components/pos/cash-register-status';
+import { ShiftGuard } from '@/components/shift-guard';
 import { supabase } from '@/lib/supabase/client';
 import { useCartStore, MICHELADA_EXTRA } from '@/stores/cart-store';
 import { useShiftStore } from '@/stores/shift-store';
@@ -17,6 +18,14 @@ import type { Product, CurrentStock, PaymentMethod, ComboWithItems } from '@/typ
 type TabType = 'products' | 'combos';
 
 export default function POSPage() {
+  return (
+    <ShiftGuard>
+      <POSContent />
+    </ShiftGuard>
+  );
+}
+
+function POSContent() {
   const [activeTab, setActiveTab] = useState<TabType>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [combos, setCombos] = useState<ComboWithItems[]>([]);
