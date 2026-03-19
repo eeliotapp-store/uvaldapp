@@ -157,7 +157,43 @@ interface RankingReport {
   }[];
 }
 
-type ReportType = 'daily' | 'shift' | 'range' | 'ranking';
+interface InventoryCount {
+  id: string;
+  product_id: string;
+  shift_id: string | null;
+  employee_id: string;
+  system_stock: number;
+  real_stock: number;
+  difference: number;
+  notes: string | null;
+  created_at: string;
+  products: { id: string; name: string };
+  employees: { id: string; name: string };
+  shifts: { id: string; type: string; start_time: string } | null;
+}
+
+interface InventoryCountReport {
+  counts: InventoryCount[];
+  summary: {
+    total_counts: number;
+    counts_with_difference: number;
+    total_positive_diff: number;
+    total_negative_diff: number;
+    products_counted: number;
+    employees_involved: number;
+  };
+  by_product: {
+    product_id: string;
+    product_name: string;
+    count_times: number;
+    total_positive_diff: number;
+    total_negative_diff: number;
+  }[];
+  start_date: string | null;
+  end_date: string | null;
+}
+
+type ReportType = 'daily' | 'shift' | 'range' | 'ranking' | 'inventory';
 
 export default function ReportsPage() {
   const employee = useAuthStore((state) => state.employee);
@@ -168,6 +204,7 @@ export default function ReportsPage() {
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
   const [rangeReport, setRangeReport] = useState<RangeReport | null>(null);
   const [rankingReport, setRankingReport] = useState<RankingReport | null>(null);
+  const [inventoryReport, setInventoryReport] = useState<InventoryCountReport | null>(null);
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
@@ -261,6 +298,25 @@ export default function ReportsPage() {
       setRankingReport(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar ranking');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchInventoryReport = async (start: string, end: string) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`/api/reports/inventory-counts?start_date=${start}&end_date=${end}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al cargar reporte de conteos');
+      }
+
+      setInventoryReport(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cargar reporte de conteos');
     } finally {
       setIsLoading(false);
     }
@@ -512,6 +568,53 @@ export default function ReportsPage() {
     downloadCSV(filename, csvContent);
   };
 
+  // Exportar historial de conteos a CSV
+  const exportInventoryCountsCSV = () => {
+    if (!inventoryReport) return;
+
+    const lines: string[] = [];
+
+    // Encabezado
+    lines.push('HISTORIAL DE CONTEOS DE INVENTARIO');
+    if (inventoryReport.start_date && inventoryReport.end_date) {
+      lines.push(`Período: ${inventoryReport.start_date} a ${inventoryReport.end_date}`);
+    }
+    lines.push('');
+
+    // Resumen
+    lines.push('RESUMEN');
+    lines.push(`Total Conteos,${inventoryReport.summary.total_counts}`);
+    lines.push(`Conteos con Diferencia,${inventoryReport.summary.counts_with_difference}`);
+    lines.push(`Productos Contados,${inventoryReport.summary.products_counted}`);
+    lines.push(`Sobrantes Totales,+${inventoryReport.summary.total_positive_diff}`);
+    lines.push(`Faltantes Totales,-${inventoryReport.summary.total_negative_diff}`);
+    lines.push('');
+
+    // Por producto
+    lines.push('DIFERENCIAS POR PRODUCTO');
+    lines.push('Producto,Conteos,Sobrantes,Faltantes');
+    inventoryReport.by_product.forEach(p => {
+      lines.push(`${p.product_name},${p.count_times},+${p.total_positive_diff},-${p.total_negative_diff}`);
+    });
+    lines.push('');
+
+    // Historial detallado
+    lines.push('HISTORIAL DETALLADO');
+    lines.push('Fecha,Hora,Producto,Empleada,Turno,Stock Sistema,Stock Real,Diferencia,Notas');
+    inventoryReport.counts.forEach(c => {
+      const date = new Date(c.created_at);
+      const dateStr = date.toISOString().split('T')[0];
+      const timeStr = date.toTimeString().substring(0, 5);
+      const shiftType = c.shifts?.type === 'day' ? 'Día' : c.shifts?.type === 'night' ? 'Noche' : '-';
+      const notes = c.notes ? `"${c.notes.replace(/"/g, '""')}"` : '';
+      lines.push(`${dateStr},${timeStr},${c.products?.name || '-'},${c.employees?.name || '-'},${shiftType},${c.system_stock},${c.real_stock},${c.difference},${notes}`);
+    });
+
+    const csvContent = lines.join('\n');
+    const filename = `conteos_inventario_${inventoryReport.start_date || 'todos'}_a_${inventoryReport.end_date || 'todos'}.csv`;
+    downloadCSV(filename, csvContent);
+  };
+
   return (
     <div className="p-4 max-w-4xl mx-auto">
       {/* Link a auditoría de caja */}
@@ -553,6 +656,12 @@ export default function ReportsPage() {
               CSV
             </Button>
           )}
+          {reportType === 'inventory' && inventoryReport && (
+            <Button onClick={exportInventoryCountsCSV} variant="outline" className="flex items-center gap-1">
+              <DownloadIcon className="w-4 h-4" />
+              CSV
+            </Button>
+          )}
           <Button onClick={handlePrint} variant="outline">
             Imprimir
           </Button>
@@ -574,6 +683,7 @@ export default function ReportsPage() {
                 setSelectedShiftId(null);
                 setRangeReport(null);
                 setRankingReport(null);
+                setInventoryReport(null);
               }}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
@@ -581,6 +691,7 @@ export default function ReportsPage() {
               <option value="shift">Reporte por Turno</option>
               <option value="range">Rango de Fechas</option>
               <option value="ranking">Ranking de Productos</option>
+              <option value="inventory">Historial de Conteos</option>
             </select>
           </div>
 
@@ -670,6 +781,36 @@ export default function ReportsPage() {
               </select>
             </div>
           )}
+
+          {reportType === 'inventory' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha Inicio
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha Fin
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <Button onClick={() => fetchInventoryReport(startDate, endDate)}>
+                Generar Reporte
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -722,6 +863,17 @@ export default function ReportsPage() {
           {/* Ranking de Productos */}
           {reportType === 'ranking' && rankingReport && (
             <RankingReportView report={rankingReport} />
+          )}
+
+          {/* Historial de Conteos de Inventario */}
+          {reportType === 'inventory' && inventoryReport && (
+            <InventoryCountReportView report={inventoryReport} />
+          )}
+
+          {reportType === 'inventory' && !inventoryReport && (
+            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+              <p className="text-gray-500">Selecciona un rango de fechas y haz clic en &quot;Generar Reporte&quot;</p>
+            </div>
           )}
         </>
       )}
@@ -1679,6 +1831,186 @@ function RankingReportView({ report }: { report: RankingReport }) {
         </div>
       )}
     </div>
+  );
+}
+
+// Vista de historial de conteos de inventario
+function InventoryCountReportView({ report }: { report: InventoryCountReport }) {
+  return (
+    <div className="space-y-6">
+      {/* Encabezado */}
+      <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-xl shadow-sm p-6 text-white print:bg-teal-100 print:text-teal-900">
+        <div className="flex items-center gap-3 mb-2">
+          <InventoryIcon className="w-8 h-8" />
+          <h2 className="text-xl font-bold">Historial de Conteos de Inventario</h2>
+        </div>
+        {report.start_date && report.end_date && (
+          <p className="opacity-90">
+            {formatDate(report.start_date + 'T12:00:00')} - {formatDate(report.end_date + 'T12:00:00')}
+          </p>
+        )}
+      </div>
+
+      {/* Resumen */}
+      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <h3 className="text-lg font-semibold mb-4">Resumen</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="bg-blue-50 p-4 rounded-lg text-center">
+            <p className="text-sm text-blue-600">Total Conteos</p>
+            <p className="text-2xl font-bold text-blue-700">
+              {report.summary.total_counts}
+            </p>
+          </div>
+          <div className="bg-orange-50 p-4 rounded-lg text-center">
+            <p className="text-sm text-orange-600">Con Diferencia</p>
+            <p className="text-2xl font-bold text-orange-700">
+              {report.summary.counts_with_difference}
+            </p>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg text-center">
+            <p className="text-sm text-purple-600">Productos Contados</p>
+            <p className="text-2xl font-bold text-purple-700">
+              {report.summary.products_counted}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-4">
+          <div className="bg-green-50 p-4 rounded-lg">
+            <p className="text-sm text-green-600">Sobrantes (+)</p>
+            <p className="text-2xl font-bold text-green-700">
+              +{report.summary.total_positive_diff} unidades
+            </p>
+          </div>
+          <div className="bg-red-50 p-4 rounded-lg">
+            <p className="text-sm text-red-600">Faltantes (-)</p>
+            <p className="text-2xl font-bold text-red-700">
+              -{report.summary.total_negative_diff} unidades
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Resumen por producto */}
+      {report.by_product.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+          <h3 className="text-lg font-semibold mb-4">Diferencias por Producto</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-2">Producto</th>
+                  <th className="text-center py-2 px-2">Conteos</th>
+                  <th className="text-right py-2 px-2 text-green-600">Sobrantes</th>
+                  <th className="text-right py-2 px-2 text-red-600">Faltantes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.by_product.map((product) => (
+                  <tr
+                    key={product.product_id}
+                    className={`border-b border-gray-100 ${product.total_negative_diff > 0 ? 'bg-red-50/50' : ''}`}
+                  >
+                    <td className="py-2 px-2 font-medium">{product.product_name}</td>
+                    <td className="text-center py-2 px-2">{product.count_times}</td>
+                    <td className="text-right py-2 px-2 text-green-600">
+                      {product.total_positive_diff > 0 ? `+${product.total_positive_diff}` : '-'}
+                    </td>
+                    <td className="text-right py-2 px-2 text-red-600 font-medium">
+                      {product.total_negative_diff > 0 ? `-${product.total_negative_diff}` : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Historial detallado */}
+      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <h3 className="text-lg font-semibold mb-4">Historial Detallado</h3>
+        {report.counts.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-2">Fecha/Hora</th>
+                  <th className="text-left py-2 px-2">Producto</th>
+                  <th className="text-left py-2 px-2">Empleada</th>
+                  <th className="text-center py-2 px-2">Turno</th>
+                  <th className="text-right py-2 px-2">Sistema</th>
+                  <th className="text-right py-2 px-2">Real</th>
+                  <th className="text-right py-2 px-2">Diferencia</th>
+                  <th className="text-left py-2 px-2">Notas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {report.counts.map((count) => (
+                  <tr
+                    key={count.id}
+                    className={`border-b border-gray-100 ${
+                      count.difference !== 0
+                        ? count.difference > 0
+                          ? 'bg-green-50/50'
+                          : 'bg-red-50/50'
+                        : ''
+                    }`}
+                  >
+                    <td className="py-2 px-2 whitespace-nowrap">
+                      <div>{formatDate(count.created_at)}</div>
+                      <div className="text-xs text-gray-500">{formatTime(count.created_at)}</div>
+                    </td>
+                    <td className="py-2 px-2 font-medium">{count.products?.name || '-'}</td>
+                    <td className="py-2 px-2">{count.employees?.name || '-'}</td>
+                    <td className="text-center py-2 px-2">
+                      {count.shifts ? (
+                        <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          count.shifts.type === 'day'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-indigo-100 text-indigo-800'
+                        }`}>
+                          {count.shifts.type === 'day' ? 'Día' : 'Noche'}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="text-right py-2 px-2">{count.system_stock}</td>
+                    <td className="text-right py-2 px-2">{count.real_stock}</td>
+                    <td className={`text-right py-2 px-2 font-bold ${
+                      count.difference > 0
+                        ? 'text-green-600'
+                        : count.difference < 0
+                          ? 'text-red-600'
+                          : 'text-gray-400'
+                    }`}>
+                      {count.difference > 0 ? '+' : ''}{count.difference}
+                    </td>
+                    <td className="py-2 px-2 text-gray-500 max-w-32 truncate" title={count.notes || ''}>
+                      {count.notes || '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 py-4">
+            No hay conteos de inventario en este período
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Icono de inventario
+function InventoryIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+    </svg>
   );
 }
 
