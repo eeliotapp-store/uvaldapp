@@ -81,7 +81,8 @@ export async function GET(request: NextRequest) {
     }> = {};
 
     counts?.forEach(c => {
-      const productName = (c.products as { name: string })?.name || 'Producto desconocido';
+      const product = c.products as unknown as { name: string } | null;
+      const productName = product?.name || 'Producto desconocido';
       if (!byProduct[c.product_id]) {
         byProduct[c.product_id] = {
           product_id: c.product_id,
