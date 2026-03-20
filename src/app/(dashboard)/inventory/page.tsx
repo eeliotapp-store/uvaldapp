@@ -39,6 +39,10 @@ export default function InventoryPage() {
   const [selectedEntry, setSelectedEntry] = useState<InventoryEntry | null>(null);
   const [selectedStockItem, setSelectedStockItem] = useState<CurrentStock | null>(null);
 
+  // Estado para edición inline
+  const [editingCell, setEditingCell] = useState<{ productId: string; field: 'stock' | 'price' } | null>(null);
+  const [editValue, setEditValue] = useState('');
+
   useEffect(() => {
     loadData();
   }, []);
@@ -65,6 +69,101 @@ export default function InventoryPage() {
   const handleCount = (item: CurrentStock) => {
     setSelectedStockItem(item);
     setShowCountModal(true);
+  };
+
+  // Iniciar edición de celda
+  const startEditing = (productId: string, field: 'stock' | 'price', currentValue: number) => {
+    setEditingCell({ productId, field });
+    setEditValue(currentValue.toString());
+  };
+
+  // Cancelar edición
+  const cancelEditing = () => {
+    setEditingCell(null);
+    setEditValue('');
+  };
+
+  // Guardar edición de stock
+  const saveStockEdit = async (productId: string, newStock: number) => {
+    const item = stock.find(s => s.product_id === productId);
+    if (!item) return;
+
+    const currentStock = item.current_stock;
+    const adjustment = newStock - currentStock;
+
+    if (adjustment === 0) {
+      cancelEditing();
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/inventory/adjust-product', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: productId,
+          adjustment,
+          reason: 'Ajuste manual desde inventario',
+        }),
+      });
+
+      if (response.ok) {
+        // Actualizar estado local
+        setStock(prev => prev.map(s =>
+          s.product_id === productId
+            ? { ...s, current_stock: newStock }
+            : s
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating stock:', error);
+    }
+
+    cancelEditing();
+  };
+
+  // Guardar edición de precio
+  const savePriceEdit = async (productId: string, newPrice: number) => {
+    const item = stock.find(s => s.product_id === productId);
+    if (!item || item.sale_price === newPrice) {
+      cancelEditing();
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sale_price: newPrice }),
+      });
+
+      if (response.ok) {
+        // Actualizar estado local
+        setStock(prev => prev.map(s =>
+          s.product_id === productId
+            ? { ...s, sale_price: newPrice }
+            : s
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating price:', error);
+    }
+
+    cancelEditing();
+  };
+
+  // Manejar teclas en edición
+  const handleEditKeyDown = (e: React.KeyboardEvent, productId: string, field: 'stock' | 'price') => {
+    if (e.key === 'Enter') {
+      const value = parseFloat(editValue) || 0;
+      if (field === 'stock') {
+        saveStockEdit(productId, Math.floor(value));
+      } else {
+        savePriceEdit(productId, value);
+      }
+    } else if (e.key === 'Escape') {
+      cancelEditing();
+    }
   };
 
   const handleAdjust = (entry: InventoryEntry) => {
@@ -188,16 +287,51 @@ export default function InventoryPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span
-                        className={`text-lg font-bold ${
-                          item.is_low_stock ? 'text-red-600' : 'text-gray-900'
-                        }`}
-                      >
-                        {item.current_stock}
-                      </span>
+                      {editingCell?.productId === item.product_id && editingCell.field === 'stock' ? (
+                        <input
+                          type="number"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={() => saveStockEdit(item.product_id, Math.floor(parseFloat(editValue) || 0))}
+                          onKeyDown={(e) => handleEditKeyDown(e, item.product_id, 'stock')}
+                          className="w-20 px-2 py-1 text-center text-lg font-bold border-2 border-amber-400 rounded focus:outline-none focus:border-amber-500"
+                          autoFocus
+                          min="0"
+                        />
+                      ) : (
+                        <span
+                          onClick={() => startEditing(item.product_id, 'stock', item.current_stock)}
+                          className={`text-lg font-bold cursor-pointer hover:bg-amber-100 px-2 py-1 rounded ${
+                            item.is_low_stock ? 'text-red-600' : 'text-gray-900'
+                          }`}
+                          title="Clic para editar"
+                        >
+                          {item.current_stock}
+                        </span>
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-600">
-                      {formatCurrency(item.sale_price)}
+                    <td className="px-4 py-3 text-right">
+                      {editingCell?.productId === item.product_id && editingCell.field === 'price' ? (
+                        <input
+                          type="number"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onBlur={() => savePriceEdit(item.product_id, parseFloat(editValue) || 0)}
+                          onKeyDown={(e) => handleEditKeyDown(e, item.product_id, 'price')}
+                          className="w-24 px-2 py-1 text-right border-2 border-amber-400 rounded focus:outline-none focus:border-amber-500"
+                          autoFocus
+                          min="0"
+                          step="100"
+                        />
+                      ) : (
+                        <span
+                          onClick={() => startEditing(item.product_id, 'price', item.sale_price)}
+                          className="cursor-pointer hover:bg-amber-100 px-2 py-1 rounded text-gray-600"
+                          title="Clic para editar"
+                        >
+                          {formatCurrency(item.sale_price)}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-center">
                       {item.is_low_stock ? (
