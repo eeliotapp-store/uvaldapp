@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
 import { verifyToken } from '@/lib/auth';
 
-// POST: Vaciar turnos (solo superadmin)
+// POST: Vaciar turnos (owner y superadmin)
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get('auth-token')?.value;
@@ -11,9 +11,9 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = await verifyToken(token);
-    if (!payload || payload.role !== 'superadmin') {
+    if (!payload || (payload.role !== 'superadmin' && payload.role !== 'owner')) {
       return NextResponse.json(
-        { error: 'Solo superadmin puede realizar esta acción' },
+        { error: 'Solo owner o superadmin puede realizar esta acción' },
         { status: 403 }
       );
     }

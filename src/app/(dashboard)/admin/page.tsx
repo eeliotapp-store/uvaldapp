@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuthStore, isSuperAdmin } from '@/stores/auth-store';
+import { useAuthStore, isOwner } from '@/stores/auth-store';
 
 // SVG Icons
 function AlertTriangleIcon({ className }: { className?: string }) {
@@ -84,7 +84,7 @@ const clearOptions: ClearOption[] = [
   {
     type: 'inventory',
     label: 'Vaciar Inventario',
-    description: 'Elimina todos los registros de inventario',
+    description: 'Pone la cantidad de todos los productos en cero sin eliminarlos',
     icon: DatabaseIcon,
     endpoint: '/api/admin/clear-inventory',
     confirm: 'VACIAR_INVENTARIO',
@@ -138,7 +138,7 @@ export default function AdminPage() {
   const [confirmDialog, setConfirmDialog] = useState<ClearOption | null>(null);
   const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  const canExecute = isSuperAdmin(employee?.role);
+  const canExecute = isOwner(employee?.role);
 
   const handleClear = async (option: ClearOption) => {
     setLoading(option.type);
@@ -181,7 +181,7 @@ export default function AdminPage() {
 
       {!canExecute && (
         <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
-          Solo el superadmin puede ejecutar estas acciones. Tu rol actual: <strong>{employee?.role}</strong>
+          Solo owner o superadmin pueden ejecutar estas acciones. Tu rol actual: <strong>{employee?.role}</strong>
         </div>
       )}
 
