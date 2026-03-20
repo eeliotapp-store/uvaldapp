@@ -68,7 +68,15 @@ function RefreshIcon({ className }: { className?: string }) {
   );
 }
 
-type ClearType = 'inventory' | 'sales' | 'shifts' | 'products' | 'suppliers' | 'all';
+function CashIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+    </svg>
+  );
+}
+
+type ClearType = 'inventory' | 'sales' | 'shifts' | 'products' | 'suppliers' | 'cash' | 'all';
 
 interface ClearOption {
   type: ClearType;
@@ -120,6 +128,14 @@ const clearOptions: ClearOption[] = [
     icon: TruckIcon,
     endpoint: '/api/admin/clear-suppliers',
     confirm: 'VACIAR_PROVEEDORES',
+  },
+  {
+    type: 'cash',
+    label: 'Vaciar Caja',
+    description: 'Reinicia todos los registros de efectivo a $0',
+    icon: CashIcon,
+    endpoint: '/api/admin/clear-cash',
+    confirm: 'VACIAR_CAJA',
   },
   {
     type: 'all',
