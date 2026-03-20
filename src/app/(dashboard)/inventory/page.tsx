@@ -88,10 +88,7 @@ export default function InventoryPage() {
     const item = stock.find(s => s.product_id === productId);
     if (!item) return;
 
-    const currentStock = item.current_stock;
-    const adjustment = newStock - currentStock;
-
-    if (adjustment === 0) {
+    if (item.current_stock === newStock) {
       cancelEditing();
       return;
     }
@@ -102,7 +99,7 @@ export default function InventoryPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           product_id: productId,
-          adjustment,
+          new_stock: newStock,
           reason: 'Ajuste manual desde inventario',
         }),
       });
