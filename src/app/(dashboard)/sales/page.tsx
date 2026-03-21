@@ -7,7 +7,7 @@ import { ShiftGuard } from '@/components/shift-guard';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { useShiftStore } from '@/stores/shift-store';
 import { supabase } from '@/lib/supabase/client';
-import type { PaymentMethod, Product, CurrentStock, OpenTab, Shift, ComboWithItems } from '@/types/database';
+import type { PaymentMethod, Product, CurrentStock, OpenTab, Shift, ComboWithItems, PartialPayment } from '@/types/database';
 import { MICHELADA_EXTRA } from '@/stores/cart-store';
 
 interface SaleWithDetails {
@@ -214,9 +214,17 @@ function SalesContent() {
                       </p>
                     )}
                   </div>
-                  <span className="text-xl font-bold text-gray-900">
-                    {formatCurrency(tab.total)}
-                  </span>
+                  <div className="text-right">
+                    <span className="text-xl font-bold text-gray-900">
+                      {formatCurrency(tab.total)}
+                    </span>
+                    {(tab.total_paid || 0) > 0 && (
+                      <div className="text-xs mt-1">
+                        <span className="text-green-600">Pagado: {formatCurrency(tab.total_paid)}</span>
+                        <span className="text-amber-600 ml-2">Resta: {formatCurrency(tab.remaining)}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="text-sm text-gray-600">
                   {tab.items?.slice(0, 3).map((item, idx) => (
@@ -517,6 +525,19 @@ function SaleModal({
     original_price: number; // precio base sin michelada
   } | null>(null);
 
+  // Estado para pagos parciales
+  const [showPartialPaymentModal, setShowPartialPaymentModal] = useState(false);
+  const [showPartialPaymentsHistory, setShowPartialPaymentsHistory] = useState(false);
+  const [partialPayments, setPartialPayments] = useState<PartialPayment[]>([]);
+  const [totalPaid, setTotalPaid] = useState(0);
+  const [remaining, setRemaining] = useState(0);
+  const [selectedItemsForPartial, setSelectedItemsForPartial] = useState<Record<string, { quantity: number; amount: number }>>({});
+  const [partialPaymentMethod, setPartialPaymentMethod] = useState<'cash' | 'transfer' | 'mixed'>('cash');
+  const [partialCashReceived, setPartialCashReceived] = useState('');
+  const [partialTransferAmount, setPartialTransferAmount] = useState('');
+  const [partialCashAmount, setPartialCashAmount] = useState('');
+  const [showPartialConfirmation, setShowPartialConfirmation] = useState(false);
+
   // Si es un tab existente, calcular el total previo
   const existingTotal = existingTab?.total || 0;
   const existingItems = existingTab?.items || [];
@@ -524,6 +545,142 @@ function SaleModal({
   useEffect(() => {
     loadProducts();
   }, []);
+
+  // Cargar pagos parciales cuando hay un tab existente
+  useEffect(() => {
+    if (existingTab) {
+      loadPartialPayments();
+    }
+  }, [existingTab]);
+
+  const loadPartialPayments = async () => {
+    if (!existingTab) return;
+    try {
+      const response = await fetch(`/api/sales/${existingTab.id}/partial-payments`);
+      const data = await response.json();
+      if (response.ok) {
+        setPartialPayments(data.payments || []);
+        setTotalPaid(data.total_paid || 0);
+        setRemaining(data.remaining || existingTab.total);
+      }
+    } catch (error) {
+      console.error('Error loading partial payments:', error);
+    }
+  };
+
+  // Calcular total seleccionado para pago parcial
+  const partialPaymentTotal = Object.values(selectedItemsForPartial).reduce(
+    (sum, item) => sum + item.amount,
+    0
+  );
+
+  // Obtener cambio para pago parcial
+  const getPartialChange = () => {
+    if (partialPaymentMethod === 'cash') {
+      return Math.max(0, (parseFloat(partialCashReceived) || 0) - partialPaymentTotal);
+    }
+    if (partialPaymentMethod === 'mixed') {
+      const totalPaidPartial = (parseFloat(partialTransferAmount) || 0) + (parseFloat(partialCashAmount) || 0);
+      return Math.max(0, totalPaidPartial - partialPaymentTotal);
+    }
+    return 0;
+  };
+
+  // Verificar si puede confirmar pago parcial
+  const canConfirmPartialPayment = () => {
+    if (partialPaymentTotal <= 0) return false;
+    if (partialPaymentMethod === 'transfer') return true;
+    if (partialPaymentMethod === 'cash') return (parseFloat(partialCashReceived) || 0) >= partialPaymentTotal;
+    if (partialPaymentMethod === 'mixed') {
+      const totalPaidPartial = (parseFloat(partialTransferAmount) || 0) + (parseFloat(partialCashAmount) || 0);
+      return totalPaidPartial >= partialPaymentTotal;
+    }
+    return false;
+  };
+
+  // Registrar pago parcial
+  const handleCreatePartialPayment = async () => {
+    if (!existingTab || !employee) return;
+
+    setIsProcessing(true);
+    setError('');
+
+    try {
+      const items = Object.entries(selectedItemsForPartial).map(([saleItemId, data]) => ({
+        sale_item_id: saleItemId,
+        quantity: data.quantity,
+        amount: data.amount,
+      }));
+
+      const cashAmountFinal = partialPaymentMethod === 'cash'
+        ? partialPaymentTotal
+        : partialPaymentMethod === 'mixed'
+        ? parseFloat(partialCashAmount) || 0
+        : 0;
+
+      const transferAmountFinal = partialPaymentMethod === 'transfer'
+        ? partialPaymentTotal
+        : partialPaymentMethod === 'mixed'
+        ? parseFloat(partialTransferAmount) || 0
+        : 0;
+
+      const response = await fetch(`/api/sales/${existingTab.id}/partial-payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: employee.id,
+          amount: partialPaymentTotal,
+          payment_method: partialPaymentMethod,
+          cash_amount: cashAmountFinal,
+          transfer_amount: transferAmountFinal,
+          items,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error al registrar el pago parcial');
+      }
+
+      // Actualizar estado
+      setTotalPaid(data.total_paid);
+      setRemaining(data.remaining);
+      loadPartialPayments();
+
+      // Limpiar formulario
+      setShowPartialConfirmation(false);
+      setShowPartialPaymentModal(false);
+      setSelectedItemsForPartial({});
+      setPartialPaymentMethod('cash');
+      setPartialCashReceived('');
+      setPartialTransferAmount('');
+      setPartialCashAmount('');
+
+      // Refrescar la vista principal
+      onSuccess();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al registrar pago parcial');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Toggle selección de item para pago parcial
+  const toggleItemForPartialPayment = (item: typeof existingItems[0], selected: boolean) => {
+    if (selected) {
+      setSelectedItemsForPartial(prev => ({
+        ...prev,
+        [item.id]: { quantity: item.quantity, amount: item.subtotal }
+      }));
+    } else {
+      setSelectedItemsForPartial(prev => {
+        const newState = { ...prev };
+        delete newState[item.id];
+        return newState;
+      });
+    }
+  };
 
   // Tomar relevo de una cuenta de otro empleado
   const handleTakeover = async () => {
@@ -1787,24 +1944,46 @@ function SaleModal({
                 <div>
                   <p className="text-gray-600 text-sm">Total</p>
                   <p className="text-2xl font-bold text-gray-900">{formatCurrency(total)}</p>
+                  {existingTab && totalPaid > 0 && (
+                    <div className="text-sm mt-1">
+                      <span className="text-green-600">Pagado: {formatCurrency(totalPaid)}</span>
+                      <span className="text-amber-600 ml-3">Resta: {formatCurrency(remaining)}</span>
+                      <button
+                        onClick={() => setShowPartialPaymentsHistory(true)}
+                        className="ml-3 text-blue-600 hover:underline"
+                      >
+                        Ver historial
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="flex gap-3">
-                <Button variant="outline" onClick={onClose} className="flex-1">
+              <div className="flex gap-3 flex-wrap">
+                <Button variant="outline" onClick={onClose} className="flex-1 min-w-[100px]">
                   Cancelar
                 </Button>
+                {existingTab && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPartialPaymentModal(true)}
+                    disabled={existingItems.length === 0}
+                    className="flex-1 min-w-[100px] border-green-500 text-green-700 hover:bg-green-50"
+                  >
+                    Pago Parcial
+                  </Button>
+                )}
                 <Button
                   variant="secondary"
                   onClick={handleSaveAsOpen}
                   disabled={(cart.length === 0 && cartCombos.length === 0 && !existingTab) || isProcessing}
-                  className="flex-1"
+                  className="flex-1 min-w-[100px]"
                 >
                   {isProcessing ? 'Guardando...' : 'Guardar (Cuenta Abierta)'}
                 </Button>
                 <Button
                   onClick={() => setStep('payment')}
                   disabled={(cart.length === 0 && cartCombos.length === 0 && !existingTab) || total === 0}
-                  className="flex-1"
+                  className="flex-1 min-w-[100px]"
                 >
                   Dar la Cuenta
                 </Button>
@@ -1895,6 +2074,314 @@ function SaleModal({
           }}
           isProcessing={isProcessing}
         />
+      )}
+
+      {/* Modal de Pago Parcial */}
+      {showPartialPaymentModal && existingTab && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">
+                  Pago Parcial - {existingTab.table_number ? `Mesa ${existingTab.table_number}` : 'Sin mesa'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowPartialPaymentModal(false);
+                    setSelectedItemsForPartial({});
+                    setPartialPaymentMethod('cash');
+                    setPartialCashReceived('');
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Total cuenta: {formatCurrency(existingTab.total)} |
+                Pagado: {formatCurrency(totalPaid)} |
+                Restante: {formatCurrency(remaining)}
+              </p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {/* Selección de productos */}
+              <div className="mb-6">
+                <h3 className="font-medium text-gray-900 mb-3">Selecciona los productos a pagar:</h3>
+                <div className="space-y-2">
+                  {existingItems.map((item) => {
+                    const isSelected = !!selectedItemsForPartial[item.id];
+                    return (
+                      <label
+                        key={item.id}
+                        className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => toggleItemForPartialPayment(item, e.target.checked)}
+                            className="w-5 h-5 rounded text-green-600"
+                          />
+                          <div>
+                            <p className="font-medium">
+                              {item.quantity}x {item.product_name}
+                              {item.is_michelada && ' 🌶️'}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {formatCurrency(item.unit_price)} c/u
+                            </p>
+                          </div>
+                        </div>
+                        <span className="font-bold text-gray-900">
+                          {formatCurrency(item.subtotal)}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Total seleccionado */}
+              <div className="bg-gray-100 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-gray-700">Total seleccionado:</span>
+                  <span className="text-2xl font-bold text-green-600">
+                    {formatCurrency(partialPaymentTotal)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Método de pago */}
+              {partialPaymentTotal > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-medium text-gray-900 mb-3">Método de pago:</h3>
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    {(['cash', 'transfer', 'mixed'] as const).map((method) => (
+                      <button
+                        key={method}
+                        onClick={() => setPartialPaymentMethod(method)}
+                        className={`p-3 rounded-lg border-2 text-center transition-all ${
+                          partialPaymentMethod === method
+                            ? 'border-amber-500 bg-amber-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="text-xl mb-1">
+                          {method === 'cash' ? '💵' : method === 'transfer' ? '📱' : '💳'}
+                        </div>
+                        <div className="text-sm font-medium">
+                          {method === 'cash' ? 'Efectivo' : method === 'transfer' ? 'Transfer' : 'Mixto'}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Campos según método */}
+                  {partialPaymentMethod === 'cash' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Efectivo recibido
+                      </label>
+                      <input
+                        type="number"
+                        value={partialCashReceived}
+                        onChange={(e) => setPartialCashReceived(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                        placeholder={`Mínimo ${formatCurrency(partialPaymentTotal)}`}
+                      />
+                      {parseFloat(partialCashReceived) >= partialPaymentTotal && (
+                        <p className="text-green-600 mt-2 text-lg font-medium">
+                          Cambio: {formatCurrency(getPartialChange())}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {partialPaymentMethod === 'mixed' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Transferencia
+                        </label>
+                        <input
+                          type="number"
+                          value={partialTransferAmount}
+                          onChange={(e) => setPartialTransferAmount(e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg"
+                          placeholder="$0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Efectivo
+                        </label>
+                        <input
+                          type="number"
+                          value={partialCashAmount}
+                          onChange={(e) => setPartialCashAmount(e.target.value)}
+                          className="w-full p-3 border border-gray-300 rounded-lg"
+                          placeholder="$0"
+                        />
+                      </div>
+                      {(parseFloat(partialTransferAmount) || 0) + (parseFloat(partialCashAmount) || 0) >= partialPaymentTotal && (
+                        <p className="text-green-600 text-lg font-medium">
+                          Cambio: {formatCurrency(getPartialChange())}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {error && (
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">
+                  {error}
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPartialPaymentModal(false);
+                    setSelectedItemsForPartial({});
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => setShowPartialConfirmation(true)}
+                  disabled={!canConfirmPartialPayment()}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  Registrar Pago
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Confirmación de Pago Parcial */}
+      {showPartialConfirmation && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">⚠️</span>
+              </div>
+              <h2 className="text-xl font-bold">Confirmar Pago Parcial</h2>
+              <p className="text-gray-600 mt-2">
+                ¿Registrar pago parcial de <span className="font-bold text-green-600">{formatCurrency(partialPaymentTotal)}</span>?
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <p className="text-sm text-gray-600 mb-2">
+                <strong>Método:</strong>{' '}
+                {partialPaymentMethod === 'cash' ? 'Efectivo' : partialPaymentMethod === 'transfer' ? 'Transferencia' : 'Mixto'}
+              </p>
+              <p className="text-sm text-gray-600">
+                <strong>Productos:</strong>{' '}
+                {Object.keys(selectedItemsForPartial).length} item(s)
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowPartialConfirmation(false)}
+                disabled={isProcessing}
+                className="flex-1"
+              >
+                No, Cancelar
+              </Button>
+              <Button
+                onClick={handleCreatePartialPayment}
+                disabled={isProcessing}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                {isProcessing ? 'Procesando...' : 'Sí, Pagar'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Historial de Pagos Parciales */}
+      {showPartialPaymentsHistory && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">
+                  Historial de Pagos - {existingTab?.table_number ? `Mesa ${existingTab.table_number}` : 'Sin mesa'}
+                </h2>
+                <button
+                  onClick={() => setShowPartialPaymentsHistory(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {partialPayments.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">
+                  No hay pagos parciales registrados
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {partialPayments.map((payment, index) => (
+                    <div key={payment.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-gray-900">
+                          Pago #{index + 1}
+                        </span>
+                        <span className="text-lg font-bold text-green-600">
+                          {formatCurrency(payment.amount)}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-500 mb-2">
+                        {formatTime(payment.created_at)} -
+                        {payment.payment_method === 'cash' ? ' Efectivo' : payment.payment_method === 'transfer' ? ' Transferencia' : ' Mixto'} |
+                        Por: {payment.employee_name}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {payment.items?.map((item, idx) => (
+                          <span key={item.id}>
+                            {item.quantity}x {item.product_name} ({formatCurrency(item.amount)})
+                            {idx < payment.items.length - 1 ? ', ' : ''}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-medium text-gray-700">Total pagado:</span>
+                <span className="text-xl font-bold text-green-600">{formatCurrency(totalPaid)}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700">Restante:</span>
+                <span className="text-xl font-bold text-amber-600">{formatCurrency(remaining)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -216,6 +216,8 @@ export interface OpenTab {
   table_number: string | null;
   created_at: string;
   total: number;
+  total_paid: number;
+  remaining: number;
   employee_id: string;
   employee_name: string;
   shift_id: string;
@@ -238,6 +240,30 @@ export interface OpenTab {
     added_by_employee_id?: string | null;
     added_by_name?: string | null;
   }[];
+}
+
+// Pagos parciales
+export interface PartialPayment {
+  id: string;
+  sale_id: string;
+  amount: number;
+  payment_method: 'cash' | 'transfer' | 'mixed';
+  cash_amount: number;
+  transfer_amount: number;
+  employee_id: string;
+  employee_name?: string;
+  notes?: string | null;
+  created_at: string;
+  items: PartialPaymentItem[];
+}
+
+export interface PartialPaymentItem {
+  id: string;
+  partial_payment_id: string;
+  sale_item_id: string;
+  product_name?: string;
+  quantity: number;
+  amount: number;
 }
 
 // Estadísticas diarias
