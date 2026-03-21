@@ -215,14 +215,7 @@ export default function ReportsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Solo owners y superadmin pueden ver reportes
-  if (!employee || !isOwner(employee.role)) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-gray-500">No tienes permisos para ver reportes</p>
-      </div>
-    );
-  }
+  const canView = employee && isOwner(employee.role);
 
   const fetchDailyReport = async (date: string) => {
     setIsLoading(true);
@@ -323,12 +316,22 @@ export default function ReportsPage() {
   };
 
   useEffect(() => {
+    if (!canView) return;
     if (reportType === 'daily') {
       fetchDailyReport(selectedDate);
     } else if (reportType === 'ranking') {
       fetchRankingReport(rankingPeriod);
     }
-  }, [selectedDate, reportType, rankingPeriod]);
+  }, [selectedDate, reportType, rankingPeriod, canView]);
+
+  // Solo owners y superadmin pueden ver reportes
+  if (!canView) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-gray-500">No tienes permisos para ver reportes</p>
+      </div>
+    );
+  }
 
   const handlePrint = () => {
     window.print();

@@ -62,14 +62,7 @@ export default function CashAuditPage() {
   const [startDate, setStartDate] = useState(weekAgo);
   const [endDate, setEndDate] = useState(today);
 
-  // Solo owners y superadmin pueden ver
-  if (!employee || !isOwner(employee.role)) {
-    return (
-      <div className="p-4 text-center">
-        <p className="text-gray-500">No tienes permisos para ver esta página</p>
-      </div>
-    );
-  }
+  const canView = employee && isOwner(employee.role);
 
   const fetchReport = async () => {
     setIsLoading(true);
@@ -93,8 +86,19 @@ export default function CashAuditPage() {
   };
 
   useEffect(() => {
-    fetchReport();
-  }, [startDate, endDate]);
+    if (canView) {
+      fetchReport();
+    }
+  }, [startDate, endDate, canView]);
+
+  // Solo owners y superadmin pueden ver
+  if (!canView) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-gray-500">No tienes permisos para ver esta página</p>
+      </div>
+    );
+  }
 
   const exportCSV = () => {
     if (!report) return;
