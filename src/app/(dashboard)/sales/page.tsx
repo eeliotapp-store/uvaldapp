@@ -827,6 +827,9 @@ function SaleModal({
   const combosTotal = cartCombos.reduce((sum, c) => sum + c.finalPrice, 0);
   const total = existingTotal + newItemsTotal + combosTotal;
 
+  // Monto a pagar al cerrar (total - pagos parciales previos)
+  const totalToPay = total - totalPaid;
+
   const handleAddToCart = () => {
     if (!selectedProduct) return;
 
@@ -1014,21 +1017,21 @@ function SaleModal({
 
   const getChange = () => {
     if (paymentMethod === 'cash') {
-      return Math.max(0, (parseFloat(cashReceived) || 0) - total);
+      return Math.max(0, (parseFloat(cashReceived) || 0) - totalToPay);
     }
     if (paymentMethod === 'mixed') {
-      const totalPaid = (parseFloat(transferAmount) || 0) + (parseFloat(cashAmountMixed) || 0);
-      return Math.max(0, totalPaid - total);
+      const totalPaidNow = (parseFloat(transferAmount) || 0) + (parseFloat(cashAmountMixed) || 0);
+      return Math.max(0, totalPaidNow - totalToPay);
     }
     return 0;
   };
 
   const canConfirmPayment = () => {
     if (paymentMethod === 'transfer') return true;
-    if (paymentMethod === 'cash') return (parseFloat(cashReceived) || 0) >= total;
+    if (paymentMethod === 'cash') return (parseFloat(cashReceived) || 0) >= totalToPay;
     if (paymentMethod === 'mixed') {
-      const totalPaid = (parseFloat(transferAmount) || 0) + (parseFloat(cashAmountMixed) || 0);
-      return totalPaid >= total;
+      const totalPaidNow = (parseFloat(transferAmount) || 0) + (parseFloat(cashAmountMixed) || 0);
+      return totalPaidNow >= totalToPay;
     }
     if (paymentMethod === 'fiado') {
       // Fiado requiere nombre del cliente
@@ -1037,10 +1040,10 @@ function SaleModal({
     return false;
   };
 
-  // Calcular monto fiado (total - abono)
+  // Calcular monto fiado (restante - abono)
   const getFiadoAmount = () => {
     const abono = parseFloat(fiadoAbono) || 0;
-    return Math.max(0, total - abono);
+    return Math.max(0, totalToPay - abono);
   };
 
   // Guardar como cuenta abierta (sin cobrar)
@@ -1801,9 +1804,16 @@ function SaleModal({
             <div className="space-y-6">
               {/* Resumen */}
               <div className="bg-amber-50 rounded-xl p-4 text-center">
-                <p className="text-gray-600 text-sm">Total a cobrar</p>
-                <p className="text-3xl font-bold text-amber-700">{formatCurrency(total)}</p>
-                {(existingTab || combosTotal > 0) && (newItemsTotal > 0 || combosTotal > 0) && (
+                <p className="text-gray-600 text-sm">
+                  {totalPaid > 0 ? 'Restante a cobrar' : 'Total a cobrar'}
+                </p>
+                <p className="text-3xl font-bold text-amber-700">{formatCurrency(totalToPay)}</p>
+                {totalPaid > 0 && (
+                  <p className="text-sm text-green-600 mt-1">
+                    (Pagos parciales: {formatCurrency(totalPaid)} de {formatCurrency(total)})
+                  </p>
+                )}
+                {totalPaid === 0 && (existingTab || combosTotal > 0) && (newItemsTotal > 0 || combosTotal > 0) && (
                   <p className="text-sm text-gray-500 mt-1">
                     {existingTab && `Anterior: ${formatCurrency(existingTotal)} + `}
                     {newItemsTotal > 0 && `Productos: ${formatCurrency(newItemsTotal)}`}
@@ -1861,7 +1871,7 @@ function SaleModal({
               {paymentMethod === 'transfer' && (
                 <div className="bg-blue-50 rounded-xl p-6 text-center">
                   <p className="text-gray-700 mb-2">Solicita la transferencia por:</p>
-                  <p className="text-3xl font-bold text-blue-700 mb-2">{formatCurrency(total)}</p>
+                  <p className="text-3xl font-bold text-blue-700 mb-2">{formatCurrency(totalToPay)}</p>
                   <p className="text-sm text-gray-500">Verifica el comprobante antes de confirmar</p>
                 </div>
               )}
@@ -1945,8 +1955,8 @@ function SaleModal({
                   </div>
                   <div className="bg-orange-100 rounded-lg p-4">
                     <div className="flex justify-between text-sm mb-1">
-                      <span>Total:</span>
-                      <span className="font-medium">{formatCurrency(total)}</span>
+                      <span>{totalPaid > 0 ? 'Restante:' : 'Total:'}</span>
+                      <span className="font-medium">{formatCurrency(totalToPay)}</span>
                     </div>
                     {parseFloat(fiadoAbono) > 0 && (
                       <div className="flex justify-between text-sm mb-1">

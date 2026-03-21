@@ -68,18 +68,27 @@ export async function POST(
 
     const total = sale.total || 0;
 
-    // Validar pago
-    if (payment_method === 'cash' && cash_received < total) {
+    // Obtener pagos parciales previos
+    const { data: partialPayments } = await supabaseAdmin
+      .from('partial_payments')
+      .select('amount')
+      .eq('sale_id', id);
+
+    const totalPartialPaid = (partialPayments || []).reduce((sum, p) => sum + p.amount, 0);
+    const remaining = total - totalPartialPaid;
+
+    // Validar pago contra el monto restante (no el total)
+    if (payment_method === 'cash' && cash_received < remaining) {
       return NextResponse.json(
-        { error: 'Efectivo insuficiente' },
+        { error: `Efectivo insuficiente. Restante por pagar: $${remaining.toLocaleString()}` },
         { status: 400 }
       );
     }
     if (payment_method === 'mixed') {
       const totalPaid = (transfer_amount || 0) + (cash_received || 0);
-      if (totalPaid < total) {
+      if (totalPaid < remaining) {
         return NextResponse.json(
-          { error: 'Pago insuficiente' },
+          { error: `Pago insuficiente. Restante por pagar: $${remaining.toLocaleString()}` },
           { status: 400 }
         );
       }
@@ -101,16 +110,18 @@ export async function POST(
       close_notes: close_notes || null,
     };
 
+    // Usar el monto restante (remaining) en lugar del total para los pagos
+    // ya que los pagos parciales previos ya fueron registrados
     if (payment_method === 'cash') {
       updateData.cash_received = cash_received;
       updateData.cash_change = cash_change;
-      updateData.cash_amount = total;
+      updateData.cash_amount = remaining; // Solo el restante, no el total
       updateData.transfer_amount = 0;
     } else if (payment_method === 'transfer') {
       updateData.cash_received = null;
       updateData.cash_change = null;
       updateData.cash_amount = 0;
-      updateData.transfer_amount = total;
+      updateData.transfer_amount = remaining; // Solo el restante
     } else if (payment_method === 'mixed') {
       updateData.cash_received = cash_received;
       updateData.cash_change = cash_change;
@@ -122,7 +133,7 @@ export async function POST(
       updateData.cash_amount = fiado_abono;
       updateData.transfer_amount = 0;
       updateData.fiado_customer_name = fiado_customer_name;
-      updateData.fiado_amount = fiado_amount || (total - fiado_abono);
+      updateData.fiado_amount = fiado_amount || (remaining - fiado_abono); // Restante menos abono
       updateData.fiado_abono = fiado_abono;
       updateData.fiado_paid = false;
     }
@@ -141,7 +152,7 @@ export async function POST(
       );
     }
 
-    // Registrar en auditoría
+    // Registrar en auditoría (el total de la venta, no solo el restante)
     await logSaleClosed(id, employee_id, total, payment_method);
 
     return NextResponse.json({
@@ -149,6 +160,8 @@ export async function POST(
       sale: {
         id,
         total,
+        remaining_paid: remaining, // Monto pagado al cerrar
+        total_partial_payments: totalPartialPaid, // Total de pagos parciales previos
         payment_method,
         cash_change: payment_method === 'transfer' ? 0 : cash_change,
       },

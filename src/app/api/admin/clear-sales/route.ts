@@ -28,7 +28,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Primero borrar sale_items (FK constraint)
+    // 1. Borrar partial_payment_items (FK a sale_items)
+    const { error: ppItemsError } = await supabaseAdmin
+      .from('partial_payment_items')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+
+    if (ppItemsError) {
+      console.error('Error clearing partial_payment_items:', ppItemsError);
+      return NextResponse.json(
+        { error: 'Error al vaciar items de pagos parciales' },
+        { status: 500 }
+      );
+    }
+
+    // 2. Borrar partial_payments (FK a sales)
+    const { error: ppError } = await supabaseAdmin
+      .from('partial_payments')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000');
+
+    if (ppError) {
+      console.error('Error clearing partial_payments:', ppError);
+      return NextResponse.json(
+        { error: 'Error al vaciar pagos parciales' },
+        { status: 500 }
+      );
+    }
+
+    // 3. Borrar sale_items (FK a sales)
     const { error: itemsError } = await supabaseAdmin
       .from('sale_items')
       .delete()
@@ -42,7 +70,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Luego borrar sales
+    // 4. Borrar sales
     const { error: salesError } = await supabaseAdmin
       .from('sales')
       .delete()
