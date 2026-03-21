@@ -595,6 +595,13 @@ function SaleModal({
     0
   );
 
+  // Auto-actualizar efectivo recibido cuando cambia el total y el método es efectivo
+  useEffect(() => {
+    if (partialPaymentMethod === 'cash' && partialPaymentTotal > 0) {
+      setPartialCashReceived(partialPaymentTotal.toString());
+    }
+  }, [partialPaymentTotal, partialPaymentMethod]);
+
   // Obtener cambio para pago parcial
   const getPartialChange = () => {
     if (partialPaymentMethod === 'cash') {
@@ -2221,7 +2228,13 @@ function SaleModal({
                     {(['cash', 'transfer', 'mixed'] as const).map((method) => (
                       <button
                         key={method}
-                        onClick={() => setPartialPaymentMethod(method)}
+                        onClick={() => {
+                          setPartialPaymentMethod(method);
+                          // Auto-rellenar efectivo recibido con el total
+                          if (method === 'cash') {
+                            setPartialCashReceived(partialPaymentTotal.toString());
+                          }
+                        }}
                         className={`p-3 rounded-lg border-2 text-center transition-all ${
                           partialPaymentMethod === method
                             ? 'border-amber-500 bg-amber-50'
