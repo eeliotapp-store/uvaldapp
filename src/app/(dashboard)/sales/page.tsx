@@ -666,19 +666,21 @@ function SaleModal({
     }
   };
 
-  // Toggle selección de item para pago parcial
-  const toggleItemForPartialPayment = (item: typeof existingItems[0], selected: boolean) => {
-    if (selected) {
-      setSelectedItemsForPartial(prev => ({
-        ...prev,
-        [item.id]: { quantity: item.quantity, amount: item.subtotal }
-      }));
-    } else {
+  // Actualizar monto parcial de un item
+  const updateItemPartialAmount = (item: typeof existingItems[0], amount: number) => {
+    if (amount <= 0) {
+      // Si el monto es 0 o negativo, eliminar del estado
       setSelectedItemsForPartial(prev => {
         const newState = { ...prev };
         delete newState[item.id];
         return newState;
       });
+    } else {
+      // Actualizar el monto (puede ser parcial)
+      setSelectedItemsForPartial(prev => ({
+        ...prev,
+        [item.id]: { quantity: item.quantity, amount: Math.min(amount, item.subtotal) }
+      }));
     }
   };
 
@@ -2105,42 +2107,59 @@ function SaleModal({
             </div>
 
             <div className="flex-1 overflow-y-auto p-6">
-              {/* Selección de productos */}
+              {/* Ingreso de montos por producto */}
               <div className="mb-6">
-                <h3 className="font-medium text-gray-900 mb-3">Selecciona los productos a pagar:</h3>
-                <div className="space-y-2">
+                <h3 className="font-medium text-gray-900 mb-3">Ingresa los montos a pagar por producto:</h3>
+                <p className="text-sm text-gray-500 mb-4">Puedes pagar montos parciales de cada producto</p>
+                <div className="space-y-3">
                   {existingItems.map((item) => {
-                    const isSelected = !!selectedItemsForPartial[item.id];
+                    const currentAmount = selectedItemsForPartial[item.id]?.amount || 0;
+                    const hasAmount = currentAmount > 0;
                     return (
-                      <label
+                      <div
                         key={item.id}
-                        className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                          isSelected
+                        className={`p-3 rounded-lg border-2 transition-all ${
+                          hasAmount
                             ? 'border-green-500 bg-green-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            : 'border-gray-200'
                         }`}
                       >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={(e) => toggleItemForPartialPayment(item, e.target.checked)}
-                            className="w-5 h-5 rounded text-green-600"
-                          />
+                        <div className="flex items-center justify-between mb-2">
                           <div>
                             <p className="font-medium">
                               {item.quantity}x {item.product_name}
                               {item.is_michelada && ' 🌶️'}
                             </p>
                             <p className="text-sm text-gray-500">
-                              {formatCurrency(item.unit_price)} c/u
+                              Total: {formatCurrency(item.subtotal)}
                             </p>
                           </div>
+                          <button
+                            onClick={() => updateItemPartialAmount(item, item.subtotal)}
+                            className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50"
+                          >
+                            Pagar todo
+                          </button>
                         </div>
-                        <span className="font-bold text-gray-900">
-                          {formatCurrency(item.subtotal)}
-                        </span>
-                      </label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-500">$</span>
+                          <input
+                            type="number"
+                            value={currentAmount || ''}
+                            onChange={(e) => {
+                              const value = parseFloat(e.target.value) || 0;
+                              updateItemPartialAmount(item, Math.min(value, item.subtotal));
+                            }}
+                            placeholder="0"
+                            className="flex-1 p-2 border border-gray-300 rounded-lg text-right"
+                            max={item.subtotal}
+                            min={0}
+                          />
+                          <span className="text-sm text-gray-500 w-24 text-right">
+                            / {formatCurrency(item.subtotal)}
+                          </span>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
