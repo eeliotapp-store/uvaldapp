@@ -531,6 +531,7 @@ function SaleModal({
   const [partialPayments, setPartialPayments] = useState<PartialPayment[]>([]);
   const [totalPaid, setTotalPaid] = useState(0);
   const [remaining, setRemaining] = useState(0);
+  const [paidPerItem, setPaidPerItem] = useState<Record<string, number>>({}); // Monto pagado por item
   const [selectedItemsForPartial, setSelectedItemsForPartial] = useState<Record<string, { quantity: number; amount: number }>>({});
   const [partialPaymentMethod, setPartialPaymentMethod] = useState<'cash' | 'transfer' | 'mixed'>('cash');
   const [partialCashReceived, setPartialCashReceived] = useState('');
@@ -562,11 +563,31 @@ function SaleModal({
         setPartialPayments(data.payments || []);
         setTotalPaid(data.total_paid || 0);
         setRemaining(data.remaining || existingTab.total);
+
+        // Calcular monto pagado por cada item
+        const paidMap: Record<string, number> = {};
+        (data.payments || []).forEach((payment: PartialPayment) => {
+          payment.items?.forEach((item) => {
+            paidMap[item.sale_item_id] = (paidMap[item.sale_item_id] || 0) + item.amount;
+          });
+        });
+        setPaidPerItem(paidMap);
       }
     } catch (error) {
       console.error('Error loading partial payments:', error);
     }
   };
+
+  // Calcular items pendientes de pago (filtrando los ya pagados completamente)
+  const unpaidItems = existingItems.map(item => {
+    const paidAmount = paidPerItem[item.id] || 0;
+    const remainingAmount = item.subtotal - paidAmount;
+    return {
+      ...item,
+      paidAmount,
+      remainingAmount,
+    };
+  }).filter(item => item.remainingAmount > 0);
 
   // Calcular total seleccionado para pago parcial
   const partialPaymentTotal = Object.values(selectedItemsForPartial).reduce(
@@ -667,7 +688,12 @@ function SaleModal({
   };
 
   // Actualizar monto parcial de un item
-  const updateItemPartialAmount = (item: typeof existingItems[0], amount: number) => {
+  // Actualizar monto parcial de un item (acepta item con remainingAmount opcional)
+  const updateItemPartialAmount = (
+    item: typeof existingItems[0] & { remainingAmount?: number },
+    amount: number
+  ) => {
+    const maxAmount = item.remainingAmount ?? item.subtotal;
     if (amount <= 0) {
       // Si el monto es 0 o negativo, eliminar del estado
       setSelectedItemsForPartial(prev => {
@@ -676,10 +702,10 @@ function SaleModal({
         return newState;
       });
     } else {
-      // Actualizar el monto (puede ser parcial)
+      // Actualizar el monto (puede ser parcial, limitado al restante)
       setSelectedItemsForPartial(prev => ({
         ...prev,
-        [item.id]: { quantity: item.quantity, amount: Math.min(amount, item.subtotal) }
+        [item.id]: { quantity: item.quantity, amount: Math.min(amount, maxAmount) }
       }));
     }
   };
@@ -2109,60 +2135,72 @@ function SaleModal({
             <div className="flex-1 overflow-y-auto p-6">
               {/* Ingreso de montos por producto */}
               <div className="mb-6">
-                <h3 className="font-medium text-gray-900 mb-3">Ingresa los montos a pagar por producto:</h3>
-                <p className="text-sm text-gray-500 mb-4">Puedes pagar montos parciales de cada producto</p>
-                <div className="space-y-3">
-                  {existingItems.map((item) => {
-                    const currentAmount = selectedItemsForPartial[item.id]?.amount || 0;
-                    const hasAmount = currentAmount > 0;
-                    return (
-                      <div
-                        key={item.id}
-                        className={`p-3 rounded-lg border-2 transition-all ${
-                          hasAmount
-                            ? 'border-green-500 bg-green-50'
-                            : 'border-gray-200'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <p className="font-medium">
-                              {item.quantity}x {item.product_name}
-                              {item.is_michelada && ' 🌶️'}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              Total: {formatCurrency(item.subtotal)}
-                            </p>
+                <h3 className="font-medium text-gray-900 mb-3">Productos pendientes de pago:</h3>
+                <p className="text-sm text-gray-500 mb-4">Solo se muestran productos con saldo pendiente</p>
+                {unpaidItems.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>Todos los productos han sido pagados</p>
+                    <p className="text-sm mt-2">Puedes agregar más productos a la cuenta</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {unpaidItems.map((item) => {
+                      const currentAmount = selectedItemsForPartial[item.id]?.amount || 0;
+                      const hasAmount = currentAmount > 0;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`p-3 rounded-lg border-2 transition-all ${
+                            hasAmount
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <p className="font-medium">
+                                {item.quantity}x {item.product_name}
+                                {item.is_michelada && ' 🌶️'}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Total: {formatCurrency(item.subtotal)}
+                                {item.paidAmount > 0 && (
+                                  <span className="text-green-600 ml-2">
+                                    (Pagado: {formatCurrency(item.paidAmount)})
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => updateItemPartialAmount(item, item.remainingAmount)}
+                              className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50"
+                            >
+                              Pagar restante
+                            </button>
                           </div>
-                          <button
-                            onClick={() => updateItemPartialAmount(item, item.subtotal)}
-                            className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50"
-                          >
-                            Pagar todo
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-500">$</span>
+                            <input
+                              type="number"
+                              value={currentAmount || ''}
+                              onChange={(e) => {
+                                const value = parseFloat(e.target.value) || 0;
+                                updateItemPartialAmount(item, Math.min(value, item.remainingAmount));
+                              }}
+                              placeholder="0"
+                              className="flex-1 p-2 border border-gray-300 rounded-lg text-right"
+                              max={item.remainingAmount}
+                              min={0}
+                            />
+                            <span className="text-sm text-amber-600 w-28 text-right font-medium">
+                              / {formatCurrency(item.remainingAmount)}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-gray-500">$</span>
-                          <input
-                            type="number"
-                            value={currentAmount || ''}
-                            onChange={(e) => {
-                              const value = parseFloat(e.target.value) || 0;
-                              updateItemPartialAmount(item, Math.min(value, item.subtotal));
-                            }}
-                            placeholder="0"
-                            className="flex-1 p-2 border border-gray-300 rounded-lg text-right"
-                            max={item.subtotal}
-                            min={0}
-                          />
-                          <span className="text-sm text-gray-500 w-24 text-right">
-                            / {formatCurrency(item.subtotal)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Total seleccionado */}
