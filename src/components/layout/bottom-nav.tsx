@@ -16,6 +16,7 @@ const mainNavigation = [
 
 // Navegación en el menú "Más"
 const moreNavigation = [
+  { name: 'Fiados', href: '/fiados', icon: FiadoIcon, ownerOnly: false },
   { name: 'Iniciar Turno', href: '/shifts/start', icon: ClockIcon, ownerOnly: false },
   { name: 'Cerrar Turno', href: '/shifts/close', icon: ClockOffIcon, ownerOnly: false },
   { name: 'Dashboard', href: '/', icon: HomeIcon, ownerOnly: true },
@@ -145,6 +146,14 @@ function NoteIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </svg>
+  );
+}
+
+function FiadoIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
     </svg>
   );
 }
