@@ -248,6 +248,21 @@ async function getDailyReport(date: string) {
     .lte('created_at', endOfDay)
     .or('status.eq.closed,status.is.null');
 
+  // Obtener pagos parciales para incluir en desglose por método de pago
+  const nonVoidedSaleIds = sales?.filter(s => !s.voided).map(s => s.id) || [];
+  let partialCash = 0;
+  let partialTransfer = 0;
+  if (nonVoidedSaleIds.length > 0) {
+    const { data: partialPayments } = await supabaseAdmin
+      .from('partial_payments')
+      .select('cash_amount, transfer_amount')
+      .in('sale_id', nonVoidedSaleIds);
+    partialPayments?.forEach(pp => {
+      partialCash += pp.cash_amount || 0;
+      partialTransfer += pp.transfer_amount || 0;
+    });
+  }
+
   // Obtener productos vendidos con info del empleado que vendió
   const { data: productsSold } = await supabaseAdmin
     .from('sale_items')
@@ -454,6 +469,10 @@ async function getDailyReport(date: string) {
     }
   });
 
+  // Incluir pagos parciales en el desglose por método de pago
+  dayTotals.cash_sales += partialCash;
+  dayTotals.transfer_sales += partialTransfer;
+
   // Obtener observaciones del día
   const { data: observations } = await supabaseAdmin
     .from('observations')
@@ -553,6 +572,32 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     .gte('created_at', start)
     .lte('created_at', end)
     .or('status.eq.closed,status.is.null');
+
+  // Obtener pagos parciales para desglose correcto por método de pago
+  const nonVoidedSaleIds = sales?.filter(s => !s.voided).map(s => s.id) || [];
+  const saleIdToDay: Record<string, string> = {};
+  sales?.filter(s => !s.voided).forEach(s => {
+    saleIdToDay[s.id] = s.created_at.split('T')[0];
+  });
+  let partialCash = 0;
+  let partialTransfer = 0;
+  const partialByDay: Record<string, { cash: number; transfer: number }> = {};
+  if (nonVoidedSaleIds.length > 0) {
+    const { data: partialPayments } = await supabaseAdmin
+      .from('partial_payments')
+      .select('sale_id, cash_amount, transfer_amount')
+      .in('sale_id', nonVoidedSaleIds);
+    partialPayments?.forEach(pp => {
+      partialCash += pp.cash_amount || 0;
+      partialTransfer += pp.transfer_amount || 0;
+      const day = saleIdToDay[pp.sale_id];
+      if (day) {
+        if (!partialByDay[day]) partialByDay[day] = { cash: 0, transfer: 0 };
+        partialByDay[day].cash += pp.cash_amount || 0;
+        partialByDay[day].transfer += pp.transfer_amount || 0;
+      }
+    });
+  }
 
   // Obtener productos vendidos en el rango
   const { data: productsSold } = await supabaseAdmin
@@ -691,6 +736,10 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     }
   });
 
+  // Incluir pagos parciales en el desglose por método de pago
+  totals.cash_sales += partialCash;
+  totals.transfer_sales += partialTransfer;
+
   // Agrupar ventas por día
   const salesByDay: Record<string, {
     date: string;
@@ -725,6 +774,14 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       } else if (sale.payment_method === 'fiado') {
         salesByDay[day].cash += sale.fiado_abono || 0;
       }
+    }
+  });
+
+  // Incluir pagos parciales en el desglose diario
+  Object.entries(partialByDay).forEach(([day, amounts]) => {
+    if (salesByDay[day]) {
+      salesByDay[day].cash += amounts.cash;
+      salesByDay[day].transfer += amounts.transfer;
     }
   });
 
