@@ -196,10 +196,21 @@ export default function FiadosPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  {/* Nombre cliente */}
-                  <p className="font-semibold text-gray-900 truncate">
-                    {fiado.fiado_customer_name || 'Sin nombre'}
-                  </p>
+                  {/* Nombre cliente + badge de estado */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold text-gray-900 truncate">
+                      {fiado.fiado_customer_name || 'Sin nombre'}
+                    </p>
+                    {fiado.fiado_paid ? (
+                      <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">
+                        Pagado
+                      </span>
+                    ) : (
+                      <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">
+                        Pendiente
+                      </span>
+                    )}
+                  </div>
 
                   {/* Montos */}
                   <div className="flex flex-wrap gap-3 mt-2">
@@ -214,7 +225,7 @@ export default function FiadosPage() {
                       </div>
                     )}
                     <div>
-                      <span className="text-xs text-gray-500">Fiado</span>
+                      <span className="text-xs text-gray-500">Debe</span>
                       <p className={`text-sm font-bold ${fiado.fiado_paid ? 'text-green-600' : 'text-orange-600'}`}>
                         {formatCurrency(fiado.fiado_amount || 0)}
                       </p>
@@ -231,25 +242,25 @@ export default function FiadosPage() {
                   {/* Pagado info */}
                   {fiado.fiado_paid && fiado.fiado_paid_at && (
                     <p className="text-xs text-green-600 mt-2 font-medium">
-                      ✓ Pagado el {formatDate(fiado.fiado_paid_at)} a las {formatTime(fiado.fiado_paid_at)}
+                      ✓ Cobrado el {formatDate(fiado.fiado_paid_at)} a las {formatTime(fiado.fiado_paid_at)}
                     </p>
                   )}
                 </div>
 
-                {/* Botón marcar pagado */}
+                {/* Botón marcar como cobrado */}
                 {!fiado.fiado_paid && (
                   <button
                     onClick={() => handleMarkPaid(fiado)}
                     disabled={markingId === fiado.id}
                     className="shrink-0 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
                   >
-                    {markingId === fiado.id ? '...' : 'Pagado'}
+                    {markingId === fiado.id ? '...' : 'Marcar cobrado'}
                   </button>
                 )}
 
                 {fiado.fiado_paid && (
                   <span className="shrink-0 px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
-                    ✓
+                    ✓ Cobrado
                   </span>
                 )}
               </div>
