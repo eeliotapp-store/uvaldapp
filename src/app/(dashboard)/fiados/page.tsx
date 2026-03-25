@@ -45,10 +45,14 @@ export default function FiadosPage() {
       if (customerSearch) params.set('customer_name', customerSearch);
       const res = await fetch(`/api/fiados?${params}`);
       const data = await res.json();
+      if (!res.ok) {
+        setErrorMessage(data.error || `Error ${res.status} al cargar los fiados`);
+        return;
+      }
       setFiados(data.fiados || []);
       setSummary(data.summary || { total_pending: 0, total_paid: 0, count_pending: 0, count_paid: 0 });
     } catch {
-      setErrorMessage('Error al cargar los fiados');
+      setErrorMessage('Error de conexión al cargar los fiados');
     } finally {
       setIsLoading(false);
     }
