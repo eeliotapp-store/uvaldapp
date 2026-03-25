@@ -476,6 +476,18 @@ async function getDailyReport(date: string) {
   dayTotals.cash_sales += partialCash;
   dayTotals.transfer_sales += partialTransfer;
 
+  // Pagos de fiados cobrados hoy (cash/transfer del día, independiente del turno original)
+  const { data: fiadoPaymentsHoy } = await supabaseAdmin
+    .from('fiado_payments')
+    .select('cash_amount, transfer_amount')
+    .gte('created_at', startOfDay)
+    .lte('created_at', endOfDay);
+
+  fiadoPaymentsHoy?.forEach(fp => {
+    dayTotals.cash_sales += fp.cash_amount || 0;
+    dayTotals.transfer_sales += fp.transfer_amount || 0;
+  });
+
   // Obtener observaciones del día
   const { data: observations } = await supabaseAdmin
     .from('observations')
@@ -787,6 +799,23 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     if (salesByDay[day]) {
       salesByDay[day].cash += amounts.cash;
       salesByDay[day].transfer += amounts.transfer;
+    }
+  });
+
+  // Pagos de fiados cobrados en el rango (suman a cash/transfer del día en que se cobran)
+  const { data: fiadoPaymentsRango } = await supabaseAdmin
+    .from('fiado_payments')
+    .select('cash_amount, transfer_amount, created_at')
+    .gte('created_at', start)
+    .lte('created_at', end);
+
+  fiadoPaymentsRango?.forEach(fp => {
+    totals.cash_sales += fp.cash_amount || 0;
+    totals.transfer_sales += fp.transfer_amount || 0;
+    const day = (fp.created_at as string).split('T')[0];
+    if (salesByDay[day]) {
+      salesByDay[day].cash += fp.cash_amount || 0;
+      salesByDay[day].transfer += fp.transfer_amount || 0;
     }
   });
 
