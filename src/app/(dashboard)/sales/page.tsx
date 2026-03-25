@@ -172,6 +172,27 @@ function SalesContent() {
     setShowNewSaleModal(true);
   };
 
+  const handleDiscardTab = async (tab: OpenTab) => {
+    const hasItems = (tab.items?.length || 0) > 0;
+    const msg = hasItems
+      ? `¿Descartar la cuenta de ${tab.table_number ? `Mesa ${tab.table_number}` : 'Sin mesa'}? Se devolverán los ${tab.items.length} producto(s) al inventario.`
+      : `¿Descartar la cuenta vacía de ${tab.table_number ? `Mesa ${tab.table_number}` : 'Sin mesa'}?`;
+    if (!confirm(msg)) return;
+
+    try {
+      const res = await fetch(`/api/sales/${tab.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Error al descartar');
+        return;
+      }
+      loadOpenTabs();
+      loadSales();
+    } catch {
+      alert('Error de conexión');
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -190,55 +211,74 @@ function SalesContent() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {openTabs.map((tab) => (
-              <button
+              <div
                 key={tab.id}
-                onClick={() => handleOpenTab(tab)}
-                className={`border-2 rounded-xl p-4 text-left hover:shadow-md transition-all ${
+                className={`border-2 rounded-xl text-left hover:shadow-md transition-all ${
                   tab.employee_id === employee?.id
                     ? 'bg-amber-50 border-amber-200 hover:border-amber-400'
                     : 'bg-blue-50 border-blue-200 hover:border-blue-400'
                 }`}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <span className={`font-bold text-lg ${
-                      tab.employee_id === employee?.id ? 'text-amber-800' : 'text-blue-800'
-                    }`}>
-                      {tab.table_number ? `Mesa ${tab.table_number}` : 'Sin mesa'}
-                    </span>
-                    <p className="text-sm text-gray-500">{formatTime(tab.created_at)}</p>
-                    {tab.employee_id !== employee?.id && (
-                      <p className="text-xs text-blue-600 font-medium mt-1">
-                        De: {tab.employee_name}
-                        {tab.taken_over_by_name && ` (tomado de ${tab.opened_by_name})`}
-                      </p>
-                    )}
+                <div
+                  className="p-4 cursor-pointer"
+                  onClick={() => handleOpenTab(tab)}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <span className={`font-bold text-lg ${
+                        tab.employee_id === employee?.id ? 'text-amber-800' : 'text-blue-800'
+                      }`}>
+                        {tab.table_number ? `Mesa ${tab.table_number}` : 'Sin mesa'}
+                      </span>
+                      <p className="text-sm text-gray-500">{formatTime(tab.created_at)}</p>
+                      {tab.employee_id !== employee?.id && (
+                        <p className="text-xs text-blue-600 font-medium mt-1">
+                          De: {tab.employee_name}
+                          {tab.taken_over_by_name && ` (tomado de ${tab.opened_by_name})`}
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-bold text-gray-900">
+                        {formatCurrency(tab.total)}
+                      </span>
+                      {(tab.total_paid || 0) > 0 && (
+                        <div className="text-xs mt-1">
+                          <span className="text-green-600">Pagado: {formatCurrency(tab.total_paid)}</span>
+                          <span className="text-amber-600 ml-2">Resta: {formatCurrency(tab.remaining)}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xl font-bold text-gray-900">
-                      {formatCurrency(tab.total)}
-                    </span>
-                    {(tab.total_paid || 0) > 0 && (
-                      <div className="text-xs mt-1">
-                        <span className="text-green-600">Pagado: {formatCurrency(tab.total_paid)}</span>
-                        <span className="text-amber-600 ml-2">Resta: {formatCurrency(tab.remaining)}</span>
-                      </div>
+                  <div className="text-sm text-gray-600">
+                    {tab.items?.length === 0 ? (
+                      <span className="text-gray-400 italic">Sin productos</span>
+                    ) : (
+                      <>
+                        {tab.items?.slice(0, 3).map((item, idx) => (
+                          <span key={idx}>
+                            {item.quantity}x {item.product_name}
+                            {item.is_michelada && ' 🌶️'}
+                            {idx < Math.min(tab.items.length - 1, 2) ? ', ' : ''}
+                          </span>
+                        ))}
+                        {tab.items?.length > 3 && (
+                          <span className="text-gray-400"> +{tab.items.length - 3} más</span>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
-                <div className="text-sm text-gray-600">
-                  {tab.items?.slice(0, 3).map((item, idx) => (
-                    <span key={idx}>
-                      {item.quantity}x {item.product_name}
-                      {item.is_michelada && ' 🌶️'}
-                      {idx < Math.min(tab.items.length - 1, 2) ? ', ' : ''}
-                    </span>
-                  ))}
-                  {tab.items?.length > 3 && (
-                    <span className="text-gray-400"> +{tab.items.length - 3} más</span>
-                  )}
+                {/* Botón descartar — visible siempre, más prominente si está vacía */}
+                <div className="px-4 pb-3 flex justify-end">
+                  <button
+                    onClick={() => handleDiscardTab(tab)}
+                    className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                  >
+                    Descartar cuenta
+                  </button>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         </div>
@@ -940,6 +980,29 @@ function SaleModal({
 
   const handleRemoveCombo = (index: number) => {
     setCartCombos(cartCombos.filter((_, i) => i !== index));
+  };
+
+  // Descartar cuenta abierta completa
+  const handleDiscardTab = async () => {
+    if (!existingTab) return;
+    const hasItems = existingItems.length > 0;
+    const msg = hasItems
+      ? `¿Descartar esta cuenta? Se devolverán los ${existingItems.length} producto(s) al inventario.`
+      : '¿Descartar esta cuenta vacía?';
+    if (!confirm(msg)) return;
+
+    setIsProcessing(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/sales/${existingTab.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al descartar');
+      onSuccess();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al descartar');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Eliminar item existente de una cuenta abierta
@@ -2007,6 +2070,16 @@ function SaleModal({
                 <Button variant="outline" onClick={onClose} className="flex-1 min-w-[100px]">
                   Cancelar
                 </Button>
+                {existingTab && (
+                  <Button
+                    variant="outline"
+                    onClick={handleDiscardTab}
+                    disabled={isProcessing}
+                    className="flex-1 min-w-[100px] border-red-300 text-red-600 hover:bg-red-50"
+                  >
+                    Descartar cuenta
+                  </Button>
+                )}
                 {existingTab && (
                   <Button
                     variant="outline"
