@@ -1,7 +1,7 @@
--- Migration 016: Incluir pagos parciales en v_shift_summary
--- La vista anterior solo sumaba el pago del cierre (cash_amount/transfer_amount de sales),
--- ignorando los pagos parciales previos registrados en la tabla partial_payments.
--- Esto causaba que cash_sales + transfer_sales + mixed no sumara el total_sales.
+-- Migration 016: Corregir v_shift_summary
+-- 1. Incluir pagos parciales en cash_sales y transfer_sales
+-- 2. Incluir abonos de fiado en cash_sales
+-- 3. Excluir fiados de total_sales (se cuentan como ingreso cuando se cobran, no cuando se crean)
 
 CREATE OR REPLACE VIEW v_shift_summary AS
 WITH partial_by_shift AS (
@@ -22,16 +22,17 @@ SELECT
   sh.cash_start,
   sh.transfer_start,
   sh.cash_end,
-  -- Efectivo: cierre cash + pagos parciales en efectivo
-  COALESCE(SUM(CASE WHEN s.payment_method = 'cash' THEN s.cash_amount ELSE 0 END), 0)
+  -- Efectivo: pagos cash + abonos de fiado + pagos parciales en efectivo
+  COALESCE(SUM(CASE WHEN s.payment_method IN ('cash', 'fiado') THEN s.cash_amount ELSE 0 END), 0)
     + COALESCE(MAX(pbs.partial_cash), 0)     AS cash_sales,
-  -- Transferencia: cierre transfer + pagos parciales en transferencia
+  -- Transferencia: pagos transfer + pagos parciales en transferencia
   COALESCE(SUM(CASE WHEN s.payment_method = 'transfer' THEN s.transfer_amount ELSE 0 END), 0)
     + COALESCE(MAX(pbs.partial_transfer), 0) AS transfer_sales,
   COALESCE(SUM(CASE WHEN s.payment_method = 'mixed' THEN s.cash_amount     ELSE 0 END), 0) AS mixed_cash,
   COALESCE(SUM(CASE WHEN s.payment_method = 'mixed' THEN s.transfer_amount ELSE 0 END), 0) AS mixed_transfer,
-  COALESCE(SUM(s.total), 0)                                                                  AS total_sales,
-  COALESCE(SUM(s.cash_change), 0)                                                            AS total_change,
+  -- Total: excluir fiados (se registran como ingreso cuando el cliente paga, no cuando se crea la venta)
+  COALESCE(SUM(CASE WHEN s.payment_method != 'fiado' THEN s.total ELSE 0 END), 0) AS total_sales,
+  COALESCE(SUM(s.cash_change), 0)                                                  AS total_change,
   COUNT(s.id) FILTER (WHERE s.status = 'closed') AS transactions_count,
   COUNT(s.id) FILTER (WHERE s.status = 'open')   AS open_tabs_count,
   sh.is_active
