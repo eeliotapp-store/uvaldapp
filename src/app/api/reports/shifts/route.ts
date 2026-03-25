@@ -450,10 +450,8 @@ async function getDailyReport(date: string) {
 
   sales?.forEach((sale) => {
     if (!sale.voided) {
-      // Los fiados no cuentan como ingreso hasta que se cobren
-      if (sale.payment_method !== 'fiado') {
-        dayTotals.total_sales += sale.total;
-      }
+      // Fiados cuentan como ingreso desde que se crean
+      dayTotals.total_sales += sale.total;
       dayTotals.transactions++;
 
       if (sale.payment_method === 'cash') {
@@ -467,9 +465,7 @@ async function getDailyReport(date: string) {
         // Abono es efectivo inmediato; fiado_total muestra lo pendiente por cobrar
         dayTotals.cash_sales += sale.fiado_abono || 0;
         dayTotals.fiado_abonos += sale.fiado_abono || 0;
-        if (!sale.fiado_paid) {
-          dayTotals.fiado_total += sale.fiado_amount || 0;
-        }
+        dayTotals.fiado_total += sale.fiado_amount || 0;
       }
     } else {
       dayTotals.voided_count++;
@@ -479,20 +475,6 @@ async function getDailyReport(date: string) {
   // Incluir pagos parciales en el desglose por método de pago
   dayTotals.cash_sales += partialCash;
   dayTotals.transfer_sales += partialTransfer;
-
-  // Fiados cobrados hoy: contar como ingreso en la fecha de pago
-  const { data: fiadosPagadosHoy } = await supabaseAdmin
-    .from('sales')
-    .select('fiado_amount')
-    .eq('payment_method', 'fiado')
-    .eq('voided', false)
-    .eq('fiado_paid', true)
-    .gte('fiado_paid_at', startOfDay)
-    .lte('fiado_paid_at', endOfDay);
-  fiadosPagadosHoy?.forEach(f => {
-    dayTotals.total_sales += f.fiado_amount || 0;
-    dayTotals.cash_sales += f.fiado_amount || 0;
-  });
 
   // Obtener observaciones del día
   const { data: observations } = await supabaseAdmin
@@ -738,9 +720,8 @@ async function getDateRangeReport(startDate: string, endDate: string) {
 
   sales?.forEach((sale) => {
     if (!sale.voided) {
-      if (sale.payment_method !== 'fiado') {
-        totals.total_sales += sale.total;
-      }
+      // Fiados cuentan como ingreso desde que se crean
+      totals.total_sales += sale.total;
       totals.transactions++;
 
       if (sale.payment_method === 'cash') {
@@ -753,9 +734,7 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       } else if (sale.payment_method === 'fiado') {
         totals.cash_sales += sale.fiado_abono || 0;
         totals.fiado_abonos += sale.fiado_abono || 0;
-        if (!sale.fiado_paid) {
-          totals.fiado_total += sale.fiado_amount || 0;
-        }
+        totals.fiado_total += sale.fiado_amount || 0;
       }
     } else {
       totals.voided_count++;
@@ -787,9 +766,7 @@ async function getDateRangeReport(startDate: string, endDate: string) {
           transfer: 0,
         };
       }
-      if (sale.payment_method !== 'fiado') {
-        salesByDay[day].total += sale.total;
-      }
+      salesByDay[day].total += sale.total;
       salesByDay[day].transactions++;
 
       if (sale.payment_method === 'cash') {
@@ -811,26 +788,6 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       salesByDay[day].cash += amounts.cash;
       salesByDay[day].transfer += amounts.transfer;
     }
-  });
-
-  // Fiados cobrados en el rango: contar como ingreso en la fecha de pago
-  const { data: fiadosPagadosRango } = await supabaseAdmin
-    .from('sales')
-    .select('fiado_amount, fiado_paid_at')
-    .eq('payment_method', 'fiado')
-    .eq('voided', false)
-    .eq('fiado_paid', true)
-    .gte('fiado_paid_at', start)
-    .lte('fiado_paid_at', end);
-  fiadosPagadosRango?.forEach(f => {
-    totals.total_sales += f.fiado_amount || 0;
-    totals.cash_sales += f.fiado_amount || 0;
-    const day = (f.fiado_paid_at as string).split('T')[0];
-    if (!salesByDay[day]) {
-      salesByDay[day] = { date: day, total: 0, transactions: 0, cash: 0, transfer: 0 };
-    }
-    salesByDay[day].total += f.fiado_amount || 0;
-    salesByDay[day].cash += f.fiado_amount || 0;
   });
 
   // Obtener observaciones del rango

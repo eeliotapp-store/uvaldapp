@@ -30,8 +30,8 @@ SELECT
     + COALESCE(MAX(pbs.partial_transfer), 0) AS transfer_sales,
   COALESCE(SUM(CASE WHEN s.payment_method = 'mixed' THEN s.cash_amount     ELSE 0 END), 0) AS mixed_cash,
   COALESCE(SUM(CASE WHEN s.payment_method = 'mixed' THEN s.transfer_amount ELSE 0 END), 0) AS mixed_transfer,
-  -- Total: excluir fiados (se registran como ingreso cuando el cliente paga, no cuando se crea la venta)
-  COALESCE(SUM(CASE WHEN s.payment_method != 'fiado' THEN s.total ELSE 0 END), 0) AS total_sales,
+  -- Total: incluir todos, también fiados (se registran como ingreso al crearse)
+  COALESCE(SUM(s.total), 0) AS total_sales,
   COALESCE(SUM(s.cash_change), 0)                                                  AS total_change,
   COUNT(s.id) FILTER (WHERE s.status = 'closed') AS transactions_count,
   COUNT(s.id) FILTER (WHERE s.status = 'open')   AS open_tabs_count,
