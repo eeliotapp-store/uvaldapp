@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useAuthStore } from '@/stores/auth-store';
+import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { formatCurrency, formatDate, formatTime } from '@/lib/utils';
 
 interface FiadoPayment {
@@ -67,6 +67,12 @@ export default function FiadosPage() {
   const [payTransfer, setPayTransfer] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [modalError, setModalError] = useState('');
+
+  // Modal de anulación
+  const [voidModal, setVoidModal] = useState<Fiado | null>(null);
+  const [voidReason, setVoidReason] = useState('');
+  const [isVoiding, setIsVoiding] = useState(false);
+  const [voidError, setVoidError] = useState('');
 
   const loadFiados = useCallback(async () => {
     setIsLoading(true);
@@ -161,6 +167,44 @@ export default function FiadosPage() {
 
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setCustomerSearch(searchInput); };
   const clearSearch = () => { setSearchInput(''); setCustomerSearch(''); };
+
+  const openVoidModal = (fiado: Fiado) => {
+    setVoidModal(fiado);
+    setVoidReason('');
+    setVoidError('');
+  };
+
+  const closeVoidModal = () => {
+    setVoidModal(null);
+    setVoidReason('');
+    setVoidError('');
+  };
+
+  const handleVoidFiado = async () => {
+    if (!voidModal || !employee) return;
+    if (!voidReason.trim()) { setVoidError('Escribe una razón para anular'); return; }
+
+    setIsVoiding(true);
+    setVoidError('');
+    try {
+      const res = await fetch(`/api/sales/${voidModal.id}/void`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: voidReason.trim(), employee_id: employee.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setVoidError(data.error || 'Error al anular'); return; }
+
+      setSuccessMessage(`✓ Fiado de ${voidModal.fiado_customer_name || 'cliente'} anulado`);
+      setTimeout(() => setSuccessMessage(''), 4000);
+      closeVoidModal();
+      loadFiados();
+    } catch {
+      setVoidError('Error de conexión');
+    } finally {
+      setIsVoiding(false);
+    }
+  };
 
   if (!employee) return null;
 
@@ -326,23 +370,79 @@ export default function FiadosPage() {
                     )}
                   </div>
 
-                  {/* Botón registrar pago */}
-                  {!fiado.fiado_paid ? (
-                    <button
-                      onClick={() => openPaymentModal(fiado)}
-                      className="shrink-0 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
-                    >
-                      Registrar pago
-                    </button>
-                  ) : (
-                    <span className="shrink-0 px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">
-                      ✓ Cobrado
-                    </span>
-                  )}
+                  {/* Acciones */}
+                  <div className="flex flex-col gap-2 shrink-0">
+                    {!fiado.fiado_paid ? (
+                      <button
+                        onClick={() => openPaymentModal(fiado)}
+                        className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                      >
+                        Registrar pago
+                      </button>
+                    ) : (
+                      <span className="px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium text-center">
+                        ✓ Cobrado
+                      </span>
+                    )}
+                    {isOwner(employee?.role) && (
+                      <button
+                        onClick={() => openVoidModal(fiado)}
+                        className="px-3 py-2 border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                      >
+                        Anular
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Modal de anulación */}
+      {voidModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Anular fiado</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {voidModal.fiado_customer_name || 'Sin nombre'} · {formatCurrency(voidModal.fiado_amount || 0)}
+              </p>
+            </div>
+            <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-xs text-red-700">
+              Esta acción devolverá el inventario, eliminará los pagos registrados y la venta desaparecerá de los reportes.
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Razón de anulación</label>
+              <input
+                type="text"
+                value={voidReason}
+                onChange={(e) => setVoidReason(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                placeholder="Ej: Venta de prueba, error en registro..."
+                autoFocus
+              />
+            </div>
+            {voidError && (
+              <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{voidError}</p>
+            )}
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={closeVoidModal}
+                className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleVoidFiado}
+                disabled={isVoiding || !voidReason.trim()}
+                className="flex-1 py-2.5 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+              >
+                {isVoiding ? 'Anulando...' : 'Confirmar anulación'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

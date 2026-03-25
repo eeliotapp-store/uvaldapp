@@ -65,6 +65,11 @@ export async function POST(
       }
     }
 
+    // Si es fiado, eliminar los pagos registrados (la deuda ya no existe)
+    if (sale.payment_method === 'fiado') {
+      await supabaseAdmin.from('fiado_payments').delete().eq('sale_id', id);
+    }
+
     // Marcar venta como anulada
     const { error: updateError } = await supabaseAdmin
       .from('sales')
