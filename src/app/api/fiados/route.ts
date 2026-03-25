@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         total,
         created_at,
         table_number,
-        employees (id, name)
+        employees:employees!sales_employee_id_fkey (id, name)
       `)
       .eq('payment_method', 'fiado')
       .eq('voided', false)
