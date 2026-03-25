@@ -453,9 +453,9 @@ async function getDailyReport(date: string) {
       dayTotals.transactions++;
 
       if (sale.payment_method === 'cash') {
-        dayTotals.cash_sales += sale.total;
+        dayTotals.cash_sales += sale.cash_amount ?? sale.total;
       } else if (sale.payment_method === 'transfer') {
-        dayTotals.transfer_sales += sale.total;
+        dayTotals.transfer_sales += sale.transfer_amount ?? sale.total;
       } else if (sale.payment_method === 'mixed') {
         dayTotals.cash_sales += sale.cash_amount || 0;
         dayTotals.transfer_sales += sale.transfer_amount || 0;
@@ -720,9 +720,9 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       totals.transactions++;
 
       if (sale.payment_method === 'cash') {
-        totals.cash_sales += sale.total;
+        totals.cash_sales += sale.cash_amount ?? sale.total;
       } else if (sale.payment_method === 'transfer') {
-        totals.transfer_sales += sale.total;
+        totals.transfer_sales += sale.transfer_amount ?? sale.total;
       } else if (sale.payment_method === 'mixed') {
         totals.cash_sales += sale.cash_amount || 0;
         totals.transfer_sales += sale.transfer_amount || 0;
@@ -765,9 +765,9 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       salesByDay[day].transactions++;
 
       if (sale.payment_method === 'cash') {
-        salesByDay[day].cash += sale.total;
+        salesByDay[day].cash += sale.cash_amount ?? sale.total;
       } else if (sale.payment_method === 'transfer') {
-        salesByDay[day].transfer += sale.total;
+        salesByDay[day].transfer += sale.transfer_amount ?? sale.total;
       } else if (sale.payment_method === 'mixed') {
         salesByDay[day].cash += sale.cash_amount || 0;
         salesByDay[day].transfer += sale.transfer_amount || 0;
