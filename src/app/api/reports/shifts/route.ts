@@ -67,6 +67,8 @@ async function getShiftReport(shiftId: string) {
       id,
       total,
       payment_method,
+      cash_amount,
+      transfer_amount,
       voided,
       created_at,
       table_number,
@@ -143,14 +145,12 @@ async function getShiftReport(shiftId: string) {
   sales?.forEach((sale) => {
     if (!sale.voided) {
       if (sale.payment_method === 'cash') {
-        paymentTotals.cash += sale.total;
+        paymentTotals.cash += sale.cash_amount ?? sale.total;
       } else if (sale.payment_method === 'transfer') {
-        paymentTotals.transfer += sale.total;
+        paymentTotals.transfer += sale.transfer_amount ?? sale.total;
       } else if (sale.payment_method === 'mixed') {
-        // Para mixed, necesitamos los campos cash_amount y transfer_amount
-        // Por ahora usamos el total
-        paymentTotals.mixed_cash += sale.total * 0.5; // Aproximación
-        paymentTotals.mixed_transfer += sale.total * 0.5;
+        paymentTotals.mixed_cash += sale.cash_amount || 0;
+        paymentTotals.mixed_transfer += sale.transfer_amount || 0;
       } else if (sale.payment_method === 'fiado') {
         paymentTotals.fiado += sale.fiado_amount || sale.total;
       }

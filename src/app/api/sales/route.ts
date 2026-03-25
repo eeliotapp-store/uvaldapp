@@ -107,9 +107,9 @@ export async function GET(request: NextRequest) {
         totals.total_sales += sale.total;
         totals.transactions++;
         if (sale.payment_method === 'cash') {
-          totals.cash_sales += sale.total;
+          totals.cash_sales += sale.cash_amount ?? sale.total;
         } else if (sale.payment_method === 'transfer') {
-          totals.transfer_sales += sale.total;
+          totals.transfer_sales += sale.transfer_amount ?? sale.total;
         } else if (sale.payment_method === 'mixed') {
           // Para pago mixto, separar efectivo y transferencia
           totals.cash_sales += sale.cash_amount || 0;
