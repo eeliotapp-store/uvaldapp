@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
 import { useShiftStore } from '@/stores/shift-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { formatCurrency, formatDateTime, detectShiftType, getShiftTypeLabel } from '@/lib/utils';
@@ -28,25 +27,18 @@ export default function CloseShiftPage() {
   const loadShiftData = async () => {
     if (!employee) return;
 
-    // Buscar turno activo
-    const { data: activeShift } = await supabase
-      .from('shifts')
-      .select('*')
-      .eq('employee_id', employee.id)
-      .eq('is_active', true)
-      .single();
+    // Buscar turno activo via API (bypasa RLS)
+    const shiftRes = await fetch(`/api/shifts/active?employee_id=${employee.id}`);
+    const shiftData = shiftRes.ok ? await shiftRes.json() : { shift: null };
+    const activeShift = shiftData.shift;
 
     if (activeShift) {
       setShift(activeShift);
 
-      // Cargar resumen
-      const { data: summaryData } = await supabase
-        .from('v_shift_summary')
-        .select('*')
-        .eq('shift_id', activeShift.id)
-        .single();
-
-      setSummary(summaryData as ShiftSummary);
+      // Cargar resumen via API (bypasa RLS)
+      const summaryRes = await fetch(`/api/shifts/summary?shift_id=${activeShift.id}`);
+      const summaryData = summaryRes.ok ? await summaryRes.json() : null;
+      setSummary(summaryData?.summary as ShiftSummary || null);
     } else {
       setShowStartModal(true);
     }

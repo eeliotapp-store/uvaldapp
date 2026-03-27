@@ -592,6 +592,9 @@ function SaleModal({
   // Cargar pagos parciales cuando hay un tab existente
   useEffect(() => {
     if (existingTab) {
+      // Inicializar desde los datos del tab inmediatamente para evitar flash de valor incorrecto
+      setTotalPaid(existingTab.total_paid || 0);
+      setRemaining(existingTab.remaining ?? existingTab.total);
       loadPartialPayments();
     }
   }, [existingTab]);

@@ -1,9 +1,10 @@
 -- Migration 016: Corregir v_shift_summary
 -- 1. Incluir pagos parciales en cash_sales y transfer_sales
 -- 2. Incluir abonos de fiado en cash_sales
--- 3. Excluir fiados de total_sales (se cuentan como ingreso cuando se cobran, no cuando se crean)
+-- 3. Incluir fiados en total_sales (se registran como ingreso al crearse)
 
-CREATE OR REPLACE VIEW v_shift_summary AS
+DROP VIEW IF EXISTS v_shift_summary;
+CREATE VIEW v_shift_summary AS
 WITH partial_by_shift AS (
   SELECT
     ps.shift_id,

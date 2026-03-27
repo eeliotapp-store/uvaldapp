@@ -147,9 +147,9 @@ export async function POST(
     } = body;
 
     // Validaciones
-    if (!employee_id || !amount || !payment_method || !items || items.length === 0) {
+    if (!employee_id || !amount || !payment_method) {
       return NextResponse.json(
-        { error: 'Faltan campos requeridos: employee_id, amount, payment_method, items' },
+        { error: 'Faltan campos requeridos: employee_id, amount, payment_method' },
         { status: 400 }
       );
     }
@@ -222,26 +222,27 @@ export async function POST(
       );
     }
 
-    // Crear los items del pago parcial
-    const paymentItems = items.map((item) => ({
-      partial_payment_id: partialPayment.id,
-      sale_item_id: item.sale_item_id,
-      quantity: item.quantity,
-      amount: item.amount,
-    }));
+    // Crear los items del pago parcial (solo si se especificaron productos)
+    if (items && items.length > 0) {
+      const paymentItems = items.map((item) => ({
+        partial_payment_id: partialPayment.id,
+        sale_item_id: item.sale_item_id,
+        quantity: item.quantity,
+        amount: item.amount,
+      }));
 
-    const { error: itemsError } = await supabaseAdmin
-      .from('partial_payment_items')
-      .insert(paymentItems);
+      const { error: itemsError } = await supabaseAdmin
+        .from('partial_payment_items')
+        .insert(paymentItems);
 
-    if (itemsError) {
-      console.error('Error creating partial payment items:', itemsError);
-      // Revertir el pago si fallan los items
-      await supabaseAdmin.from('partial_payments').delete().eq('id', partialPayment.id);
-      return NextResponse.json(
-        { error: 'Error al guardar los items del pago' },
-        { status: 500 }
-      );
+      if (itemsError) {
+        console.error('Error creating partial payment items:', itemsError);
+        await supabaseAdmin.from('partial_payments').delete().eq('id', partialPayment.id);
+        return NextResponse.json(
+          { error: 'Error al guardar los items del pago' },
+          { status: 500 }
+        );
+      }
     }
 
     // Calcular nuevo restante
