@@ -193,7 +193,35 @@ interface InventoryCountReport {
   end_date: string | null;
 }
 
-type ReportType = 'daily' | 'shift' | 'range' | 'ranking' | 'inventory';
+interface EmployeeShiftEntry {
+  shift_id: string;
+  date: string;
+  type: 'day' | 'night';
+  total: number;
+  cash: number;
+  transfer: number;
+  transactions: number;
+}
+
+interface EmployeeSummary {
+  employee_id: string;
+  employee_name: string;
+  shifts_count: number;
+  total_sales: number;
+  cash_sales: number;
+  transfer_sales: number;
+  transactions_count: number;
+  shifts: EmployeeShiftEntry[];
+  products: ProductSummary[];
+}
+
+interface EmployeeReport {
+  start_date: string;
+  end_date: string;
+  employees: EmployeeSummary[];
+}
+
+type ReportType = 'daily' | 'shift' | 'range' | 'ranking' | 'inventory' | 'employee';
 
 export default function ReportsPage() {
   const employee = useAuthStore((state) => state.employee);
@@ -205,6 +233,7 @@ export default function ReportsPage() {
   const [rangeReport, setRangeReport] = useState<RangeReport | null>(null);
   const [rankingReport, setRankingReport] = useState<RankingReport | null>(null);
   const [inventoryReport, setInventoryReport] = useState<InventoryCountReport | null>(null);
+  const [employeeReport, setEmployeeReport] = useState<EmployeeReport | null>(null);
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
@@ -291,6 +320,21 @@ export default function ReportsPage() {
       setRankingReport(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar ranking');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchEmployeeReport = async (start: string, end: string) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/reports/employees?start_date=${start}&end_date=${end}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al cargar reporte');
+      setEmployeeReport(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al cargar reporte');
     } finally {
       setIsLoading(false);
     }
@@ -571,6 +615,50 @@ export default function ReportsPage() {
     downloadCSV(filename, csvContent);
   };
 
+  // Exportar reporte por empleada a CSV
+  const exportEmployeeReportCSV = () => {
+    if (!employeeReport) return;
+
+    const lines: string[] = [];
+    lines.push(`REPORTE POR EMPLEADA - ${employeeReport.start_date} a ${employeeReport.end_date}`);
+    lines.push('');
+
+    employeeReport.employees.forEach((emp) => {
+      lines.push(`EMPLEADA: ${emp.employee_name}`);
+      lines.push('Concepto,Valor');
+      lines.push(`Turnos trabajados,${emp.shifts_count}`);
+      lines.push(`Total ventas,${emp.total_sales}`);
+      lines.push(`Efectivo,${emp.cash_sales}`);
+      lines.push(`Transferencias,${emp.transfer_sales}`);
+      lines.push(`Transacciones,${emp.transactions_count}`);
+      lines.push('');
+
+      lines.push('TURNOS');
+      lines.push('Fecha,Turno,Efectivo,Transferencias,Total,Transacciones');
+      emp.shifts.forEach((s) => {
+        lines.push(`${s.date},${s.type === 'day' ? 'Día' : 'Noche'},${s.cash},${s.transfer},${s.total},${s.transactions}`);
+      });
+      lines.push('');
+
+      if (emp.products.length > 0) {
+        lines.push('PRODUCTOS VENDIDOS');
+        lines.push('Producto,Unidades,Total');
+        emp.products.forEach((p) => {
+          lines.push(`${p.product_name},${p.quantity},${p.total}`);
+        });
+      }
+
+      lines.push('');
+      lines.push('---');
+      lines.push('');
+    });
+
+    downloadCSV(
+      `reporte_empleadas_${employeeReport.start_date}_a_${employeeReport.end_date}.csv`,
+      lines.join('\n')
+    );
+  };
+
   // Exportar historial de conteos a CSV
   const exportInventoryCountsCSV = () => {
     if (!inventoryReport) return;
@@ -665,6 +753,12 @@ export default function ReportsPage() {
               CSV
             </Button>
           )}
+          {reportType === 'employee' && employeeReport && (
+            <Button onClick={exportEmployeeReportCSV} variant="outline" className="flex items-center gap-1">
+              <DownloadIcon className="w-4 h-4" />
+              CSV
+            </Button>
+          )}
           <Button onClick={handlePrint} variant="outline">
             Imprimir
           </Button>
@@ -687,6 +781,7 @@ export default function ReportsPage() {
                 setRangeReport(null);
                 setRankingReport(null);
                 setInventoryReport(null);
+                setEmployeeReport(null);
               }}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
@@ -695,6 +790,7 @@ export default function ReportsPage() {
               <option value="range">Rango de Fechas</option>
               <option value="ranking">Ranking de Productos</option>
               <option value="inventory">Historial de Conteos</option>
+              <option value="employee">Reporte por Empleada</option>
             </select>
           </div>
 
@@ -814,6 +910,36 @@ export default function ReportsPage() {
               </Button>
             </>
           )}
+
+          {reportType === 'employee' && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha Inicio
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Fecha Fin
+                </label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <Button onClick={() => fetchEmployeeReport(startDate, endDate)}>
+                Generar Reporte
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -878,8 +1004,150 @@ export default function ReportsPage() {
               <p className="text-gray-500">Selecciona un rango de fechas y haz clic en &quot;Generar Reporte&quot;</p>
             </div>
           )}
+
+          {/* Reporte por Empleada */}
+          {reportType === 'employee' && employeeReport && (
+            <EmployeeReportView report={employeeReport} />
+          )}
+
+          {reportType === 'employee' && !employeeReport && (
+            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+              <p className="text-gray-500">Selecciona un rango de fechas y haz clic en &quot;Generar Reporte&quot;</p>
+            </div>
+          )}
         </>
       )}
+    </div>
+  );
+}
+
+function EmployeeReportView({ report }: { report: EmployeeReport }) {
+  if (report.employees.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm p-8 text-center">
+        <p className="text-gray-500">No hay turnos registrados en este período</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Encabezado */}
+      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <h2 className="text-xl font-bold mb-1">Reporte por Empleada</h2>
+        <p className="text-gray-500 text-sm">
+          {formatDate(report.start_date + 'T12:00:00')} — {formatDate(report.end_date + 'T12:00:00')}
+          {' · '}{report.employees.length} empleada{report.employees.length !== 1 ? 's' : ''}
+        </p>
+      </div>
+
+      {/* Resumen general */}
+      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <h3 className="font-semibold text-gray-700 mb-3">Resumen comparativo</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-2 font-medium text-gray-600">Empleada</th>
+                <th className="text-right py-2 font-medium text-gray-600">Turnos</th>
+                <th className="text-right py-2 font-medium text-gray-600">Transacciones</th>
+                <th className="text-right py-2 font-medium text-gray-600">Efectivo</th>
+                <th className="text-right py-2 font-medium text-gray-600">Transferencias</th>
+                <th className="text-right py-2 font-medium text-gray-600">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {report.employees.map((emp) => (
+                <tr key={emp.employee_id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-2 font-medium text-gray-900">{emp.employee_name}</td>
+                  <td className="py-2 text-right text-gray-600">{emp.shifts_count}</td>
+                  <td className="py-2 text-right text-gray-600">{emp.transactions_count}</td>
+                  <td className="py-2 text-right text-gray-600">{formatCurrency(emp.cash_sales)}</td>
+                  <td className="py-2 text-right text-gray-600">{formatCurrency(emp.transfer_sales)}</td>
+                  <td className="py-2 text-right font-bold text-gray-900">{formatCurrency(emp.total_sales)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-gray-50">
+                <td className="py-2 font-bold text-gray-900">TOTAL</td>
+                <td className="py-2 text-right font-bold">{report.employees.reduce((s, e) => s + e.shifts_count, 0)}</td>
+                <td className="py-2 text-right font-bold">{report.employees.reduce((s, e) => s + e.transactions_count, 0)}</td>
+                <td className="py-2 text-right font-bold">{formatCurrency(report.employees.reduce((s, e) => s + e.cash_sales, 0))}</td>
+                <td className="py-2 text-right font-bold">{formatCurrency(report.employees.reduce((s, e) => s + e.transfer_sales, 0))}</td>
+                <td className="py-2 text-right font-bold text-green-700">{formatCurrency(report.employees.reduce((s, e) => s + e.total_sales, 0))}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      {/* Detalle por empleada */}
+      {report.employees.map((emp) => (
+        <div key={emp.employee_id} className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-gray-900">{emp.employee_name}</h3>
+            <span className="text-xl font-bold text-green-700">{formatCurrency(emp.total_sales)}</span>
+          </div>
+
+          {/* Métricas rápidas */}
+          <div className="grid grid-cols-4 gap-3">
+            <div className="bg-gray-50 rounded-lg p-3 text-center">
+              <p className="text-xs text-gray-500">Turnos</p>
+              <p className="text-lg font-bold text-gray-800">{emp.shifts_count}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 text-center">
+              <p className="text-xs text-gray-500">Transacciones</p>
+              <p className="text-lg font-bold text-gray-800">{emp.transactions_count}</p>
+            </div>
+            <div className="bg-green-50 rounded-lg p-3 text-center">
+              <p className="text-xs text-green-600">Efectivo</p>
+              <p className="text-lg font-bold text-green-700">{formatCurrency(emp.cash_sales)}</p>
+            </div>
+            <div className="bg-purple-50 rounded-lg p-3 text-center">
+              <p className="text-xs text-purple-600">Transferencias</p>
+              <p className="text-lg font-bold text-purple-700">{formatCurrency(emp.transfer_sales)}</p>
+            </div>
+          </div>
+
+          {/* Turnos trabajados */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-600 mb-2">Turnos trabajados</h4>
+            <div className="space-y-1">
+              {emp.shifts.map((s) => (
+                <div key={s.shift_id} className="flex items-center justify-between text-sm py-1.5 px-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-500">{formatDate(s.date + 'T12:00:00')}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.type === 'day' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                      {s.type === 'day' ? 'Día' : 'Noche'}
+                    </span>
+                    <span className="text-gray-400">{s.transactions} ventas</span>
+                  </div>
+                  <span className="font-medium text-gray-800">{formatCurrency(s.total)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Top productos */}
+          {emp.products.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold text-gray-600 mb-2">Productos vendidos</h4>
+              <div className="space-y-1">
+                {emp.products.slice(0, 10).map((p) => (
+                  <div key={p.product_name} className="flex items-center justify-between text-sm py-1 px-3 bg-gray-50 rounded-lg">
+                    <span className="text-gray-700">{p.product_name} <span className="text-gray-400">× {p.quantity}</span></span>
+                    <span className="font-medium text-gray-800">{formatCurrency(p.total)}</span>
+                  </div>
+                ))}
+                {emp.products.length > 10 && (
+                  <p className="text-xs text-gray-400 text-center pt-1">y {emp.products.length - 10} productos más...</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
