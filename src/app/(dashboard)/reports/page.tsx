@@ -361,7 +361,7 @@ export default function ReportsPage() {
 
   useEffect(() => {
     if (!canView) return;
-    if (reportType === 'daily') {
+    if (reportType === 'daily' || reportType === 'shift') {
       fetchDailyReport(selectedDate);
     } else if (reportType === 'ranking') {
       fetchRankingReport(rankingPeriod);

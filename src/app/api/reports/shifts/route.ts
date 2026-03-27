@@ -227,8 +227,9 @@ async function getDailyReport(date: string) {
     summaries = data || [];
   }
 
-  // Obtener todas las ventas del día con info del turno
-  const { data: sales } = await supabaseAdmin
+  // Obtener todas las ventas de los turnos del día (por shift_id, no por created_at)
+  // Así los turnos noche que cierran de madrugada siguen perteneciendo al día que iniciaron
+  const { data: sales } = shiftIds.length > 0 ? await supabaseAdmin
     .from('sales')
     .select(`
       id,
@@ -245,9 +246,8 @@ async function getDailyReport(date: string) {
       fiado_paid,
       shifts!inner (type)
     `)
-    .gte('created_at', startOfDay)
-    .lte('created_at', endOfDay)
-    .or('status.eq.closed,status.is.null');
+    .in('shift_id', shiftIds)
+    .or('status.eq.closed,status.is.null') : { data: [] };
 
   // Obtener pagos parciales para incluir en desglose por método de pago
   const nonVoidedSaleIds = sales?.filter(s => !s.voided).map(s => s.id) || [];
@@ -264,8 +264,8 @@ async function getDailyReport(date: string) {
     });
   }
 
-  // Obtener productos vendidos con info del empleado que vendió
-  const { data: productsSold } = await supabaseAdmin
+  // Obtener productos vendidos (filtrar por shift_id para correcta asignación de fecha)
+  const { data: productsSold } = shiftIds.length > 0 ? await supabaseAdmin
     .from('sale_items')
     .select(`
       product_id,
@@ -279,9 +279,8 @@ async function getDailyReport(date: string) {
       combos (id, name),
       sales!inner (id, shift_id, created_at, voided, status, shifts!inner (type))
     `)
-    .gte('sales.created_at', startOfDay)
-    .lte('sales.created_at', endOfDay)
-    .eq('sales.voided', false);
+    .in('sales.shift_id', shiftIds)
+    .eq('sales.voided', false) : { data: [] };
 
   // Obtener nombres de empleados que vendieron
   const employeeIds = new Set<string>();
@@ -488,8 +487,8 @@ async function getDailyReport(date: string) {
     dayTotals.transfer_sales += fp.transfer_amount || 0;
   });
 
-  // Obtener observaciones del día
-  const { data: observations } = await supabaseAdmin
+  // Obtener observaciones de los turnos del día
+  const { data: observations } = shiftIds.length > 0 ? await supabaseAdmin
     .from('observations')
     .select(`
       id,
@@ -499,9 +498,8 @@ async function getDailyReport(date: string) {
       employees (id, name),
       shifts (id, type)
     `)
-    .gte('created_at', startOfDay)
-    .lte('created_at', endOfDay)
-    .order('created_at', { ascending: true });
+    .in('shift_id', shiftIds)
+    .order('created_at', { ascending: true }) : { data: [] };
 
   // Construir reporte por turno (individual de cada empleada)
   const shiftReports = shifts?.map(shift => {
