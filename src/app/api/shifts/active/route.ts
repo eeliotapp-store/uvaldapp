@@ -12,11 +12,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Solo turnos iniciados en las últimas 20 horas (filtra turnos viejos no cerrados)
+    const twentyHoursAgo = new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString();
+
     let query = supabaseAdmin
       .from('shifts')
       .select('*')
       .eq('employee_id', employeeId)
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .gte('start_time', twentyHoursAgo);
 
     if (shiftId) {
       query = query.eq('id', shiftId);

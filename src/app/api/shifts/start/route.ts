@@ -12,19 +12,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar que no hay turno activo
+    // Verificar que no hay turno activo reciente
     const { data: activeShift } = await supabaseAdmin
       .from('shifts')
-      .select('*')
+      .select('id, start_time')
       .eq('employee_id', employee_id)
       .eq('is_active', true)
       .single();
 
     if (activeShift) {
-      return NextResponse.json(
-        { error: 'Ya tienes un turno activo' },
-        { status: 400 }
-      );
+      const ageMs = Date.now() - new Date(activeShift.start_time).getTime();
+      const isStale = ageMs > 20 * 60 * 60 * 1000; // Más de 20 horas = turno olvidado
+
+      if (isStale) {
+        // Cerrar automáticamente el turno olvidado
+        await supabaseAdmin
+          .from('shifts')
+          .update({
+            is_active: false,
+            end_time: new Date().toISOString(),
+            notes: 'Turno cerrado automáticamente por inactividad',
+          })
+          .eq('id', activeShift.id);
+      } else {
+        return NextResponse.json(
+          { error: 'Ya tienes un turno activo' },
+          { status: 400 }
+        );
+      }
     }
 
     // Crear nuevo turno
