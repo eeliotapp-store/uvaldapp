@@ -578,6 +578,8 @@ function SaleModal({
   const [partialTransferAmount, setPartialTransferAmount] = useState('');
   const [partialCashAmount, setPartialCashAmount] = useState('');
   const [showPartialConfirmation, setShowPartialConfirmation] = useState(false);
+  const [partialMode, setPartialMode] = useState<'by_product' | 'direct'>('by_product');
+  const [directAmount, setDirectAmount] = useState('');
 
   // Si es un tab existente, calcular el total previo
   const existingTotal = existingTab?.total || 0;
@@ -656,12 +658,15 @@ function SaleModal({
 
   // Verificar si puede confirmar pago parcial
   const canConfirmPartialPayment = () => {
-    if (partialPaymentTotal <= 0) return false;
+    const total = partialMode === 'direct'
+      ? parseFloat(directAmount) || 0
+      : partialPaymentTotal;
+    if (total <= 0) return false;
     if (partialPaymentMethod === 'transfer') return true;
-    if (partialPaymentMethod === 'cash') return (parseFloat(partialCashReceived) || 0) >= partialPaymentTotal;
+    if (partialPaymentMethod === 'cash') return (parseFloat(partialCashReceived) || 0) >= total;
     if (partialPaymentMethod === 'mixed') {
       const totalPaidPartial = (parseFloat(partialTransferAmount) || 0) + (parseFloat(partialCashAmount) || 0);
-      return totalPaidPartial >= partialPaymentTotal;
+      return totalPaidPartial >= total;
     }
     return false;
   };
@@ -674,20 +679,26 @@ function SaleModal({
     setError('');
 
     try {
-      const items = Object.entries(selectedItemsForPartial).map(([saleItemId, data]) => ({
-        sale_item_id: saleItemId,
-        quantity: data.quantity,
-        amount: data.amount,
-      }));
+      const paymentTotal = partialMode === 'direct'
+        ? parseFloat(directAmount) || 0
+        : partialPaymentTotal;
+
+      const items = partialMode === 'direct'
+        ? []
+        : Object.entries(selectedItemsForPartial).map(([saleItemId, data]) => ({
+            sale_item_id: saleItemId,
+            quantity: data.quantity,
+            amount: data.amount,
+          }));
 
       const cashAmountFinal = partialPaymentMethod === 'cash'
-        ? partialPaymentTotal
+        ? paymentTotal
         : partialPaymentMethod === 'mixed'
         ? parseFloat(partialCashAmount) || 0
         : 0;
 
       const transferAmountFinal = partialPaymentMethod === 'transfer'
-        ? partialPaymentTotal
+        ? paymentTotal
         : partialPaymentMethod === 'mixed'
         ? parseFloat(partialTransferAmount) || 0
         : 0;
@@ -697,7 +708,7 @@ function SaleModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           employee_id: employee.id,
-          amount: partialPaymentTotal,
+          amount: paymentTotal,
           payment_method: partialPaymentMethod,
           cash_amount: cashAmountFinal,
           transfer_amount: transferAmountFinal,
@@ -724,6 +735,8 @@ function SaleModal({
       setPartialCashReceived('');
       setPartialTransferAmount('');
       setPartialCashAmount('');
+      setPartialMode('by_product');
+      setDirectAmount('');
 
       // Refrescar la vista principal
       onSuccess();
@@ -2223,7 +2236,100 @@ function SaleModal({
             </div>
 
             <div className="flex-1 overflow-y-auto p-6">
-              {/* Ingreso de montos por producto */}
+              {/* Toggle modo de pago */}
+              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-5">
+                <button
+                  onClick={() => setPartialMode('by_product')}
+                  className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${partialMode === 'by_product' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+                >
+                  Por producto
+                </button>
+                <button
+                  onClick={() => { setPartialMode('direct'); setDirectAmount(remaining.toString()); if (partialPaymentMethod === 'cash') setPartialCashReceived(remaining.toString()); }}
+                  className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${partialMode === 'direct' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+                >
+                  Monto directo
+                </button>
+              </div>
+
+              {/* Modo monto directo */}
+              {partialMode === 'direct' && (
+                <div className="mb-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Monto a cobrar</label>
+                    <input
+                      type="number"
+                      value={directAmount}
+                      onChange={(e) => {
+                        setDirectAmount(e.target.value);
+                        if (partialPaymentMethod === 'cash') setPartialCashReceived(e.target.value);
+                      }}
+                      className="w-full p-3 text-2xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-amber-500 outline-none"
+                      placeholder="0"
+                      autoFocus
+                    />
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => { setDirectAmount(remaining.toString()); if (partialPaymentMethod === 'cash') setPartialCashReceived(remaining.toString()); }}
+                        className="flex-1 text-xs py-1.5 border border-amber-300 text-amber-700 rounded-lg hover:bg-amber-50"
+                      >
+                        Cobrar todo ({formatCurrency(remaining)})
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Método de pago directo */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Método de pago</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['cash', 'transfer', 'mixed'] as const).map((method) => (
+                        <button
+                          key={method}
+                          onClick={() => { setPartialPaymentMethod(method); if (method === 'cash') setPartialCashReceived(directAmount); }}
+                          className={`p-3 rounded-lg border-2 text-center transition-all ${partialPaymentMethod === method ? 'border-amber-500 bg-amber-50' : 'border-gray-200'}`}
+                        >
+                          <div className="text-xl mb-1">{method === 'cash' ? '💵' : method === 'transfer' ? '📱' : '💳'}</div>
+                          <div className="text-sm font-medium">{method === 'cash' ? 'Efectivo' : method === 'transfer' ? 'Transfer' : 'Mixto'}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {partialPaymentMethod === 'cash' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Efectivo recibido</label>
+                      <input
+                        type="number"
+                        value={partialCashReceived}
+                        onChange={(e) => setPartialCashReceived(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                        placeholder={`Mínimo ${formatCurrency(parseFloat(directAmount) || 0)}`}
+                      />
+                      {(parseFloat(partialCashReceived) || 0) >= (parseFloat(directAmount) || 0) && (parseFloat(directAmount) || 0) > 0 && (
+                        <p className="text-green-600 mt-2 font-medium">
+                          Cambio: {formatCurrency(Math.max(0, (parseFloat(partialCashReceived) || 0) - (parseFloat(directAmount) || 0)))}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {partialPaymentMethod === 'mixed' && (
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Transferencia</label>
+                        <input type="number" value={partialTransferAmount} onChange={(e) => setPartialTransferAmount(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg" placeholder="$0" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Efectivo</label>
+                        <input type="number" value={partialCashAmount} onChange={(e) => setPartialCashAmount(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg" placeholder="$0" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Modo por producto */}
+              {partialMode === 'by_product' && (<>
               <div className="mb-6">
                 <h3 className="font-medium text-gray-900 mb-3">Productos pendientes de pago:</h3>
                 <p className="text-sm text-gray-500 mb-4">Solo se muestran productos con saldo pendiente</p>
@@ -2390,6 +2496,7 @@ function SaleModal({
                   )}
                 </div>
               )}
+              </>)}
 
               {error && (
                 <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">

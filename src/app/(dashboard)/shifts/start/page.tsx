@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useShiftStore } from '@/stores/shift-store';
-import { supabase } from '@/lib/supabase/client';
 import { detectShiftType, getShiftTypeLabel, formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import type { ShiftType } from '@/types/database';
@@ -37,15 +36,11 @@ export default function StartShiftPage() {
         return;
       }
 
-      const { data: activeShift } = await supabase
-        .from('shifts')
-        .select('*')
-        .eq('employee_id', employee.id)
-        .eq('is_active', true)
-        .single();
+      const res = await fetch(`/api/shifts/active?employee_id=${employee.id}`);
+      const data = res.ok ? await res.json() : { shift: null };
 
-      if (activeShift) {
-        setShift(activeShift);
+      if (data.shift) {
+        setShift(data.shift);
         router.push('/sales');
       } else {
         setCheckingShift(false);

@@ -347,8 +347,19 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
     e.preventDefault();
     setError('');
 
-    if (!formData.name.trim() || !formData.sale_price) {
-      setError('Nombre y precio de venta son requeridos');
+    const salePrice = parseFloat(formData.sale_price);
+    const minStock = parseInt(formData.min_stock);
+
+    if (!formData.name.trim()) {
+      setError('El nombre es requerido');
+      return;
+    }
+    if (!formData.sale_price || isNaN(salePrice) || salePrice < 0) {
+      setError('El precio de venta es requerido y debe ser un número válido');
+      return;
+    }
+    if (isNaN(minStock)) {
+      setError('El stock mínimo debe ser un número válido');
       return;
     }
 

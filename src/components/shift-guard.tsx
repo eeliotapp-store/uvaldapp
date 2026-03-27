@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth-store';
 import { useShiftStore } from '@/stores/shift-store';
-import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
 
 interface ShiftGuardProps {
@@ -31,38 +30,30 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
 
       let activeShift = currentShift;
 
-      // Si ya tenemos el turno en el store, verificar que sigue activo
-      if (currentShift) {
-        const { data: shift } = await supabase
-          .from('shifts')
-          .select('*')
-          .eq('id', currentShift.id)
-          .eq('is_active', true)
-          .single();
+      try {
+        // Usar API server-side para evitar problemas de RLS con el cliente anónimo
+        const params = new URLSearchParams({ employee_id: employee.id });
+        if (currentShift) params.set('shift_id', currentShift.id);
+
+        const res = await fetch(`/api/shifts/active?${params}`);
+        const data = await res.json();
+        const shift = data.shift;
 
         if (shift) {
+          setShift(shift);
           activeShift = shift;
           setHasShift(true);
         } else {
-          // El turno ya no está activo, limpiarlo
           setShift(null);
           activeShift = null;
           setHasShift(false);
           setIsChecking(false);
           return;
         }
-      } else {
-        // Buscar turno activo del empleado
-        const { data: shift } = await supabase
-          .from('shifts')
-          .select('*')
-          .eq('employee_id', employee.id)
-          .eq('is_active', true)
-          .single();
-
-        if (shift) {
-          setShift(shift);
-          activeShift = shift;
+      } catch {
+        // En caso de error de red, confiar en el store si hay un turno guardado
+        if (currentShift) {
+          activeShift = currentShift;
           setHasShift(true);
         } else {
           setHasShift(false);
@@ -74,14 +65,12 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
       // Si es turno de día y requireInventoryCount está activo, verificar conteo
       if (activeShift && activeShift.type === 'day' && requireInventoryCount) {
         // Buscar si ya hizo el conteo de inventario para este turno
-        const { data: counts } = await supabase
-          .from('inventory_counts')
-          .select('id')
-          .eq('shift_id', activeShift.id)
-          .eq('employee_id', employee.id)
-          .limit(1);
+        const countRes = await fetch(
+          `/api/inventory/counts/check?shift_id=${activeShift.id}&employee_id=${employee.id}`
+        );
+        const countData = countRes.ok ? await countRes.json() : { has_count: false };
 
-        if (counts && counts.length > 0) {
+        if (countData.has_count) {
           setHasInventoryCount(true);
           setNeedsInventoryCount(false);
         } else {
