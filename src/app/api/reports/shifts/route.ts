@@ -227,27 +227,36 @@ async function getDailyReport(date: string) {
     summaries = data || [];
   }
 
-  // Obtener todas las ventas de los turnos del día (por shift_id, no por created_at)
-  // Así los turnos noche que cierran de madrugada siguen perteneciendo al día que iniciaron
-  const { data: sales } = shiftIds.length > 0 ? await supabaseAdmin
-    .from('sales')
-    .select(`
-      id,
-      shift_id,
-      total,
-      payment_method,
-      cash_amount,
-      transfer_amount,
-      voided,
-      created_at,
-      fiado_customer_name,
-      fiado_amount,
-      fiado_abono,
-      fiado_paid,
-      shifts!inner (type)
-    `)
-    .in('shift_id', shiftIds)
-    .or('status.eq.closed,status.is.null') : { data: [] };
+  // Obtener todas las ventas del día.
+  // Si hay turnos registrados: filtrar por shift_id para correcta asignación de fecha
+  // (turnos noche que cierran de madrugada siguen perteneciendo al día que iniciaron).
+  // Si no hay turnos registrados (días históricos antes del fix): fallback a created_at.
+  const salesSelect = `
+    id,
+    shift_id,
+    total,
+    payment_method,
+    cash_amount,
+    transfer_amount,
+    voided,
+    created_at,
+    fiado_customer_name,
+    fiado_amount,
+    fiado_abono,
+    fiado_paid
+  `;
+  const { data: sales } = shiftIds.length > 0
+    ? await supabaseAdmin
+        .from('sales')
+        .select(salesSelect)
+        .in('shift_id', shiftIds)
+        .or('status.eq.closed,status.is.null')
+    : await supabaseAdmin
+        .from('sales')
+        .select(salesSelect)
+        .gte('created_at', startOfDay)
+        .lte('created_at', endOfDay)
+        .or('status.eq.closed,status.is.null');
 
   // Obtener pagos parciales para incluir en desglose por método de pago
   const nonVoidedSaleIds = sales?.filter(s => !s.voided).map(s => s.id) || [];
@@ -264,23 +273,31 @@ async function getDailyReport(date: string) {
     });
   }
 
-  // Obtener productos vendidos (filtrar por shift_id para correcta asignación de fecha)
-  const { data: productsSold } = shiftIds.length > 0 ? await supabaseAdmin
-    .from('sale_items')
-    .select(`
-      product_id,
-      quantity,
-      unit_price,
-      subtotal,
-      is_michelada,
-      combo_id,
-      added_by_employee_id,
-      products (id, name),
-      combos (id, name),
-      sales!inner (id, shift_id, created_at, voided, status, shifts!inner (type))
-    `)
-    .in('sales.shift_id', shiftIds)
-    .eq('sales.voided', false) : { data: [] };
+  // Obtener productos vendidos — mismo fallback que ventas
+  const productsSelect = `
+    product_id,
+    quantity,
+    unit_price,
+    subtotal,
+    is_michelada,
+    combo_id,
+    added_by_employee_id,
+    products (id, name),
+    combos (id, name),
+    sales!inner (id, shift_id, created_at, voided, status)
+  `;
+  const { data: productsSold } = shiftIds.length > 0
+    ? await supabaseAdmin
+        .from('sale_items')
+        .select(productsSelect)
+        .in('sales.shift_id', shiftIds)
+        .eq('sales.voided', false)
+    : await supabaseAdmin
+        .from('sale_items')
+        .select(productsSelect)
+        .gte('sales.created_at', startOfDay)
+        .lte('sales.created_at', endOfDay)
+        .eq('sales.voided', false);
 
   // Obtener nombres de empleados que vendieron
   const employeeIds = new Set<string>();
@@ -330,8 +347,13 @@ async function getDailyReport(date: string) {
     night: { employees: {}, total: 0, products: {} },
   };
 
+  // Mapa shift_id → type para el desglose por turno
+  const shiftTypeMap: Record<string, string> = {};
+  shifts?.forEach(s => { shiftTypeMap[s.id] = s.type; });
+
   productsSold?.forEach((item) => {
-    const shiftType = (item.sales as { shifts?: { type?: string } })?.shifts?.type || 'day';
+    const saleShiftId = (item.sales as { shift_id?: string })?.shift_id;
+    const shiftType = (saleShiftId ? shiftTypeMap[saleShiftId] : null) || 'day';
     const employeeId = item.added_by_employee_id || 'unknown';
     const employeeName = employeeId === 'unknown' ? 'Sin asignar' : (employeeMap[employeeId] || 'Desconocido');
 
@@ -487,19 +509,27 @@ async function getDailyReport(date: string) {
     dayTotals.transfer_sales += fp.transfer_amount || 0;
   });
 
-  // Obtener observaciones de los turnos del día
-  const { data: observations } = shiftIds.length > 0 ? await supabaseAdmin
-    .from('observations')
-    .select(`
-      id,
-      content,
-      created_at,
-      shift_id,
-      employees (id, name),
-      shifts (id, type)
-    `)
-    .in('shift_id', shiftIds)
-    .order('created_at', { ascending: true }) : { data: [] };
+  // Obtener observaciones del día — mismo fallback
+  const observationsSelect = `
+    id,
+    content,
+    created_at,
+    shift_id,
+    employees (id, name),
+    shifts (id, type)
+  `;
+  const { data: observations } = shiftIds.length > 0
+    ? await supabaseAdmin
+        .from('observations')
+        .select(observationsSelect)
+        .in('shift_id', shiftIds)
+        .order('created_at', { ascending: true })
+    : await supabaseAdmin
+        .from('observations')
+        .select(observationsSelect)
+        .gte('created_at', startOfDay)
+        .lte('created_at', endOfDay)
+        .order('created_at', { ascending: true });
 
   // Construir reporte por turno (individual de cada empleada)
   const shiftReports = shifts?.map(shift => {
