@@ -44,3 +44,9 @@ export function detectShiftType(): 'day' | 'night' {
 export function getShiftTypeLabel(type: 'day' | 'night'): string {
   return type === 'day' ? 'Día' : 'Noche';
 }
+
+// Fecha local del navegador en formato YYYY-MM-DD (usa el timezone del dispositivo, no UTC)
+export function getLocalDate(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}

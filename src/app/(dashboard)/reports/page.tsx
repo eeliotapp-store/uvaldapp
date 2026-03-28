@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { formatCurrency, formatDate, formatTime } from '@/lib/utils';
+import { formatCurrency, formatDate, formatTime, getLocalDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import Link from 'next/link';
@@ -226,7 +226,7 @@ type ReportType = 'daily' | 'shift' | 'range' | 'ranking' | 'inventory' | 'emplo
 export default function ReportsPage() {
   const employee = useAuthStore((state) => state.employee);
   const [reportType, setReportType] = useState<ReportType>('daily');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getLocalDate());
   const [dailyReport, setDailyReport] = useState<DailyReport | null>(null);
   const [shiftReport, setShiftReport] = useState<SingleShiftReport | null>(null);
   const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
@@ -239,7 +239,7 @@ export default function ReportsPage() {
     d.setDate(d.getDate() - 7);
     return d.toISOString().split('T')[0];
   });
-  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(getLocalDate());
   const [rankingPeriod, setRankingPeriod] = useState<'day' | 'week' | 'month' | 'year' | 'all'>('week');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');

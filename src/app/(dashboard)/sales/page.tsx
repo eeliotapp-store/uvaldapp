@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { formatCurrency, formatDate, formatTime } from '@/lib/utils';
+import { formatCurrency, formatDate, formatTime, getLocalDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ShiftGuard } from '@/components/shift-guard';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
@@ -96,8 +96,8 @@ function SalesContent() {
   const [editingTab, setEditingTab] = useState<OpenTab | null>(null);
 
   const [filters, setFilters] = useState({
-    start_date: new Date().toISOString().split('T')[0],
-    end_date: new Date().toISOString().split('T')[0],
+    start_date: getLocalDate(),
+    end_date: getLocalDate(),
     payment_method: '',
   });
 
