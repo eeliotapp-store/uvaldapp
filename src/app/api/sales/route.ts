@@ -39,12 +39,14 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(limit);
 
+    // Colombia Standard Time (UTC-5) para que medianoche Colombia = 5am UTC
+    const TZ = '-05:00';
     if (start_date) {
-      query = query.gte('created_at', `${start_date}T00:00:00`);
+      query = query.gte('created_at', `${start_date}T00:00:00${TZ}`);
     }
 
     if (end_date) {
-      query = query.lte('created_at', `${end_date}T23:59:59`);
+      query = query.lte('created_at', `${end_date}T23:59:59${TZ}`);
     }
 
     if (employee_id) {

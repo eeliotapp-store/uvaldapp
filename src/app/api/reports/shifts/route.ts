@@ -25,8 +25,9 @@ export async function GET(request: NextRequest) {
       return await getDateRangeReport(start_date, end_date);
     }
 
-    // Por defecto, obtener turnos de hoy
-    const today = new Date().toISOString().split('T')[0];
+    // Por defecto, obtener turnos de hoy en Colombia (UTC-5)
+    const todayCol = new Date(Date.now() - 5 * 60 * 60 * 1000);
+    const today = todayCol.toISOString().split('T')[0];
     return await getDailyReport(today);
   } catch (error) {
     console.error('Report error:', error);
@@ -199,10 +200,13 @@ async function getShiftReport(shiftId: string) {
   });
 }
 
+// Colombia Standard Time: UTC-5, sin horario de verano
+const COL_TZ = '-05:00';
+
 // Reporte diario (ambos turnos)
 async function getDailyReport(date: string) {
-  const startOfDay = `${date}T00:00:00`;
-  const endOfDay = `${date}T23:59:59`;
+  const startOfDay = `${date}T00:00:00${COL_TZ}`;
+  const endOfDay = `${date}T23:59:59${COL_TZ}`;
 
   // Obtener turnos del día
   const { data: shifts } = await supabaseAdmin
@@ -578,8 +582,8 @@ async function getDailyReport(date: string) {
 
 // Reporte de rango de fechas
 async function getDateRangeReport(startDate: string, endDate: string) {
-  const start = `${startDate}T00:00:00`;
-  const end = `${endDate}T23:59:59`;
+  const start = `${startDate}T00:00:00${COL_TZ}`;
+  const end = `${endDate}T23:59:59${COL_TZ}`;
 
   // Obtener turnos en el rango
   const { data: shifts } = await supabaseAdmin
