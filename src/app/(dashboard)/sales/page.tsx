@@ -464,6 +464,7 @@ function SalesContent() {
           onClose={() => {
             setShowNewSaleModal(false);
             setEditingTab(null);
+            loadOpenTabs(); // Refrescar lista para que total_paid esté actualizado si hubo abonos
           }}
           setShift={setShift}
           openCashRegister={openCashRegister}
@@ -571,6 +572,7 @@ function SaleModal({
   const [partialPayments, setPartialPayments] = useState<PartialPayment[]>([]);
   const [totalPaid, setTotalPaid] = useState(0);
   const [remaining, setRemaining] = useState(0);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [paidPerItem, setPaidPerItem] = useState<Record<string, number>>({}); // Monto pagado por item
   const [selectedItemsForPartial, setSelectedItemsForPartial] = useState<Record<string, { quantity: number; amount: number }>>({});
   const [partialPaymentMethod, setPartialPaymentMethod] = useState<'cash' | 'transfer' | 'mixed'>('cash');
@@ -601,6 +603,7 @@ function SaleModal({
 
   const loadPartialPayments = async () => {
     if (!existingTab) return;
+    setIsLoadingPayments(true);
     try {
       const response = await fetch(`/api/sales/${existingTab.id}/partial-payments`);
       const data = await response.json();
@@ -620,6 +623,8 @@ function SaleModal({
       }
     } catch (error) {
       console.error('Error loading partial payments:', error);
+    } finally {
+      setIsLoadingPayments(false);
     }
   };
 
@@ -2130,10 +2135,10 @@ function SaleModal({
               </Button>
               <Button
                 onClick={handleCloseAndPay}
-                disabled={!canConfirmPayment() || isProcessing}
+                disabled={!canConfirmPayment() || isProcessing || isLoadingPayments}
                 className="flex-1"
               >
-                {isProcessing ? 'Procesando...' : 'Confirmar Pago'}
+                {isProcessing ? 'Procesando...' : isLoadingPayments ? 'Cargando...' : 'Confirmar Pago'}
               </Button>
             </div>
           )}
