@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useAuthStore } from '@/stores/auth-store';
+import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { useShiftStore } from '@/stores/shift-store';
 import Link from 'next/link';
 
@@ -88,6 +88,11 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
 
     checkShift();
   }, [employee, currentShift, router, setShift, requireInventoryCount]);
+
+  // Owners y superadmins pueden acceder sin turno activo
+  if (isOwner(employee?.role)) {
+    return <>{children}</>;
+  }
 
   if (isChecking) {
     return (
