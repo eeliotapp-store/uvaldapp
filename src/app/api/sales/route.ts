@@ -39,14 +39,17 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(limit);
 
-    // Colombia Standard Time (UTC-5) para que medianoche Colombia = 5am UTC
+    // Día hábil: 6am Colombia → 5:59am Colombia del día siguiente (igual que en reportes)
     const TZ = '-05:00';
     if (start_date) {
-      query = query.gte('created_at', `${start_date}T00:00:00${TZ}`);
+      query = query.gte('created_at', `${start_date}T06:00:00${TZ}`);
     }
 
     if (end_date) {
-      query = query.lte('created_at', `${end_date}T23:59:59${TZ}`);
+      const [ey, em, ed] = end_date.split('-').map(Number);
+      const endNext = new Date(ey, em - 1, ed + 1);
+      const endNextDate = `${endNext.getFullYear()}-${String(endNext.getMonth() + 1).padStart(2, '0')}-${String(endNext.getDate()).padStart(2, '0')}`;
+      query = query.lte('created_at', `${endNextDate}T05:59:59${TZ}`);
     }
 
     if (employee_id) {

@@ -205,8 +205,14 @@ const COL_TZ = '-05:00';
 
 // Reporte diario (ambos turnos)
 async function getDailyReport(date: string) {
-  const startOfDay = `${date}T00:00:00${COL_TZ}`;
-  const endOfDay = `${date}T23:59:59${COL_TZ}`;
+  // Día hábil: 6am Colombia → 5:59am Colombia del día siguiente
+  // Así el turno noche completo (incluyendo madrugada) queda en el día que inició
+  const startOfDay = `${date}T06:00:00${COL_TZ}`;
+
+  const [y, m, d] = date.split('-').map(Number);
+  const next = new Date(y, m - 1, d + 1);
+  const nextDate = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
+  const endOfDay = `${nextDate}T05:59:59${COL_TZ}`;
 
   // Obtener turnos del día
   const { data: shifts } = await supabaseAdmin
@@ -582,8 +588,12 @@ async function getDailyReport(date: string) {
 
 // Reporte de rango de fechas
 async function getDateRangeReport(startDate: string, endDate: string) {
-  const start = `${startDate}T00:00:00${COL_TZ}`;
-  const end = `${endDate}T23:59:59${COL_TZ}`;
+  const start = `${startDate}T06:00:00${COL_TZ}`;
+
+  const [ey, em, ed] = endDate.split('-').map(Number);
+  const endNext = new Date(ey, em - 1, ed + 1);
+  const endNextDate = `${endNext.getFullYear()}-${String(endNext.getMonth() + 1).padStart(2, '0')}-${String(endNext.getDate()).padStart(2, '0')}`;
+  const end = `${endNextDate}T05:59:59${COL_TZ}`;
 
   // Obtener turnos en el rango
   const { data: shifts } = await supabaseAdmin
