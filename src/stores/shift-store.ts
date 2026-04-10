@@ -12,9 +12,13 @@ interface CashRegister {
 interface ShiftState {
   currentShift: Shift | null;
   cashRegister: CashRegister;
+  shiftVerifiedAt: number | null;      // timestamp de la última verificación API
+  inventoryCountVerified: boolean;     // si el conteo de inventario ya fue verificado
 
   setShift: (shift: Shift | null) => void;
   clearShift: () => void;
+  setShiftVerifiedAt: (ts: number) => void;
+  setInventoryCountVerified: (done: boolean) => void;
 
   // Caja
   openCashRegister: (initialCash: number) => void;
@@ -37,13 +41,23 @@ export const useShiftStore = create<ShiftState>()(
     (set, get) => ({
       currentShift: null,
       cashRegister: initialCashRegister,
+      shiftVerifiedAt: null,
+      inventoryCountVerified: false,
 
       setShift: (shift) => {
         set({ currentShift: shift });
       },
 
       clearShift: () => {
-        set({ currentShift: null });
+        set({ currentShift: null, shiftVerifiedAt: null, inventoryCountVerified: false });
+      },
+
+      setShiftVerifiedAt: (ts) => {
+        set({ shiftVerifiedAt: ts });
+      },
+
+      setInventoryCountVerified: (done) => {
+        set({ inventoryCountVerified: done });
       },
 
       openCashRegister: (initialCash) => {

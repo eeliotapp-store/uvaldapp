@@ -11,11 +11,13 @@ interface ShiftGuardProps {
   requireInventoryCount?: boolean; // Si requiere conteo de inventario (para turno día)
 }
 
+const COOLDOWN_MS = 60_000; // 60 segundos entre verificaciones API
+
 export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
   const employee = useAuthStore((state) => state.employee);
-  const { currentShift, setShift } = useShiftStore();
+  const { currentShift, setShift, shiftVerifiedAt, setShiftVerifiedAt, inventoryCountVerified, setInventoryCountVerified } = useShiftStore();
   const [isChecking, setIsChecking] = useState(true);
   const [hasShift, setHasShift] = useState(false);
   const [hasInventoryCount, setHasInventoryCount] = useState(false);
@@ -25,6 +27,16 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
     const checkShift = async () => {
       if (!employee) {
         router.push('/login');
+        return;
+      }
+
+      // Si ya verificamos hace menos de 60s y hay turno en el store, usar caché
+      if (shiftVerifiedAt && Date.now() - shiftVerifiedAt < COOLDOWN_MS && currentShift) {
+        setHasShift(true);
+        const needsCount = currentShift.type === 'day' && requireInventoryCount && !inventoryCountVerified;
+        setHasInventoryCount(!needsCount);
+        setNeedsInventoryCount(needsCount);
+        setIsChecking(false);
         return;
       }
 
@@ -64,7 +76,6 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
 
       // Si es turno de día y requireInventoryCount está activo, verificar conteo
       if (activeShift && activeShift.type === 'day' && requireInventoryCount) {
-        // Buscar si ya hizo el conteo de inventario para este turno
         const countRes = await fetch(
           `/api/inventory/counts/check?shift_id=${activeShift.id}&employee_id=${employee.id}`
         );
@@ -73,21 +84,25 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
         if (countData.has_count) {
           setHasInventoryCount(true);
           setNeedsInventoryCount(false);
+          setInventoryCountVerified(true);
         } else {
           setHasInventoryCount(false);
           setNeedsInventoryCount(true);
+          setInventoryCountVerified(false);
         }
       } else {
         // Turno de noche o no requiere conteo
         setHasInventoryCount(true);
         setNeedsInventoryCount(false);
+        setInventoryCountVerified(true);
       }
 
+      setShiftVerifiedAt(Date.now());
       setIsChecking(false);
     };
 
     checkShift();
-  }, [employee, currentShift, router, setShift, requireInventoryCount]);
+  }, [employee, currentShift, router, setShift, requireInventoryCount, shiftVerifiedAt, inventoryCountVerified, setShiftVerifiedAt, setInventoryCountVerified]);
 
   // Owners y superadmins pueden acceder sin turno activo
   if (isOwner(employee?.role)) {

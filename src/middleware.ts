@@ -102,7 +102,23 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
 
 export const config = {
   matcher: [
-    // Proteger todas las rutas excepto assets estáticos
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    // Solo rutas reales de la app — bots que golpeen rutas inexistentes no activan el middleware
+    '/api/:path*',
+    '/',
+    '/login',
+    '/admin/:path*',
+    '/audit/:path*',
+    '/combos/:path*',
+    '/employees/:path*',
+    '/fiados/:path*',
+    '/inventory/:path*',
+    '/observations/:path*',
+    '/pos/:path*',
+    '/products/:path*',
+    '/reports/:path*',
+    '/sales/:path*',
+    '/shifts/:path*',
+    '/stats/:path*',
+    '/suppliers/:path*',
   ],
 };
