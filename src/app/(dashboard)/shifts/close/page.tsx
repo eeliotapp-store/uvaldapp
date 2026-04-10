@@ -14,6 +14,7 @@ export default function CloseShiftPage() {
   const employee = useAuthStore((state) => state.employee);
 
   const [summary, setSummary] = useState<ShiftSummary | null>(null);
+  const [products, setProducts] = useState<{ product_name: string; quantity: number; total: number }[]>([]);
   const [cashEnd, setCashEnd] = useState('');
   const [notes, setNotes] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +40,7 @@ export default function CloseShiftPage() {
       const summaryRes = await fetch(`/api/shifts/summary?shift_id=${activeShift.id}`);
       const summaryData = summaryRes.ok ? await summaryRes.json() : null;
       setSummary(summaryData?.summary as ShiftSummary || null);
+      setProducts(summaryData?.products || []);
     } else {
       setShowStartModal(true);
     }
@@ -227,6 +229,33 @@ export default function CloseShiftPage() {
           </div>
         </div>
       </div>
+
+      {/* Productos vendidos en el turno */}
+      {products.length > 0 && (
+        <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
+          <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+            Productos vendidos
+          </p>
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs text-gray-400 pb-1 border-b border-gray-100">
+              <span>Producto</span>
+              <div className="flex gap-6">
+                <span>Unidades</span>
+                <span className="w-24 text-right">Total</span>
+              </div>
+            </div>
+            {products.map((p) => (
+              <div key={p.product_name} className="flex justify-between text-sm">
+                <span className="text-gray-700">{p.product_name}</span>
+                <div className="flex gap-6">
+                  <span className="text-gray-500 text-right w-16">{p.quantity}</span>
+                  <span className="font-medium w-24 text-right">{formatCurrency(p.total)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
