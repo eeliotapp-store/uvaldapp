@@ -12,6 +12,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useCartStore, MICHELADA_EXTRA } from '@/stores/cart-store';
 import { useShiftStore } from '@/stores/shift-store';
 import { useAuthStore } from '@/stores/auth-store';
+import { useCombosStore } from '@/stores/combos-store';
 import { formatCurrency } from '@/lib/utils';
 import type { Product, CurrentStock, PaymentMethod, ComboWithItems } from '@/types/database';
 
@@ -40,6 +41,7 @@ function POSContent() {
   const { items, combos: cartCombos, total, clear } = useCartStore();
   const { currentShift, cashRegister, addCashSale, addTransferSale, addMixedSale } = useShiftStore();
   const employee = useAuthStore((state) => state.employee);
+  const combosStore = useCombosStore();
 
   useEffect(() => {
     loadData();
@@ -55,6 +57,12 @@ function POSContent() {
 
   const loadData = async () => {
     try {
+      // Combos: usar caché si tiene menos de 5 minutos
+      const combosStale = combosStore.isStale();
+      const combosPromise = combosStale
+        ? fetch('/api/combos').then(res => res.json()).catch(() => ({ combos: [] }))
+        : Promise.resolve({ combos: combosStore.combos });
+
       const [productsResult, stockResult, combosResult] = await Promise.all([
         supabase
           .from('products')
@@ -64,14 +72,16 @@ function POSContent() {
         supabase
           .from('v_current_stock')
           .select('*'),
-        fetch('/api/combos').then(res => res.json()).catch(() => ({ combos: [] })),
+        combosPromise,
       ]);
 
       if (productsResult.error) throw productsResult.error;
       if (stockResult.error) throw stockResult.error;
 
       setProducts(productsResult.data || []);
-      setCombos(combosResult.combos || []);
+      const fetchedCombos = combosResult.combos || [];
+      if (combosStale) combosStore.setCombos(fetchedCombos);
+      setCombos(fetchedCombos);
 
       const stockMapData: Record<string, number> = {};
       (stockResult.data as CurrentStock[])?.forEach((item) => {

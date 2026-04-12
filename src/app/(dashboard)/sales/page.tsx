@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ShiftGuard } from '@/components/shift-guard';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { useShiftStore } from '@/stores/shift-store';
+import { useCombosStore } from '@/stores/combos-store';
 import { supabase } from '@/lib/supabase/client';
 import type { PaymentMethod, Product, CurrentStock, OpenTab, Shift, ComboWithItems, PartialPayment } from '@/types/database';
 import { MICHELADA_EXTRA } from '@/stores/cart-store';
@@ -528,6 +529,7 @@ function SaleModal({
   const [hasTakenOver, setHasTakenOver] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [combos, setCombos] = useState<ComboWithItems[]>([]);
+  const combosStore = useCombosStore();
   const [stockMap, setStockMap] = useState<Record<string, number>>({});
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartCombos, setCartCombos] = useState<CartComboItem[]>([]);
@@ -860,14 +862,21 @@ function SaleModal({
   const loadProducts = async () => {
     try {
       // Cargar productos, stock y combos
+      const combosStale = combosStore.isStale();
+      const combosPromise = combosStale
+        ? fetch('/api/combos').then(res => res.json()).catch(() => ({ combos: [] }))
+        : Promise.resolve({ combos: combosStore.combos });
+
       const [productsRes, stockRes, combosRes] = await Promise.all([
         supabase.from('products').select('*').eq('active', true).order('name'),
         supabase.from('v_current_stock').select('*'),
-        fetch('/api/combos').then(res => res.json()).catch(() => ({ combos: [] })),
+        combosPromise,
       ]);
 
       setProducts(productsRes.data || []);
-      setCombos(combosRes.combos || []);
+      const fetchedCombos = combosRes.combos || [];
+      if (combosStale) combosStore.setCombos(fetchedCombos);
+      setCombos(fetchedCombos);
 
       const stockData: Record<string, number> = {};
       (stockRes.data as CurrentStock[])?.forEach((item) => {

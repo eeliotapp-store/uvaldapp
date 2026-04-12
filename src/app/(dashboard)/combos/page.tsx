@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
+import { useCombosStore } from '@/stores/combos-store';
 import type { ComboWithItems, Product } from '@/types/database';
 
 export default function CombosPage() {
@@ -11,6 +12,7 @@ export default function CombosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCombo, setEditingCombo] = useState<ComboWithItems | null>(null);
+  const { invalidate } = useCombosStore();
 
   useEffect(() => {
     loadData();
@@ -46,6 +48,7 @@ export default function CombosPage() {
   const handleSuccess = () => {
     setShowModal(false);
     setEditingCombo(null);
+    invalidate();
     loadData();
   };
 
@@ -56,6 +59,7 @@ export default function CombosPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_active: !combo.is_active }),
       });
+      invalidate();
       loadData();
     } catch (error) {
       console.error('Error toggling combo:', error);
