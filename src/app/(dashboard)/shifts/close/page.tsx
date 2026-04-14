@@ -23,7 +23,7 @@ export default function CloseShiftPage() {
 
   useEffect(() => {
     loadShiftData();
-  }, [currentShift]);
+  }, []);
 
   const loadShiftData = async () => {
     if (!employee) return;
