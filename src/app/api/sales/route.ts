@@ -74,17 +74,19 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    // Obtener nombres de empleados
+    // Obtener nombres de empleados y cuentas abiertas en paralelo
     let employeeMap: Record<string, string> = {};
-    if (addedByIds.size > 0) {
-      const { data: employees } = await supabaseAdmin
-        .from('employees')
-        .select('id, name')
-        .in('id', Array.from(addedByIds));
+    const employeesPromise = addedByIds.size > 0
+      ? supabaseAdmin.from('employees').select('id, name').in('id', Array.from(addedByIds))
+      : Promise.resolve({ data: [] });
 
-      if (employees) {
-        employeeMap = Object.fromEntries(employees.map(e => [e.id, e.name]));
-      }
+    const [employeesResult, openTabsResult] = await Promise.all([
+      employeesPromise,
+      supabaseAdmin.from('v_open_tabs').select('*'),
+    ]);
+
+    if (employeesResult.data) {
+      employeeMap = Object.fromEntries(employeesResult.data.map((e: { id: string; name: string }) => [e.id, e.name]));
     }
 
     // Agregar added_by a cada item
@@ -125,7 +127,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({ sales: salesWithAddedBy, totals });
+    return NextResponse.json({ sales: salesWithAddedBy, totals, open_tabs: openTabsResult.data || [] });
   } catch (error) {
     console.error('Error fetching sales:', error);
     return NextResponse.json(

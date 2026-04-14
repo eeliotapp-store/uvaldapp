@@ -104,7 +104,6 @@ function SalesContent() {
 
   useEffect(() => {
     loadSales();
-    loadOpenTabs();
   }, [filters]);
 
   const loadSales = async () => {
@@ -119,6 +118,7 @@ function SalesContent() {
       const data = await response.json();
       setSales(data.sales || []);
       setTotals(data.totals || null);
+      if (data.open_tabs) setOpenTabs(data.open_tabs);
     } catch (error) {
       console.error('Error loading sales:', error);
     } finally {
@@ -150,7 +150,6 @@ function SalesContent() {
         setShowVoidModal(false);
         setSelectedSale(null);
         loadSales();
-        loadOpenTabs();
       } else {
         const data = await response.json();
         alert(data.error || 'Error al anular venta');
@@ -165,7 +164,6 @@ function SalesContent() {
     setShowNewSaleModal(false);
     setEditingTab(null);
     loadSales();
-    loadOpenTabs();
   };
 
   const handleOpenTab = (tab: OpenTab) => {
@@ -187,7 +185,6 @@ function SalesContent() {
         alert(data.error || 'Error al descartar');
         return;
       }
-      loadOpenTabs();
       loadSales();
     } catch {
       alert('Error de conexión');
