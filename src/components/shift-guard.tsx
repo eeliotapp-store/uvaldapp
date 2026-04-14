@@ -76,19 +76,25 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
 
       // Si es turno de día y requireInventoryCount está activo, verificar conteo
       if (activeShift && activeShift.type === 'day' && requireInventoryCount) {
-        const countRes = await fetch(
-          `/api/inventory/counts/check?shift_id=${activeShift.id}&employee_id=${employee.id}`
-        );
-        const countData = countRes.ok ? await countRes.json() : { has_count: false };
-
-        if (countData.has_count) {
+        if (inventoryCountVerified) {
+          // Ya verificado en esta sesión — no llamar a la API de nuevo
           setHasInventoryCount(true);
           setNeedsInventoryCount(false);
-          setInventoryCountVerified(true);
         } else {
-          setHasInventoryCount(false);
-          setNeedsInventoryCount(true);
-          setInventoryCountVerified(false);
+          const countRes = await fetch(
+            `/api/inventory/counts/check?shift_id=${activeShift.id}&employee_id=${employee.id}`
+          );
+          const countData = countRes.ok ? await countRes.json() : { has_count: false };
+
+          if (countData.has_count) {
+            setHasInventoryCount(true);
+            setNeedsInventoryCount(false);
+            setInventoryCountVerified(true);
+          } else {
+            setHasInventoryCount(false);
+            setNeedsInventoryCount(true);
+            setInventoryCountVerified(false);
+          }
         }
       } else {
         // Turno de noche o no requiere conteo
