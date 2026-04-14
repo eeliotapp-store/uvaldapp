@@ -593,7 +593,7 @@ function SaleModal({
     loadProducts();
   }, []);
 
-  // Cargar pagos parciales cuando hay un tab existente
+  // Cargar pagos parciales solo cuando cambia el ID del tab (no en cada re-render del padre)
   useEffect(() => {
     if (existingTab) {
       // Inicializar desde los datos del tab inmediatamente para evitar flash de valor incorrecto
@@ -601,7 +601,7 @@ function SaleModal({
       setRemaining(existingTab.remaining ?? existingTab.total);
       loadPartialPayments();
     }
-  }, [existingTab]);
+  }, [existingTab?.id]);
 
   const loadPartialPayments = async () => {
     if (!existingTab) return;
