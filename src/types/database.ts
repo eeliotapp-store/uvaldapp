@@ -214,6 +214,7 @@ export const MICHELADA_PRICE = 4000;
 export interface OpenTab {
   id: string;
   table_number: string | null;
+  notes: string | null;
   created_at: string;
   total: number;
   total_paid: number;

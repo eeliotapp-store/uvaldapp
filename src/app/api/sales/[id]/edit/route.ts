@@ -8,6 +8,7 @@ import {
 
 interface EditSaleBody {
   employee_id: string;
+  notes?: string | null;
   // Items a actualizar (cambiar cantidad o precio)
   update_items?: {
     id: string;
@@ -32,7 +33,7 @@ export async function POST(
   try {
     const { id: saleId } = await context.params;
     const body: EditSaleBody = await request.json();
-    const { employee_id, update_items, delete_items, add_items } = body;
+    const { employee_id, notes, update_items, delete_items, add_items } = body;
 
     if (!employee_id) {
       return NextResponse.json({ error: 'employee_id requerido' }, { status: 400 });
@@ -209,12 +210,12 @@ export async function POST(
 
     const newTotal = updatedItems?.reduce((sum, item) => sum + item.subtotal, 0) || 0;
 
+    const saleUpdate: Record<string, unknown> = { total: newTotal, subtotal: newTotal };
+    if (notes !== undefined) saleUpdate.notes = notes;
+
     await supabaseAdmin
       .from('sales')
-      .update({
-        total: newTotal,
-        subtotal: newTotal,
-      })
+      .update(saleUpdate)
       .eq('id', saleId);
 
     // 5. Obtener venta actualizada

@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/lib/supabase/server';
 
 interface AddItemsRequest {
   employee_id: string;
+  notes?: string | null;
   items: {
     product_id: string;
     quantity: number;
@@ -28,7 +29,7 @@ export async function POST(
   try {
     const { id } = await params;
     const body: AddItemsRequest = await request.json();
-    const { employee_id, items = [], combos = [] } = body;
+    const { employee_id, notes, items = [], combos = [] } = body;
 
     if (!employee_id) {
       return NextResponse.json(
@@ -198,13 +199,13 @@ export async function POST(
       );
     }
 
-    // Actualizar total de la venta
+    // Actualizar total y notes de la venta
+    const saleUpdate: Record<string, unknown> = { total: newTotal, subtotal: newTotal };
+    if (notes !== undefined) saleUpdate.notes = notes;
+
     const { error: updateError } = await supabaseAdmin
       .from('sales')
-      .update({
-        total: newTotal,
-        subtotal: newTotal
-      })
+      .update(saleUpdate)
       .eq('id', id);
 
     if (updateError) {
