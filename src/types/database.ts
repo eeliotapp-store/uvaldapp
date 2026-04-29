@@ -241,6 +241,14 @@ export interface OpenTab {
     added_by_employee_id?: string | null;
     added_by_name?: string | null;
   }[];
+  observations: TabObservation[];
+}
+
+export interface TabObservation {
+  id: string;
+  text: string;
+  created_at: string;
+  employee_id: string | null;
 }
 
 // Pagos parciales

@@ -535,6 +535,9 @@ function SaleModal({
   const [quantity, setQuantity] = useState('1');
   const [tableNumber, setTableNumber] = useState(existingTab?.table_number || '');
   const [notes, setNotes] = useState(existingTab?.notes || '');
+  const [observations, setObservations] = useState<import('@/types/database').TabObservation[]>(existingTab?.observations || []);
+  const [newObservation, setNewObservation] = useState('');
+  const [isAddingObservation, setIsAddingObservation] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
@@ -625,6 +628,27 @@ function SaleModal({
       console.error('Error loading partial payments:', error);
     } finally {
       setIsLoadingPayments(false);
+    }
+  };
+
+  const handleAddObservation = async () => {
+    if (!newObservation.trim() || !existingTab || isAddingObservation) return;
+    setIsAddingObservation(true);
+    try {
+      const res = await fetch(`/api/sales/${existingTab.id}/observations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: newObservation.trim(), employee_id: employee?.id }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setObservations(prev => [...prev, data.observation]);
+        setNewObservation('');
+      }
+    } catch (error) {
+      console.error('Error adding observation:', error);
+    } finally {
+      setIsAddingObservation(false);
     }
   };
 
@@ -1742,6 +1766,43 @@ function SaleModal({
                   </div>
                 );
               })()}
+
+              {/* Observaciones */}
+              {existingTab && (
+                <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+                  <h3 className="font-medium text-gray-700 mb-3">📝 Observaciones</h3>
+                  {observations.length > 0 && (
+                    <ul className="mb-3 space-y-1">
+                      {observations.map((obs) => (
+                        <li key={obs.id} className="text-sm text-gray-600 flex items-start gap-2">
+                          <span className="text-gray-400 mt-0.5">•</span>
+                          <span>{obs.text}</span>
+                          <span className="ml-auto text-xs text-gray-400 whitespace-nowrap">
+                            {new Date(obs.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newObservation}
+                      onChange={(e) => setNewObservation(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddObservation()}
+                      placeholder="Escribe una observación..."
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                    />
+                    <Button
+                      onClick={handleAddObservation}
+                      disabled={!newObservation.trim() || isAddingObservation}
+                      size="sm"
+                    >
+                      {isAddingObservation ? '...' : 'Agregar'}
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Agregar producto */}
               <div className="bg-amber-50 rounded-xl p-4 mb-4">
