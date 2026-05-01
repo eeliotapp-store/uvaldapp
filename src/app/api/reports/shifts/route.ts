@@ -89,6 +89,7 @@ async function getShiftReport(shiftId: string) {
       quantity,
       unit_price,
       subtotal,
+      combo_price_override,
       is_michelada,
       combo_id,
       products (id, name),
@@ -109,24 +110,37 @@ async function getShiftReport(shiftId: string) {
   }> = {};
 
   productsSold?.forEach((item) => {
-    const key = item.is_michelada
-      ? `${item.product_id}-michelada`
-      : item.combo_id
-        ? `${item.product_id}-combo-${item.combo_id}`
-        : item.product_id;
-
-    // Cast de tipos para relaciones de Supabase (relaciones 1:1)
-    const product = item.products as unknown as { id: string; name: string } | null;
     const combo = item.combos as unknown as { id: string; name: string } | null;
+    const product = item.products as unknown as { id: string; name: string } | null;
 
+    // Items de combo: solo procesar el que tiene combo_price_override (representa el combo completo)
+    if (item.combo_id) {
+      if (!item.combo_price_override) return; // ignorar items secundarios del combo
+      const key = `combo-${item.combo_id}`;
+      if (!productSummary[key]) {
+        productSummary[key] = {
+          product_id: item.combo_id,
+          product_name: combo?.name || 'Combo',
+          quantity: 0,
+          total: 0,
+          is_combo: true,
+          combo_name: combo?.name,
+        };
+      }
+      productSummary[key].quantity += 1;
+      productSummary[key].total += item.combo_price_override;
+      return;
+    }
+
+    // Producto individual
+    const key = item.is_michelada ? `${item.product_id}-michelada` : item.product_id;
     if (!productSummary[key]) {
       productSummary[key] = {
         product_id: item.product_id,
         product_name: (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : ''),
         quantity: 0,
         total: 0,
-        is_combo: !!item.combo_id,
-        combo_name: combo?.name,
+        is_combo: false,
       };
     }
     productSummary[key].quantity += item.quantity;
@@ -289,6 +303,7 @@ async function getDailyReport(date: string) {
     quantity,
     unit_price,
     subtotal,
+    combo_price_override,
     is_michelada,
     combo_id,
     added_by_employee_id,
@@ -367,12 +382,27 @@ async function getDailyReport(date: string) {
     const employeeId = item.added_by_employee_id || 'unknown';
     const employeeName = employeeId === 'unknown' ? 'Sin asignar' : (employeeMap[employeeId] || 'Desconocido');
 
-    const productKey = item.is_michelada
-      ? `${item.product_id}-michelada`
-      : item.product_id;
-    // Cast de tipos para relaciones de Supabase (relaciones 1:1)
+    const combo = item.combos as unknown as { id: string; name: string } | null;
     const product = item.products as unknown as { id: string; name: string } | null;
-    const productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : '');
+
+    // Items de combo: solo procesar el representativo (combo_price_override != null)
+    let productKey: string;
+    let productName: string;
+    let itemQuantity: number;
+    let itemTotal: number;
+
+    if (item.combo_id) {
+      if (!item.combo_price_override) return; // ignorar items secundarios del combo
+      productKey = `combo-${item.combo_id}`;
+      productName = combo?.name || 'Combo';
+      itemQuantity = 1;
+      itemTotal = item.combo_price_override;
+    } else {
+      productKey = item.is_michelada ? `${item.product_id}-michelada` : item.product_id;
+      productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : '');
+      itemQuantity = item.quantity;
+      itemTotal = item.subtotal;
+    }
 
     // Asegurar que existe la estructura para el tipo de turno
     if (!byShiftType[shiftType]) {
@@ -392,28 +422,28 @@ async function getDailyReport(date: string) {
     const employeeData = byShiftType[shiftType].employees[employeeId];
     if (!employeeData.products[productKey]) {
       employeeData.products[productKey] = {
-        product_id: item.product_id,
+        product_id: item.combo_id || item.product_id,
         product_name: productName,
         quantity: 0,
         total: 0,
       };
     }
-    employeeData.products[productKey].quantity += item.quantity;
-    employeeData.products[productKey].total += item.subtotal;
-    employeeData.total += item.subtotal;
+    employeeData.products[productKey].quantity += itemQuantity;
+    employeeData.products[productKey].total += itemTotal;
+    employeeData.total += itemTotal;
 
     // Agregar al total del turno
-    byShiftType[shiftType].total += item.subtotal;
+    byShiftType[shiftType].total += itemTotal;
     if (!byShiftType[shiftType].products[productKey]) {
       byShiftType[shiftType].products[productKey] = {
-        product_id: item.product_id,
+        product_id: item.combo_id || item.product_id,
         product_name: productName,
         quantity: 0,
         total: 0,
       };
     }
-    byShiftType[shiftType].products[productKey].quantity += item.quantity;
-    byShiftType[shiftType].products[productKey].total += item.subtotal;
+    byShiftType[shiftType].products[productKey].quantity += itemQuantity;
+    byShiftType[shiftType].products[productKey].total += itemTotal;
   });
 
   // Convertir a arrays ordenados
@@ -665,6 +695,7 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       quantity,
       unit_price,
       subtotal,
+      combo_price_override,
       is_michelada,
       combo_id,
       added_by_employee_id,
@@ -717,23 +748,39 @@ async function getDateRangeReport(startDate: string, endDate: string) {
   }> = {};
 
   productsSold?.forEach((item) => {
+    const combo = item.combos as unknown as { id: string; name: string } | null;
     const product = item.products as unknown as { id: string; name: string } | null;
-    const key = item.is_michelada
-      ? `${item.product_id}-michelada`
-      : item.product_id;
-    const productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : '');
+
+    // Items de combo: solo procesar el representativo
+    let key: string;
+    let productName: string;
+    let itemQuantity: number;
+    let itemTotal: number;
+
+    if (item.combo_id) {
+      if (!item.combo_price_override) return;
+      key = `combo-${item.combo_id}`;
+      productName = combo?.name || 'Combo';
+      itemQuantity = 1;
+      itemTotal = item.combo_price_override;
+    } else {
+      key = item.is_michelada ? `${item.product_id}-michelada` : item.product_id;
+      productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : '');
+      itemQuantity = item.quantity;
+      itemTotal = item.subtotal;
+    }
 
     // Agregar al resumen general
     if (!productSummary[key]) {
       productSummary[key] = {
-        product_id: item.product_id,
+        product_id: item.combo_id || item.product_id,
         product_name: productName,
         quantity: 0,
         total: 0,
       };
     }
-    productSummary[key].quantity += item.quantity;
-    productSummary[key].total += item.subtotal;
+    productSummary[key].quantity += itemQuantity;
+    productSummary[key].total += itemTotal;
 
     // Agregar por empleada
     const employeeId = item.added_by_employee_id || 'unknown';
@@ -749,15 +796,15 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     }
     if (!byEmployee[employeeId].products[key]) {
       byEmployee[employeeId].products[key] = {
-        product_id: item.product_id,
+        product_id: item.combo_id || item.product_id,
         product_name: productName,
         quantity: 0,
         total: 0,
       };
     }
-    byEmployee[employeeId].products[key].quantity += item.quantity;
-    byEmployee[employeeId].products[key].total += item.subtotal;
-    byEmployee[employeeId].total += item.subtotal;
+    byEmployee[employeeId].products[key].quantity += itemQuantity;
+    byEmployee[employeeId].products[key].total += itemTotal;
+    byEmployee[employeeId].total += itemTotal;
   });
 
   // Calcular totales
