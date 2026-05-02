@@ -40,6 +40,8 @@ interface ProductSummary {
   product_name: string;
   quantity: number;
   total: number;
+  is_combo?: boolean;
+  combo_items?: { product_id: string; product_name: string; quantity: number }[];
 }
 
 interface EmployeeProductSummary {
@@ -1152,6 +1154,27 @@ function EmployeeReportView({ report }: { report: EmployeeReport }) {
   );
 }
 
+function ProductRow({ product }: { product: ProductSummary }) {
+  return (
+    <>
+      <tr className="border-b border-gray-100">
+        <td className="py-1 px-2">
+          {product.is_combo ? <span className="text-purple-700">🎁 {product.product_name}</span> : product.product_name}
+        </td>
+        <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
+        <td className="text-right py-1 px-2">{product.total > 0 ? formatCurrency(product.total) : '—'}</td>
+      </tr>
+      {product.combo_items?.map((sub, si) => (
+        <tr key={si} className="border-b border-purple-50 bg-purple-50/40">
+          <td className="py-0.5 px-2 pl-7 text-gray-500 text-xs">└ {sub.product_name}</td>
+          <td className="text-center py-0.5 px-2 text-xs text-gray-500">{sub.quantity}</td>
+          <td className="text-right py-0.5 px-2 text-xs text-gray-400">—</td>
+        </tr>
+      ))}
+    </>
+  );
+}
+
 function DailyReportView({
   report,
   onSelectShift,
@@ -1341,11 +1364,7 @@ function DailyReportView({
                   </thead>
                   <tbody>
                     {emp.products.map((product, idx) => (
-                      <tr key={idx} className="border-b border-yellow-100">
-                        <td className="py-1 px-2">{product.product_name}</td>
-                        <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
-                        <td className="text-right py-1 px-2">{formatCurrency(product.total)}</td>
-                      </tr>
+                      <ProductRow key={idx} product={product} />
                     ))}
                   </tbody>
                 </table>
@@ -1366,11 +1385,7 @@ function DailyReportView({
               </thead>
               <tbody>
                 {report.by_shift_type.day.products.map((product, idx) => (
-                  <tr key={idx} className="border-b border-gray-100">
-                    <td className="py-1 px-2">{product.product_name}</td>
-                    <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
-                    <td className="text-right py-1 px-2">{formatCurrency(product.total)}</td>
-                  </tr>
+                  <ProductRow key={idx} product={product} />
                 ))}
               </tbody>
               <tfoot>
@@ -1419,11 +1434,7 @@ function DailyReportView({
                   </thead>
                   <tbody>
                     {emp.products.map((product, idx) => (
-                      <tr key={idx} className="border-b border-indigo-100">
-                        <td className="py-1 px-2">{product.product_name}</td>
-                        <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
-                        <td className="text-right py-1 px-2">{formatCurrency(product.total)}</td>
-                      </tr>
+                      <ProductRow key={idx} product={product} />
                     ))}
                   </tbody>
                 </table>
@@ -1444,11 +1455,7 @@ function DailyReportView({
               </thead>
               <tbody>
                 {report.by_shift_type.night.products.map((product, idx) => (
-                  <tr key={idx} className="border-b border-gray-100">
-                    <td className="py-1 px-2">{product.product_name}</td>
-                    <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
-                    <td className="text-right py-1 px-2">{formatCurrency(product.total)}</td>
-                  </tr>
+                  <ProductRow key={idx} product={product} />
                 ))}
               </tbody>
               <tfoot>
@@ -1482,13 +1489,7 @@ function DailyReportView({
               </thead>
               <tbody>
                 {report.products.map((product, index) => (
-                  <tr key={index} className="border-b border-gray-100">
-                    <td className="py-2 px-2">{product.product_name}</td>
-                    <td className="text-center py-2 px-2 font-medium">{product.quantity}</td>
-                    <td className="text-right py-2 px-2 font-medium">
-                      {formatCurrency(product.total)}
-                    </td>
-                  </tr>
+                  <ProductRow key={index} product={product} />
                 ))}
               </tbody>
               <tfoot>
@@ -1685,13 +1686,7 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
               </thead>
               <tbody>
                 {products.map((product, index) => (
-                  <tr key={index} className="border-b border-gray-100">
-                    <td className="py-2 px-2">{product.product_name}</td>
-                    <td className="text-center py-2 px-2 font-medium">{product.quantity}</td>
-                    <td className="text-right py-2 px-2 font-medium">
-                      {formatCurrency(product.total)}
-                    </td>
-                  </tr>
+                  <ProductRow key={index} product={product} />
                 ))}
               </tbody>
               <tfoot>
@@ -1857,11 +1852,7 @@ function RangeReportView({ report }: { report: RangeReport }) {
                   </thead>
                   <tbody>
                     {emp.products.map((product, idx) => (
-                      <tr key={idx} className="border-b border-gray-100">
-                        <td className="py-1 px-2">{product.product_name}</td>
-                        <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
-                        <td className="text-right py-1 px-2">{formatCurrency(product.total)}</td>
-                      </tr>
+                      <ProductRow key={idx} product={product} />
                     ))}
                   </tbody>
                 </table>
@@ -1886,13 +1877,7 @@ function RangeReportView({ report }: { report: RangeReport }) {
               </thead>
               <tbody>
                 {report.products.map((product, index) => (
-                  <tr key={index} className="border-b border-gray-100">
-                    <td className="py-2 px-2">{product.product_name}</td>
-                    <td className="text-center py-2 px-2 font-medium">{product.quantity}</td>
-                    <td className="text-right py-2 px-2 font-medium">
-                      {formatCurrency(product.total)}
-                    </td>
-                  </tr>
+                  <ProductRow key={index} product={product} />
                 ))}
               </tbody>
               <tfoot>

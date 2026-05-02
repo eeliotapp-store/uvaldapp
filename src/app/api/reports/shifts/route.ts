@@ -101,6 +101,7 @@ async function getShiftReport(shiftId: string) {
     .eq('sales.voided', false);
 
   // Agrupar productos vendidos
+  type ComboSubItem = { product_id: string; product_name: string; quantity: number };
   const productSummary: Record<string, {
     product_id: string;
     product_name: string;
@@ -108,28 +109,26 @@ async function getShiftReport(shiftId: string) {
     total: number;
     is_combo: boolean;
     combo_name?: string;
+    combo_items?: Record<string, ComboSubItem>;
   }> = {};
 
   productsSold?.forEach((item) => {
     const combo = item.combos as unknown as { id: string; name: string } | null;
     const product = item.products as unknown as { id: string; name: string } | null;
 
-    // Items de combo: solo procesar el que tiene combo_price_override (representa el combo completo)
     if (item.combo_id) {
-      if (!item.combo_price_override) return; // ignorar items secundarios del combo
       const key = `combo-${item.combo_id}`;
       if (!productSummary[key]) {
-        productSummary[key] = {
-          product_id: item.combo_id,
-          product_name: combo?.name || 'Combo',
-          quantity: 0,
-          total: 0,
-          is_combo: true,
-          combo_name: combo?.name,
-        };
+        productSummary[key] = { product_id: item.combo_id, product_name: combo?.name || 'Combo', quantity: 0, total: 0, is_combo: true, combo_name: combo?.name, combo_items: {} };
       }
-      productSummary[key].quantity += 1;
-      productSummary[key].total += item.combo_price_override;
+      if (item.combo_price_override) {
+        productSummary[key].quantity += 1;
+        productSummary[key].total += item.combo_price_override;
+      } else {
+        const ci = productSummary[key].combo_items!;
+        if (!ci[item.product_id]) ci[item.product_id] = { product_id: item.product_id, product_name: product?.name || 'Producto', quantity: 0 };
+        ci[item.product_id].quantity += item.quantity;
+      }
       return;
     }
 
@@ -138,13 +137,7 @@ async function getShiftReport(shiftId: string) {
     const key = `${item.product_id}${suffix}`;
     const displayName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : '');
     if (!productSummary[key]) {
-      productSummary[key] = {
-        product_id: item.product_id,
-        product_name: displayName,
-        quantity: 0,
-        total: 0,
-        is_combo: false,
-      };
+      productSummary[key] = { product_id: item.product_id, product_name: displayName, quantity: 0, total: 0, is_combo: false };
     }
     productSummary[key].quantity += item.quantity;
     productSummary[key].total += item.subtotal;
@@ -206,7 +199,10 @@ async function getShiftReport(shiftId: string) {
       transactions_count: 0,
     },
     sales: sales || [],
-    products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity),
+    products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity).map(p => ({
+      ...p,
+      combo_items: p.combo_items ? Object.values(p.combo_items).sort((a, b) => b.quantity - a.quantity) : undefined,
+    })),
     payment_totals: paymentTotals,
     observations: observations?.map(obs => ({
       id: obs.id,
@@ -348,27 +344,20 @@ async function getDailyReport(date: string) {
   }
 
   // Agrupar productos por tipo de turno y empleada
+  type DailyComboSubItem = { product_id: string; product_name: string; quantity: number };
+  type DailyProductEntry = { product_id: string; product_name: string; quantity: number; total: number; combo_items?: Record<string, DailyComboSubItem> };
+
   interface ProductByEmployee {
     employee_id: string;
     employee_name: string;
-    products: Record<string, {
-      product_id: string;
-      product_name: string;
-      quantity: number;
-      total: number;
-    }>;
+    products: Record<string, DailyProductEntry>;
     total: number;
   }
 
   interface ShiftTypeData {
     employees: Record<string, ProductByEmployee>;
     total: number;
-    products: Record<string, {
-      product_id: string;
-      product_name: string;
-      quantity: number;
-      total: number;
-    }>;
+    products: Record<string, DailyProductEntry>;
   }
 
   const byShiftType: Record<string, ShiftTypeData> = {
@@ -389,18 +378,41 @@ async function getDailyReport(date: string) {
     const combo = item.combos as unknown as { id: string; name: string } | null;
     const product = item.products as unknown as { id: string; name: string } | null;
 
-    // Items de combo: solo procesar el representativo (combo_price_override != null)
+    // Items secundarios de combo: adjuntar a combo_items sin contar en totales
+    if (item.combo_id && !item.combo_price_override) {
+      const comboKey = `combo-${item.combo_id}`;
+      const subKey = item.product_id;
+      const subName = product?.name || 'Producto';
+      if (!byShiftType[shiftType]) byShiftType[shiftType] = { employees: {}, total: 0, products: {} };
+      // byShiftType general
+      if (!byShiftType[shiftType].products[comboKey]) {
+        byShiftType[shiftType].products[comboKey] = { product_id: item.combo_id, product_name: combo?.name || 'Combo', quantity: 0, total: 0, combo_items: {} };
+      }
+      const stci = (byShiftType[shiftType].products[comboKey].combo_items = byShiftType[shiftType].products[comboKey].combo_items || {});
+      if (!stci[subKey]) stci[subKey] = { product_id: item.product_id, product_name: subName, quantity: 0 };
+      stci[subKey].quantity += item.quantity;
+      // byEmployee
+      if (!byShiftType[shiftType].employees[employeeId]) {
+        byShiftType[shiftType].employees[employeeId] = { employee_id: employeeId, employee_name: employeeName, products: {}, total: 0 };
+      }
+      const empProds = byShiftType[shiftType].employees[employeeId].products;
+      if (!empProds[comboKey]) empProds[comboKey] = { product_id: item.combo_id, product_name: combo?.name || 'Combo', quantity: 0, total: 0, combo_items: {} };
+      const eci = (empProds[comboKey].combo_items = empProds[comboKey].combo_items || {});
+      if (!eci[subKey]) eci[subKey] = { product_id: item.product_id, product_name: subName, quantity: 0 };
+      eci[subKey].quantity += item.quantity;
+      return;
+    }
+
     let productKey: string;
     let productName: string;
     let itemQuantity: number;
     let itemTotal: number;
 
     if (item.combo_id) {
-      if (!item.combo_price_override) return; // ignorar items secundarios del combo
       productKey = `combo-${item.combo_id}`;
       productName = combo?.name || 'Combo';
       itemQuantity = 1;
-      itemTotal = item.combo_price_override;
+      itemTotal = item.combo_price_override!;
     } else {
       const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
       productKey = `${item.product_id}${suffix}`;
@@ -452,51 +464,52 @@ async function getDailyReport(date: string) {
   });
 
   // Convertir a arrays ordenados
+  const flatProduct = (p: DailyProductEntry) => ({
+    ...p,
+    combo_items: p.combo_items ? Object.values(p.combo_items).sort((a, b) => b.quantity - a.quantity) : undefined,
+  });
   const shiftTypeSummary = {
     day: {
       total: byShiftType.day.total,
       employees: Object.values(byShiftType.day.employees)
-        .map(emp => ({
-          ...emp,
-          products: Object.values(emp.products).sort((a, b) => b.quantity - a.quantity),
-        }))
+        .map(emp => ({ ...emp, products: Object.values(emp.products).sort((a, b) => b.quantity - a.quantity).map(flatProduct) }))
         .sort((a, b) => b.total - a.total),
-      products: Object.values(byShiftType.day.products).sort((a, b) => b.quantity - a.quantity),
+      products: Object.values(byShiftType.day.products).sort((a, b) => b.quantity - a.quantity).map(flatProduct),
     },
     night: {
       total: byShiftType.night.total,
       employees: Object.values(byShiftType.night.employees)
-        .map(emp => ({
-          ...emp,
-          products: Object.values(emp.products).sort((a, b) => b.quantity - a.quantity),
-        }))
+        .map(emp => ({ ...emp, products: Object.values(emp.products).sort((a, b) => b.quantity - a.quantity).map(flatProduct) }))
         .sort((a, b) => b.total - a.total),
-      products: Object.values(byShiftType.night.products).sort((a, b) => b.quantity - a.quantity),
+      products: Object.values(byShiftType.night.products).sort((a, b) => b.quantity - a.quantity).map(flatProduct),
     },
   };
 
-  // Agrupar productos general (para mantener compatibilidad)
-  const productSummary: Record<string, {
-    product_id: string;
-    product_name: string;
-    quantity: number;
-    total: number;
-  }> = {};
+  // Agrupar productos general
+  const productSummary: Record<string, DailyProductEntry> = {};
 
   productsSold?.forEach((item) => {
-    const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
-    const key = `${item.product_id}${suffix}`;
-
-    // Cast de tipos para relaciones de Supabase (relaciones 1:1)
+    const combo = item.combos as unknown as { id: string; name: string } | null;
     const product = item.products as unknown as { id: string; name: string } | null;
 
+    if (item.combo_id) {
+      const key = `combo-${item.combo_id}`;
+      if (!productSummary[key]) productSummary[key] = { product_id: item.combo_id, product_name: combo?.name || 'Combo', quantity: 0, total: 0, combo_items: {} };
+      if (item.combo_price_override) {
+        productSummary[key].quantity += 1;
+        productSummary[key].total += item.combo_price_override;
+      } else {
+        const ci = (productSummary[key].combo_items = productSummary[key].combo_items || {});
+        if (!ci[item.product_id]) ci[item.product_id] = { product_id: item.product_id, product_name: product?.name || 'Producto', quantity: 0 };
+        ci[item.product_id].quantity += item.quantity;
+      }
+      return;
+    }
+
+    const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
+    const key = `${item.product_id}${suffix}`;
     if (!productSummary[key]) {
-      productSummary[key] = {
-        product_id: item.product_id,
-        product_name: (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : ''),
-        quantity: 0,
-        total: 0,
-      };
+      productSummary[key] = { product_id: item.product_id, product_name: (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : ''), quantity: 0, total: 0 };
     }
     productSummary[key].quantity += item.quantity;
     productSummary[key].total += item.subtotal;
@@ -608,7 +621,7 @@ async function getDailyReport(date: string) {
     date,
     shifts: shiftReports,
     day_totals: dayTotals,
-    products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity),
+    products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity).map(flatProduct),
     by_shift_type: shiftTypeSummary,
     observations: observations?.map(obs => ({
       id: obs.id,
@@ -732,23 +745,15 @@ async function getDateRangeReport(startDate: string, endDate: string) {
   }
 
   // Agrupar productos
-  const productSummary: Record<string, {
-    product_id: string;
-    product_name: string;
-    quantity: number;
-    total: number;
-  }> = {};
+  type RangeSubItem = { product_id: string; product_name: string; quantity: number };
+  type RangeProductEntry = { product_id: string; product_name: string; quantity: number; total: number; combo_items?: Record<string, RangeSubItem> };
+  const productSummary: Record<string, RangeProductEntry> = {};
 
   // Agrupar por empleada
   const byEmployee: Record<string, {
     employee_id: string;
     employee_name: string;
-    products: Record<string, {
-      product_id: string;
-      product_name: string;
-      quantity: number;
-      total: number;
-    }>;
+    products: Record<string, RangeProductEntry>;
     total: number;
   }> = {};
 
@@ -756,18 +761,38 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     const combo = item.combos as unknown as { id: string; name: string } | null;
     const product = item.products as unknown as { id: string; name: string } | null;
 
-    // Items de combo: solo procesar el representativo
+    const employeeId = item.added_by_employee_id || 'unknown';
+    const employeeName = employeeId === 'unknown' ? 'Sin asignar' : (employeeMap[employeeId] || 'Desconocido');
+
+    // Items secundarios de combo: adjuntar a combo_items sin contar en totales
+    if (item.combo_id && !item.combo_price_override) {
+      const comboKey = `combo-${item.combo_id}`;
+      const subKey = item.product_id;
+      const subName = product?.name || 'Producto';
+      // resumen general
+      if (!productSummary[comboKey]) productSummary[comboKey] = { product_id: item.combo_id, product_name: combo?.name || 'Combo', quantity: 0, total: 0, combo_items: {} };
+      const pci = (productSummary[comboKey].combo_items = productSummary[comboKey].combo_items || {});
+      if (!pci[subKey]) pci[subKey] = { product_id: item.product_id, product_name: subName, quantity: 0 };
+      pci[subKey].quantity += item.quantity;
+      // por empleada
+      if (!byEmployee[employeeId]) byEmployee[employeeId] = { employee_id: employeeId, employee_name: employeeName, products: {}, total: 0 };
+      if (!byEmployee[employeeId].products[comboKey]) byEmployee[employeeId].products[comboKey] = { product_id: item.combo_id, product_name: combo?.name || 'Combo', quantity: 0, total: 0, combo_items: {} };
+      const eci = (byEmployee[employeeId].products[comboKey].combo_items = byEmployee[employeeId].products[comboKey].combo_items || {});
+      if (!eci[subKey]) eci[subKey] = { product_id: item.product_id, product_name: subName, quantity: 0 };
+      eci[subKey].quantity += item.quantity;
+      return;
+    }
+
     let key: string;
     let productName: string;
     let itemQuantity: number;
     let itemTotal: number;
 
     if (item.combo_id) {
-      if (!item.combo_price_override) return;
       key = `combo-${item.combo_id}`;
       productName = combo?.name || 'Combo';
       itemQuantity = 1;
-      itemTotal = item.combo_price_override;
+      itemTotal = item.combo_price_override!;
     } else {
       const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
       key = `${item.product_id}${suffix}`;
@@ -776,38 +801,12 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       itemTotal = item.subtotal;
     }
 
-    // Agregar al resumen general
-    if (!productSummary[key]) {
-      productSummary[key] = {
-        product_id: item.combo_id || item.product_id,
-        product_name: productName,
-        quantity: 0,
-        total: 0,
-      };
-    }
+    if (!productSummary[key]) productSummary[key] = { product_id: item.combo_id || item.product_id, product_name: productName, quantity: 0, total: 0 };
     productSummary[key].quantity += itemQuantity;
     productSummary[key].total += itemTotal;
 
-    // Agregar por empleada
-    const employeeId = item.added_by_employee_id || 'unknown';
-    const employeeName = employeeId === 'unknown' ? 'Sin asignar' : (employeeMap[employeeId] || 'Desconocido');
-
-    if (!byEmployee[employeeId]) {
-      byEmployee[employeeId] = {
-        employee_id: employeeId,
-        employee_name: employeeName,
-        products: {},
-        total: 0,
-      };
-    }
-    if (!byEmployee[employeeId].products[key]) {
-      byEmployee[employeeId].products[key] = {
-        product_id: item.combo_id || item.product_id,
-        product_name: productName,
-        quantity: 0,
-        total: 0,
-      };
-    }
+    if (!byEmployee[employeeId]) byEmployee[employeeId] = { employee_id: employeeId, employee_name: employeeName, products: {}, total: 0 };
+    if (!byEmployee[employeeId].products[key]) byEmployee[employeeId].products[key] = { product_id: item.combo_id || item.product_id, product_name: productName, quantity: 0, total: 0 };
     byEmployee[employeeId].products[key].quantity += itemQuantity;
     byEmployee[employeeId].products[key].total += itemTotal;
     byEmployee[employeeId].total += itemTotal;
@@ -936,11 +935,17 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       employee_name: (s.employees as unknown as { name: string } | null)?.name,
     })) || [],
     totals,
-    products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity),
+    products: Object.values(productSummary).sort((a, b) => b.quantity - a.quantity).map(p => ({
+      ...p,
+      combo_items: p.combo_items ? Object.values(p.combo_items).sort((a, b) => b.quantity - a.quantity) : undefined,
+    })),
     by_employee: Object.values(byEmployee)
       .map(emp => ({
         ...emp,
-        products: Object.values(emp.products).sort((a, b) => b.quantity - a.quantity),
+        products: Object.values(emp.products).sort((a, b) => b.quantity - a.quantity).map(p => ({
+          ...p,
+          combo_items: p.combo_items ? Object.values(p.combo_items).sort((a, b) => b.quantity - a.quantity) : undefined,
+        })),
       }))
       .sort((a, b) => b.total - a.total),
     daily_breakdown: Object.values(salesByDay).sort((a, b) => a.date.localeCompare(b.date)),
