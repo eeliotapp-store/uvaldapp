@@ -1137,9 +1137,19 @@ function EmployeeReportView({ report }: { report: EmployeeReport }) {
               <h4 className="text-sm font-semibold text-gray-600 mb-2">Productos vendidos</h4>
               <div className="space-y-1">
                 {emp.products.slice(0, 10).map((p) => (
-                  <div key={p.product_name} className="flex items-center justify-between text-sm py-1 px-3 bg-gray-50 rounded-lg">
-                    <span className="text-gray-700">{p.product_name} <span className="text-gray-400">× {p.quantity}</span></span>
-                    <span className="font-medium text-gray-800">{formatCurrency(p.total)}</span>
+                  <div key={p.product_name}>
+                    <div className="flex items-center justify-between text-sm py-1 px-3 bg-gray-50 rounded-lg">
+                      <span className="text-gray-700">
+                        {p.is_combo ? '🎁 ' : ''}{p.product_name} <span className="text-gray-400">× {p.quantity}</span>
+                      </span>
+                      <span className="font-medium text-gray-800">{p.total > 0 ? formatCurrency(p.total) : '—'}</span>
+                    </div>
+                    {p.combo_items?.map((sub, si) => (
+                      <div key={si} className="flex items-center justify-between text-xs py-0.5 px-3 pl-8 bg-purple-50/50 text-gray-500">
+                        <span>└ {sub.product_name} × {sub.quantity}</span>
+                        <span className="text-gray-400">—</span>
+                      </div>
+                    ))}
                   </div>
                 ))}
                 {emp.products.length > 10 && (
