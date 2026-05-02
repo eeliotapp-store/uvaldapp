@@ -3,9 +3,10 @@ import { supabaseAdmin } from '@/lib/supabase/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const { text, employee_id } = await request.json();
 
     if (!text?.trim()) {
@@ -14,7 +15,7 @@ export async function POST(
 
     const { data, error } = await supabaseAdmin
       .from('tab_observations')
-      .insert({ sale_id: params.id, text: text.trim(), employee_id })
+      .insert({ sale_id: id, text: text.trim(), employee_id })
       .select()
       .single();
 
