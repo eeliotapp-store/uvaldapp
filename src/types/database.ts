@@ -48,6 +48,7 @@ export interface Product {
   name: string;
   category: ProductCategory;
   sale_price: number;
+  bomba_extra: number | null;
   min_stock: number;
   image_url: string | null;
   active: boolean;
@@ -194,6 +195,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   isMichelada?: boolean;
+  isBomba?: boolean;
 }
 
 // Combo en el carrito

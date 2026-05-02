@@ -91,6 +91,7 @@ async function getShiftReport(shiftId: string) {
       subtotal,
       combo_price_override,
       is_michelada,
+      is_bomba,
       combo_id,
       products (id, name),
       combos (id, name),
@@ -133,11 +134,13 @@ async function getShiftReport(shiftId: string) {
     }
 
     // Producto individual
-    const key = item.is_michelada ? `${item.product_id}-michelada` : item.product_id;
+    const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
+    const key = `${item.product_id}${suffix}`;
+    const displayName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : '');
     if (!productSummary[key]) {
       productSummary[key] = {
         product_id: item.product_id,
-        product_name: (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : ''),
+        product_name: displayName,
         quantity: 0,
         total: 0,
         is_combo: false,
@@ -305,6 +308,7 @@ async function getDailyReport(date: string) {
     subtotal,
     combo_price_override,
     is_michelada,
+    is_bomba,
     combo_id,
     added_by_employee_id,
     products (id, name),
@@ -398,8 +402,9 @@ async function getDailyReport(date: string) {
       itemQuantity = 1;
       itemTotal = item.combo_price_override;
     } else {
-      productKey = item.is_michelada ? `${item.product_id}-michelada` : item.product_id;
-      productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : '');
+      const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
+      productKey = `${item.product_id}${suffix}`;
+      productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : '');
       itemQuantity = item.quantity;
       itemTotal = item.subtotal;
     }
@@ -479,9 +484,8 @@ async function getDailyReport(date: string) {
   }> = {};
 
   productsSold?.forEach((item) => {
-    const key = item.is_michelada
-      ? `${item.product_id}-michelada`
-      : item.product_id;
+    const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
+    const key = `${item.product_id}${suffix}`;
 
     // Cast de tipos para relaciones de Supabase (relaciones 1:1)
     const product = item.products as unknown as { id: string; name: string } | null;
@@ -489,7 +493,7 @@ async function getDailyReport(date: string) {
     if (!productSummary[key]) {
       productSummary[key] = {
         product_id: item.product_id,
-        product_name: (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : ''),
+        product_name: (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : ''),
         quantity: 0,
         total: 0,
       };
@@ -697,6 +701,7 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       subtotal,
       combo_price_override,
       is_michelada,
+      is_bomba,
       combo_id,
       added_by_employee_id,
       products (id, name),
@@ -764,8 +769,9 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       itemQuantity = 1;
       itemTotal = item.combo_price_override;
     } else {
-      key = item.is_michelada ? `${item.product_id}-michelada` : item.product_id;
-      productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : '');
+      const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
+      key = `${item.product_id}${suffix}`;
+      productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : '');
       itemQuantity = item.quantity;
       itemTotal = item.subtotal;
     }

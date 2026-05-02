@@ -10,12 +10,12 @@ interface CartState {
   total: number;
 
   // Items individuales
-  addItem: (product: Product, isMichelada?: boolean) => void;
+  addItem: (product: Product, isMichelada?: boolean, isBomba?: boolean) => void;
   addItemWithMichelada: (product: Product, isMichelada: boolean) => void;
-  removeItem: (productId: string, isMichelada?: boolean) => void;
-  updateQuantity: (productId: string, quantity: number, isMichelada?: boolean) => void;
-  incrementQuantity: (productId: string, isMichelada?: boolean) => void;
-  decrementQuantity: (productId: string, isMichelada?: boolean) => void;
+  removeItem: (productId: string, isMichelada?: boolean, isBomba?: boolean) => void;
+  updateQuantity: (productId: string, quantity: number, isMichelada?: boolean, isBomba?: boolean) => void;
+  incrementQuantity: (productId: string, isMichelada?: boolean, isBomba?: boolean) => void;
+  decrementQuantity: (productId: string, isMichelada?: boolean, isBomba?: boolean) => void;
 
   // Combos
   addCombo: (combo: Combo, items: { product: Product; quantity: number; isMichelada?: boolean }[], finalPrice: number) => void;
@@ -30,7 +30,8 @@ const calculateTotal = (items: CartItem[], combos: CartCombo[]): number => {
   const itemsTotal = items.reduce((sum, item) => {
     const basePrice = item.product.sale_price;
     const micheladaExtra = item.isMichelada ? MICHELADA_EXTRA : 0;
-    return sum + (basePrice + micheladaExtra) * item.quantity;
+    const bombaExtra = item.isBomba ? (item.product.bomba_extra || 0) : 0;
+    return sum + (basePrice + micheladaExtra + bombaExtra) * item.quantity;
   }, 0);
 
   const combosTotal = combos.reduce((sum, combo) => sum + combo.finalPrice, 0);
@@ -38,9 +39,11 @@ const calculateTotal = (items: CartItem[], combos: CartCombo[]): number => {
   return itemsTotal + combosTotal;
 };
 
-// Generar key único para items (considerando michelada)
-const getItemKey = (productId: string, isMichelada?: boolean): string => {
-  return `${productId}-${isMichelada ? 'mich' : 'normal'}`;
+// Generar key único para items (considerando michelada y bomba)
+const getItemKey = (productId: string, isMichelada?: boolean, isBomba?: boolean): string => {
+  if (isMichelada) return `${productId}-mich`;
+  if (isBomba) return `${productId}-bomba`;
+  return `${productId}-normal`;
 };
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -48,70 +51,69 @@ export const useCartStore = create<CartState>((set, get) => ({
   combos: [],
   total: 0,
 
-  addItem: (product, isMichelada = false) => {
+  addItem: (product, isMichelada = false, isBomba = false) => {
     const { items, combos } = get();
-    // Buscar item con mismo producto Y mismo estado de michelada
     const existingItem = items.find(
-      (item) => item.product.id === product.id && item.isMichelada === isMichelada
+      (item) => item.product.id === product.id && item.isMichelada === isMichelada && item.isBomba === isBomba
     );
 
     if (existingItem) {
       const updatedItems = items.map((item) =>
-        item.product.id === product.id && item.isMichelada === isMichelada
+        item.product.id === product.id && item.isMichelada === isMichelada && item.isBomba === isBomba
           ? { ...item, quantity: item.quantity + 1 }
           : item
       );
       set({ items: updatedItems, total: calculateTotal(updatedItems, combos) });
     } else {
-      const newItems = [...items, { product, quantity: 1, isMichelada }];
+      const newItems = [...items, { product, quantity: 1, isMichelada, isBomba }];
       set({ items: newItems, total: calculateTotal(newItems, combos) });
     }
   },
 
   addItemWithMichelada: (product, isMichelada) => {
-    get().addItem(product, isMichelada);
+    get().addItem(product, isMichelada, false);
   },
 
-  removeItem: (productId, isMichelada) => {
+  removeItem: (productId, isMichelada, isBomba) => {
     const { items, combos } = get();
     const newItems = items.filter(
-      (item) => !(item.product.id === productId && item.isMichelada === isMichelada)
+      (item) => !(item.product.id === productId && item.isMichelada === isMichelada && item.isBomba === isBomba)
     );
     set({ items: newItems, total: calculateTotal(newItems, combos) });
   },
 
-  updateQuantity: (productId, quantity, isMichelada) => {
+  updateQuantity: (productId, quantity, isMichelada, isBomba) => {
     if (quantity <= 0) {
-      get().removeItem(productId, isMichelada);
+      get().removeItem(productId, isMichelada, isBomba);
       return;
     }
 
     const { items, combos } = get();
     const updatedItems = items.map((item) =>
-      item.product.id === productId && item.isMichelada === isMichelada
+      item.product.id === productId && item.isMichelada === isMichelada && item.isBomba === isBomba
         ? { ...item, quantity }
         : item
     );
     set({ items: updatedItems, total: calculateTotal(updatedItems, combos) });
   },
 
-  incrementQuantity: (productId, isMichelada) => {
+  incrementQuantity: (productId, isMichelada, isBomba) => {
     const { items } = get();
     const item = items.find(
-      (i) => i.product.id === productId && i.isMichelada === isMichelada
+      (i) => i.product.id === productId && i.isMichelada === isMichelada && i.isBomba === isBomba
     );
     if (item) {
-      get().updateQuantity(productId, item.quantity + 1, isMichelada);
+      get().updateQuantity(productId, item.quantity + 1, isMichelada, isBomba);
     }
   },
 
-  decrementQuantity: (productId, isMichelada) => {
+  decrementQuantity: (productId, isMichelada, isBomba) => {
     const { items } = get();
     const item = items.find(
-      (i) => i.product.id === productId && i.isMichelada === isMichelada
+      (i) => i.product.id === productId && i.isMichelada === isMichelada && i.isBomba === isBomba
     );
     if (item) {
-      get().updateQuantity(productId, item.quantity - 1, isMichelada);
+      get().updateQuantity(productId, item.quantity - 1, isMichelada, isBomba);
     }
   },
 

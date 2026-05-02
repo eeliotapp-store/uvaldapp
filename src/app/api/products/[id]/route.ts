@@ -59,13 +59,14 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, category, sale_price, min_stock, active, suppliers } = body;
+    const { name, category, sale_price, bomba_extra, min_stock, active, suppliers } = body;
 
     // Actualizar producto
     const updates: Record<string, unknown> = {};
     if (name !== undefined) updates.name = name;
     if (category !== undefined) updates.category = category;
     if (sale_price !== undefined) updates.sale_price = parseFloat(sale_price);
+    if ('bomba_extra' in body) updates.bomba_extra = bomba_extra ?? null;
     if (min_stock !== undefined) updates.min_stock = parseInt(min_stock);
     if (active !== undefined) updates.active = active;
 

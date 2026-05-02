@@ -68,6 +68,7 @@ interface CartItem {
   quantity: number;
   stock: number;
   isMichelada?: boolean;
+  isBomba?: boolean;
 }
 
 interface CartComboItem {
@@ -543,6 +544,7 @@ function SaleModal({
   const [error, setError] = useState('');
   const [showComboModal, setShowComboModal] = useState<ComboWithItems | null>(null);
   const [showMicheladaModal, setShowMicheladaModal] = useState<{ product: Product; qty: number } | null>(null);
+  const [showBombaModal, setShowBombaModal] = useState<{ product: Product; qty: number } | null>(null);
 
   // Estado para turno
   const [shiftType, setShiftType] = useState<'day' | 'night'>('day');
@@ -913,7 +915,7 @@ function SaleModal({
   };
 
   const newItemsTotal = cart.reduce((sum, item) => {
-    const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0);
+    const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0);
     return sum + unitPrice * item.quantity;
   }, 0);
   const combosTotal = cartCombos.reduce((sum, c) => sum + c.finalPrice, 0);
@@ -956,51 +958,65 @@ function SaleModal({
       return;
     }
 
-    // Si no es cerveza, agregar directamente
-    addProductToCart(product, qty, false);
+    // Si tiene bomba_extra, mostrar modal de bomba
+    if (product.bomba_extra) {
+      setShowBombaModal({ product, qty });
+      setSelectedProduct('');
+      setQuantity('1');
+      return;
+    }
+
+    // Agregar directamente
+    addProductToCart(product, qty, false, false);
     setSelectedProduct('');
     setQuantity('1');
   };
 
-  const addProductToCart = (product: Product, qty: number, isMichelada: boolean) => {
+  const addProductToCart = (product: Product, qty: number, isMichelada: boolean, isBomba: boolean) => {
     const stock = stockMap[product.id] || 0;
-    const existingItem = cart.find(item => item.product.id === product.id && item.isMichelada === isMichelada);
+    const existingItem = cart.find(item => item.product.id === product.id && item.isMichelada === isMichelada && item.isBomba === isBomba);
 
     if (existingItem) {
       setCart(cart.map(item =>
-        item.product.id === product.id && item.isMichelada === isMichelada
+        item.product.id === product.id && item.isMichelada === isMichelada && item.isBomba === isBomba
           ? { ...item, quantity: item.quantity + qty }
           : item
       ));
     } else {
-      setCart([...cart, { product, quantity: qty, stock, isMichelada }]);
+      setCart([...cart, { product, quantity: qty, stock, isMichelada, isBomba }]);
     }
   };
 
   const handleMicheladaChoice = (isMichelada: boolean) => {
     if (!showMicheladaModal) return;
-    addProductToCart(showMicheladaModal.product, showMicheladaModal.qty, isMichelada);
+    addProductToCart(showMicheladaModal.product, showMicheladaModal.qty, isMichelada, false);
     setShowMicheladaModal(null);
   };
 
-  const handleRemoveFromCart = (productId: string, isMichelada?: boolean) => {
-    setCart(cart.filter(item => !(item.product.id === productId && item.isMichelada === isMichelada)));
+  const handleBombaChoice = (isBomba: boolean) => {
+    if (!showBombaModal) return;
+    addProductToCart(showBombaModal.product, showBombaModal.qty, false, isBomba);
+    setShowBombaModal(null);
   };
 
-  const handleUpdateQuantity = (productId: string, newQty: number, isMichelada?: boolean) => {
+  const handleRemoveFromCart = (productId: string, isMichelada?: boolean, isBomba?: boolean) => {
+    setCart(cart.filter(item => !(item.product.id === productId && item.isMichelada === isMichelada && item.isBomba === isBomba)));
+  };
+
+  const handleUpdateQuantity = (productId: string, newQty: number, isMichelada?: boolean, isBomba?: boolean) => {
     if (newQty <= 0) {
-      handleRemoveFromCart(productId, isMichelada);
+      handleRemoveFromCart(productId, isMichelada, isBomba);
       return;
     }
 
-    const item = cart.find(i => i.product.id === productId && i.isMichelada === isMichelada);
+    const item = cart.find(i => i.product.id === productId && i.isMichelada === isMichelada && i.isBomba === isBomba);
     if (item && newQty > item.stock) {
       setError(`Solo hay ${item.stock} unidades disponibles`);
       return;
     }
 
     setCart(cart.map(item =>
-      item.product.id === productId && item.isMichelada === isMichelada
+      item.product.id === productId && item.isMichelada === isMichelada && item.isBomba === isBomba
         ? { ...item, quantity: newQty }
         : item
     ));
@@ -1189,8 +1205,9 @@ function SaleModal({
               items: cart.map(item => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
-                unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0),
+                unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0),
                 is_michelada: item.isMichelada || false,
+                is_bomba: item.isBomba || false,
               })),
               combos: cartCombos.map(c => ({
                 combo_id: c.combo.id,
@@ -1221,8 +1238,9 @@ function SaleModal({
             items: cart.map(item => ({
               product_id: item.product.id,
               quantity: item.quantity,
-              unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0),
+              unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0),
               is_michelada: item.isMichelada || false,
+              is_bomba: item.isBomba || false,
             })),
             combos: cartCombos.map(c => ({
               combo_id: c.combo.id,
@@ -1283,8 +1301,9 @@ function SaleModal({
               items: cart.map(item => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
-                unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0),
+                unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0),
                 is_michelada: item.isMichelada || false,
+                is_bomba: item.isBomba || false,
               })),
               combos: cartCombos.map(c => ({
                 combo_id: c.combo.id,
@@ -1338,8 +1357,9 @@ function SaleModal({
             items: cart.map(item => ({
               product_id: item.product.id,
               quantity: item.quantity,
-              unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0),
+              unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0),
               is_michelada: item.isMichelada || false,
+              is_bomba: item.isBomba || false,
             })),
             combos: cartCombos.map(c => ({
               combo_id: c.combo.id,
@@ -1883,27 +1903,28 @@ function SaleModal({
                       <>
                         <h3 className="font-medium text-gray-700">Productos</h3>
                         {cart.map(item => {
-                          const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0);
+                          const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0);
                           return (
-                            <div key={`${item.product.id}-${item.isMichelada}`} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
+                            <div key={`${item.product.id}-${item.isMichelada}-${item.isBomba}`} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">
                                   {item.product.name}
                                   {item.isMichelada && <span className="text-amber-600 ml-1">🌶️</span>}
+                                  {item.isBomba && <span className="text-blue-600 ml-1">💣</span>}
                                 </p>
                                 <p className="text-sm text-gray-500">{formatCurrency(unitPrice)} c/u</p>
                               </div>
                               <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2">
                                   <button
-                                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1, item.isMichelada)}
+                                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1, item.isMichelada, item.isBomba)}
                                     className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
                                   >
                                     -
                                   </button>
                                   <span className="w-8 text-center font-medium">{item.quantity}</span>
                                   <button
-                                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1, item.isMichelada)}
+                                    onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1, item.isMichelada, item.isBomba)}
                                     className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 hover:bg-amber-200"
                                   >
                                     +
@@ -1913,7 +1934,7 @@ function SaleModal({
                                   {formatCurrency(unitPrice * item.quantity)}
                                 </span>
                                 <button
-                                  onClick={() => handleRemoveFromCart(item.product.id, item.isMichelada)}
+                                  onClick={() => handleRemoveFromCart(item.product.id, item.isMichelada, item.isBomba)}
                                   className="text-red-500 hover:text-red-700"
                                 >
                                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -2276,6 +2297,51 @@ function SaleModal({
 
             <button
               onClick={() => setShowMicheladaModal(null)}
+              className="w-full mt-4 py-2 text-gray-500 hover:text-gray-700"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para bomba */}
+      {showBombaModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+            <h2 className="text-xl font-bold mb-2 text-center">
+              {showBombaModal.product.name}
+            </h2>
+            <p className="text-center text-gray-600 mb-6">
+              ¿Cómo lo quiere el cliente?
+            </p>
+
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => handleBombaChoice(false)}
+                className="p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all"
+              >
+                <div className="text-3xl mb-2">💧</div>
+                <p className="font-medium">Normal</p>
+                <p className="text-sm text-gray-500">
+                  {formatCurrency(showBombaModal.product.sale_price)}
+                </p>
+              </button>
+
+              <button
+                onClick={() => handleBombaChoice(true)}
+                className="p-4 rounded-xl border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 transition-all"
+              >
+                <div className="text-3xl mb-2">💣</div>
+                <p className="font-medium text-blue-700">Con Bomba</p>
+                <p className="text-sm text-blue-600">
+                  {formatCurrency(showBombaModal.product.sale_price + (showBombaModal.product.bomba_extra || 0))}
+                </p>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowBombaModal(null)}
               className="w-full mt-4 py-2 text-gray-500 hover:text-gray-700"
             >
               Cancelar

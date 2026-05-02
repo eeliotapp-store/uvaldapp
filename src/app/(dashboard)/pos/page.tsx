@@ -115,12 +115,13 @@ function POSContent() {
     setError(null);
 
     try {
-      // Preparar items individuales (incluyendo michelada extra)
+      // Preparar items individuales (incluyendo michelada/bomba extra)
       const saleItems = items.map((item) => ({
         product_id: item.product.id,
         quantity: item.quantity,
-        unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0),
+        unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0),
         is_michelada: item.isMichelada || false,
+        is_bomba: item.isBomba || false,
       }));
 
       // Preparar combos

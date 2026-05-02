@@ -10,6 +10,7 @@ interface ProductWithDetails {
   name: string;
   category: ProductCategory;
   sale_price: number;
+  bomba_extra: number | null;
   min_stock: number;
   active: boolean;
   current_stock: number;
@@ -301,6 +302,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
     name: product?.name || '',
     category: product?.category || 'beer_nacional',
     sale_price: product?.sale_price?.toString() || '',
+    bomba_extra: product?.bomba_extra?.toString() || '',
     min_stock: product?.min_stock?.toString() || '10',
   });
 
@@ -382,6 +384,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          bomba_extra: formData.bomba_extra ? parseInt(formData.bomba_extra) : null,
           suppliers: supplierData,
         }),
       });
@@ -439,6 +442,17 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
                 type="number"
                 value={formData.sale_price}
                 onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Extra Con Bomba 💣 <span className="text-gray-400 font-normal">(opcional)</span></label>
+              <input
+                type="number"
+                value={formData.bomba_extra}
+                onChange={(e) => setFormData({ ...formData, bomba_extra: e.target.value })}
+                placeholder="0"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
               />
             </div>

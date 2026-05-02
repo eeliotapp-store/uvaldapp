@@ -11,23 +11,35 @@ interface ProductGridProps {
   stockMap: Record<string, number>;
 }
 
+type ModalType = 'michelada' | 'bomba';
+
 export function ProductGrid({ products, stockMap }: ProductGridProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [modalType, setModalType] = useState<ModalType>('michelada');
   const addItem = useCartStore((state) => state.addItem);
 
   const handleProductClick = (product: Product) => {
-    // Si es cerveza, mostrar modal de michelada
     if (product.category.includes('beer')) {
+      setModalType('michelada');
+      setSelectedProduct(product);
+    } else if (product.bomba_extra) {
+      setModalType('bomba');
       setSelectedProduct(product);
     } else {
-      // Para otros productos, agregar directamente
-      addItem(product, false);
+      addItem(product, false, false);
     }
   };
 
   const handleAddWithOption = (isMichelada: boolean) => {
     if (selectedProduct) {
-      addItem(selectedProduct, isMichelada);
+      addItem(selectedProduct, isMichelada, false);
+      setSelectedProduct(null);
+    }
+  };
+
+  const handleAddWithBomba = (isBomba: boolean) => {
+    if (selectedProduct) {
+      addItem(selectedProduct, false, isBomba);
       setSelectedProduct(null);
     }
   };
@@ -130,15 +142,83 @@ export function ProductGrid({ products, stockMap }: ProductGridProps) {
         })}
       </div>
 
-      {/* Michelada Modal */}
-      {selectedProduct && (
+      {selectedProduct && modalType === 'michelada' && (
         <MicheladaModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
           onSelect={handleAddWithOption}
         />
       )}
+
+      {selectedProduct && modalType === 'bomba' && (
+        <BombaModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onSelect={handleAddWithBomba}
+        />
+      )}
     </>
+  );
+}
+
+interface BombaModalProps {
+  product: Product;
+  onClose: () => void;
+  onSelect: (isBomba: boolean) => void;
+}
+
+function BombaModal({ product, onClose, onSelect }: BombaModalProps) {
+  const normalPrice = product.sale_price;
+  const bombaPrice = product.sale_price + (product.bomba_extra || 0);
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+        <div className="text-center mb-4">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <span className="text-3xl">💧</span>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900">{product.name}</h2>
+          <p className="text-sm text-gray-500 mt-1">¿Cómo la quieres?</p>
+        </div>
+
+        <div className="space-y-3">
+          <button
+            onClick={() => onSelect(false)}
+            className="w-full p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">💧</span>
+              <span className="font-medium">Normal</span>
+            </div>
+            <span className="text-lg font-bold text-gray-900">{formatCurrency(normalPrice)}</span>
+          </button>
+
+          <button
+            onClick={() => onSelect(true)}
+            className="w-full p-4 border-2 border-blue-400 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">💣</span>
+              <div className="text-left">
+                <span className="font-medium">Con Bomba</span>
+                <p className="text-xs text-blue-600">+{formatCurrency(product.bomba_extra || 0)}</p>
+              </div>
+            </div>
+            <span className="text-lg font-bold text-blue-600">{formatCurrency(bombaPrice)}</span>
+          </button>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+          className="w-full mt-4"
+        >
+          Cancelar
+        </Button>
+      </div>
+    </div>
   );
 }
 

@@ -50,7 +50,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, category, sale_price, min_stock, suppliers } = body;
+    const { name, category, sale_price, bomba_extra, min_stock, suppliers } = body;
 
     if (!name || !sale_price) {
       return NextResponse.json(
@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
         name,
         category: category || 'beer_nacional',
         sale_price: parseFloat(sale_price),
+        bomba_extra: bomba_extra ?? null,
         min_stock: parseInt(min_stock) || 10,
         active: true,
       })
