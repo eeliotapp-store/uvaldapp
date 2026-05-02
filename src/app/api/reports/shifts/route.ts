@@ -124,11 +124,10 @@ async function getShiftReport(shiftId: string) {
       if (item.combo_price_override) {
         productSummary[key].quantity += 1;
         productSummary[key].total += item.combo_price_override;
-      } else {
-        const ci = productSummary[key].combo_items!;
-        if (!ci[item.product_id]) ci[item.product_id] = { product_id: item.product_id, product_name: product?.name || 'Producto', quantity: 0 };
-        ci[item.product_id].quantity += item.quantity;
       }
+      const ci = productSummary[key].combo_items!;
+      if (!ci[item.product_id]) ci[item.product_id] = { product_id: item.product_id, product_name: product?.name || 'Producto', quantity: 0 };
+      ci[item.product_id].quantity += item.quantity;
       return;
     }
 
@@ -378,53 +377,45 @@ async function getDailyReport(date: string) {
     const combo = item.combos as unknown as { id: string; name: string } | null;
     const product = item.products as unknown as { id: string; name: string } | null;
 
-    // Items secundarios de combo: adjuntar a combo_items sin contar en totales
-    if (item.combo_id && !item.combo_price_override) {
+    if (!byShiftType[shiftType]) byShiftType[shiftType] = { employees: {}, total: 0, products: {} };
+
+    if (item.combo_id) {
       const comboKey = `combo-${item.combo_id}`;
-      const subKey = item.product_id;
       const subName = product?.name || 'Producto';
-      if (!byShiftType[shiftType]) byShiftType[shiftType] = { employees: {}, total: 0, products: {} };
       // byShiftType general
       if (!byShiftType[shiftType].products[comboKey]) {
         byShiftType[shiftType].products[comboKey] = { product_id: item.combo_id, product_name: combo?.name || 'Combo', quantity: 0, total: 0, combo_items: {} };
       }
+      if (item.combo_price_override) {
+        byShiftType[shiftType].products[comboKey].quantity += 1;
+        byShiftType[shiftType].products[comboKey].total += item.combo_price_override;
+        byShiftType[shiftType].total += item.combo_price_override;
+      }
       const stci = (byShiftType[shiftType].products[comboKey].combo_items = byShiftType[shiftType].products[comboKey].combo_items || {});
-      if (!stci[subKey]) stci[subKey] = { product_id: item.product_id, product_name: subName, quantity: 0 };
-      stci[subKey].quantity += item.quantity;
+      if (!stci[item.product_id]) stci[item.product_id] = { product_id: item.product_id, product_name: subName, quantity: 0 };
+      stci[item.product_id].quantity += item.quantity;
       // byEmployee
       if (!byShiftType[shiftType].employees[employeeId]) {
         byShiftType[shiftType].employees[employeeId] = { employee_id: employeeId, employee_name: employeeName, products: {}, total: 0 };
       }
       const empProds = byShiftType[shiftType].employees[employeeId].products;
       if (!empProds[comboKey]) empProds[comboKey] = { product_id: item.combo_id, product_name: combo?.name || 'Combo', quantity: 0, total: 0, combo_items: {} };
+      if (item.combo_price_override) {
+        empProds[comboKey].quantity += 1;
+        empProds[comboKey].total += item.combo_price_override;
+        byShiftType[shiftType].employees[employeeId].total += item.combo_price_override;
+      }
       const eci = (empProds[comboKey].combo_items = empProds[comboKey].combo_items || {});
-      if (!eci[subKey]) eci[subKey] = { product_id: item.product_id, product_name: subName, quantity: 0 };
-      eci[subKey].quantity += item.quantity;
+      if (!eci[item.product_id]) eci[item.product_id] = { product_id: item.product_id, product_name: subName, quantity: 0 };
+      eci[item.product_id].quantity += item.quantity;
       return;
     }
 
-    let productKey: string;
-    let productName: string;
-    let itemQuantity: number;
-    let itemTotal: number;
-
-    if (item.combo_id) {
-      productKey = `combo-${item.combo_id}`;
-      productName = combo?.name || 'Combo';
-      itemQuantity = 1;
-      itemTotal = item.combo_price_override!;
-    } else {
-      const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
-      productKey = `${item.product_id}${suffix}`;
-      productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : '');
-      itemQuantity = item.quantity;
-      itemTotal = item.subtotal;
-    }
-
-    // Asegurar que existe la estructura para el tipo de turno
-    if (!byShiftType[shiftType]) {
-      byShiftType[shiftType] = { employees: {}, total: 0, products: {} };
-    }
+    const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
+    const productKey = `${item.product_id}${suffix}`;
+    const productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : '');
+    const itemQuantity = item.quantity;
+    const itemTotal = item.subtotal;
 
     // Agregar al resumen por empleada
     if (!byShiftType[shiftType].employees[employeeId]) {
@@ -439,7 +430,7 @@ async function getDailyReport(date: string) {
     const employeeData = byShiftType[shiftType].employees[employeeId];
     if (!employeeData.products[productKey]) {
       employeeData.products[productKey] = {
-        product_id: item.combo_id || item.product_id,
+        product_id: item.product_id,
         product_name: productName,
         quantity: 0,
         total: 0,
@@ -453,7 +444,7 @@ async function getDailyReport(date: string) {
     byShiftType[shiftType].total += itemTotal;
     if (!byShiftType[shiftType].products[productKey]) {
       byShiftType[shiftType].products[productKey] = {
-        product_id: item.combo_id || item.product_id,
+        product_id: item.product_id,
         product_name: productName,
         quantity: 0,
         total: 0,
@@ -498,11 +489,10 @@ async function getDailyReport(date: string) {
       if (item.combo_price_override) {
         productSummary[key].quantity += 1;
         productSummary[key].total += item.combo_price_override;
-      } else {
-        const ci = (productSummary[key].combo_items = productSummary[key].combo_items || {});
-        if (!ci[item.product_id]) ci[item.product_id] = { product_id: item.product_id, product_name: product?.name || 'Producto', quantity: 0 };
-        ci[item.product_id].quantity += item.quantity;
       }
+      const ci = (productSummary[key].combo_items = productSummary[key].combo_items || {});
+      if (!ci[item.product_id]) ci[item.product_id] = { product_id: item.product_id, product_name: product?.name || 'Producto', quantity: 0 };
+      ci[item.product_id].quantity += item.quantity;
       return;
     }
 
@@ -764,49 +754,44 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     const employeeId = item.added_by_employee_id || 'unknown';
     const employeeName = employeeId === 'unknown' ? 'Sin asignar' : (employeeMap[employeeId] || 'Desconocido');
 
-    // Items secundarios de combo: adjuntar a combo_items sin contar en totales
-    if (item.combo_id && !item.combo_price_override) {
+    if (item.combo_id) {
       const comboKey = `combo-${item.combo_id}`;
-      const subKey = item.product_id;
       const subName = product?.name || 'Producto';
       // resumen general
       if (!productSummary[comboKey]) productSummary[comboKey] = { product_id: item.combo_id, product_name: combo?.name || 'Combo', quantity: 0, total: 0, combo_items: {} };
+      if (item.combo_price_override) {
+        productSummary[comboKey].quantity += 1;
+        productSummary[comboKey].total += item.combo_price_override;
+      }
       const pci = (productSummary[comboKey].combo_items = productSummary[comboKey].combo_items || {});
-      if (!pci[subKey]) pci[subKey] = { product_id: item.product_id, product_name: subName, quantity: 0 };
-      pci[subKey].quantity += item.quantity;
+      if (!pci[item.product_id]) pci[item.product_id] = { product_id: item.product_id, product_name: subName, quantity: 0 };
+      pci[item.product_id].quantity += item.quantity;
       // por empleada
       if (!byEmployee[employeeId]) byEmployee[employeeId] = { employee_id: employeeId, employee_name: employeeName, products: {}, total: 0 };
       if (!byEmployee[employeeId].products[comboKey]) byEmployee[employeeId].products[comboKey] = { product_id: item.combo_id, product_name: combo?.name || 'Combo', quantity: 0, total: 0, combo_items: {} };
+      if (item.combo_price_override) {
+        byEmployee[employeeId].products[comboKey].quantity += 1;
+        byEmployee[employeeId].products[comboKey].total += item.combo_price_override;
+        byEmployee[employeeId].total += item.combo_price_override;
+      }
       const eci = (byEmployee[employeeId].products[comboKey].combo_items = byEmployee[employeeId].products[comboKey].combo_items || {});
-      if (!eci[subKey]) eci[subKey] = { product_id: item.product_id, product_name: subName, quantity: 0 };
-      eci[subKey].quantity += item.quantity;
+      if (!eci[item.product_id]) eci[item.product_id] = { product_id: item.product_id, product_name: subName, quantity: 0 };
+      eci[item.product_id].quantity += item.quantity;
       return;
     }
 
-    let key: string;
-    let productName: string;
-    let itemQuantity: number;
-    let itemTotal: number;
+    const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
+    const key = `${item.product_id}${suffix}`;
+    const productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : '');
+    const itemQuantity = item.quantity;
+    const itemTotal = item.subtotal;
 
-    if (item.combo_id) {
-      key = `combo-${item.combo_id}`;
-      productName = combo?.name || 'Combo';
-      itemQuantity = 1;
-      itemTotal = item.combo_price_override!;
-    } else {
-      const suffix = item.is_michelada ? '-michelada' : item.is_bomba ? '-bomba' : '';
-      key = `${item.product_id}${suffix}`;
-      productName = (product?.name || 'Producto') + (item.is_michelada ? ' (Michelada)' : item.is_bomba ? ' (Bomba)' : '');
-      itemQuantity = item.quantity;
-      itemTotal = item.subtotal;
-    }
-
-    if (!productSummary[key]) productSummary[key] = { product_id: item.combo_id || item.product_id, product_name: productName, quantity: 0, total: 0 };
+    if (!productSummary[key]) productSummary[key] = { product_id: item.product_id, product_name: productName, quantity: 0, total: 0 };
     productSummary[key].quantity += itemQuantity;
     productSummary[key].total += itemTotal;
 
     if (!byEmployee[employeeId]) byEmployee[employeeId] = { employee_id: employeeId, employee_name: employeeName, products: {}, total: 0 };
-    if (!byEmployee[employeeId].products[key]) byEmployee[employeeId].products[key] = { product_id: item.combo_id || item.product_id, product_name: productName, quantity: 0, total: 0 };
+    if (!byEmployee[employeeId].products[key]) byEmployee[employeeId].products[key] = { product_id: item.product_id, product_name: productName, quantity: 0, total: 0 };
     byEmployee[employeeId].products[key].quantity += itemQuantity;
     byEmployee[employeeId].products[key].total += itemTotal;
     byEmployee[employeeId].total += itemTotal;
