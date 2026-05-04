@@ -993,9 +993,9 @@ function SaleModal({
     setShowMicheladaModal(null);
   };
 
-  const handleBombaChoice = (isBomba: boolean) => {
+  const handleBombaChoice = (isMichelada: boolean, isBomba: boolean) => {
     if (!showBombaModal) return;
-    addProductToCart(showBombaModal.product, showBombaModal.qty, false, isBomba);
+    addProductToCart(showBombaModal.product, showBombaModal.qty, isMichelada, isBomba);
     setShowBombaModal(null);
   };
 
@@ -2316,10 +2316,10 @@ function SaleModal({
               ¿Cómo lo quiere el cliente?
             </p>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <button
-                onClick={() => handleBombaChoice(false)}
-                className="p-4 rounded-xl border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all"
+                onClick={() => handleBombaChoice(false, false)}
+                className="p-4 rounded-xl border-2 border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-all"
               >
                 <div className="text-3xl mb-2">💧</div>
                 <p className="font-medium">Normal</p>
@@ -2329,7 +2329,18 @@ function SaleModal({
               </button>
 
               <button
-                onClick={() => handleBombaChoice(true)}
+                onClick={() => handleBombaChoice(true, false)}
+                className="p-4 rounded-xl border-2 border-amber-400 bg-amber-50 hover:bg-amber-100 transition-all"
+              >
+                <div className="text-3xl mb-2">🌶️</div>
+                <p className="font-medium text-amber-700">Michelada</p>
+                <p className="text-sm text-amber-600">
+                  {formatCurrency(showBombaModal.product.sale_price + MICHELADA_EXTRA)}
+                </p>
+              </button>
+
+              <button
+                onClick={() => handleBombaChoice(false, true)}
                 className="p-4 rounded-xl border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 transition-all"
               >
                 <div className="text-3xl mb-2">💣</div>
