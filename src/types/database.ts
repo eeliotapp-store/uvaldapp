@@ -4,7 +4,7 @@ export type EmployeeRole = 'employee' | 'owner' | 'superadmin';
 export type ShiftType = 'day' | 'night';
 export type PaymentMethod = 'cash' | 'transfer' | 'mixed' | 'fiado';
 export type SaleStatus = 'open' | 'closed' | 'voided';
-export type ProductCategory = 'beer_nacional' | 'beer_importada' | 'beer_artesanal' | 'other';
+export type ProductCategory = 'beer_nacional' | 'beer_importada' | 'beer_artesanal' | 'agua' | 'soda' | 'other';
 
 export interface Employee {
   id: string;

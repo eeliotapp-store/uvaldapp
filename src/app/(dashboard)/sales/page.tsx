@@ -9,7 +9,7 @@ import { useShiftStore } from '@/stores/shift-store';
 import { useCombosStore } from '@/stores/combos-store';
 import { supabase } from '@/lib/supabase/client';
 import type { PaymentMethod, Product, CurrentStock, OpenTab, Shift, ComboWithItems, PartialPayment } from '@/types/database';
-import { MICHELADA_EXTRA } from '@/stores/cart-store';
+import { MICHELADA_EXTRA, getBombaExtra } from '@/stores/cart-store';
 
 interface SaleWithDetails {
   id: string;
@@ -915,7 +915,7 @@ function SaleModal({
   };
 
   const newItemsTotal = cart.reduce((sum, item) => {
-    const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0);
+    const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? getBombaExtra(item.product) : 0);
     return sum + unitPrice * item.quantity;
   }, 0);
   const combosTotal = cartCombos.reduce((sum, c) => sum + c.finalPrice, 0);
@@ -958,8 +958,8 @@ function SaleModal({
       return;
     }
 
-    // Si tiene bomba_extra, mostrar modal de bomba
-    if (product.bomba_extra) {
+    // Si es agua o soda, mostrar modal de bomba
+    if (product.category === 'agua' || product.category === 'soda') {
       setShowBombaModal({ product, qty });
       setSelectedProduct('');
       setQuantity('1');
@@ -1205,7 +1205,7 @@ function SaleModal({
               items: cart.map(item => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
-                unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0),
+                unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? getBombaExtra(item.product) : 0),
                 is_michelada: item.isMichelada || false,
                 is_bomba: item.isBomba || false,
               })),
@@ -1238,7 +1238,7 @@ function SaleModal({
             items: cart.map(item => ({
               product_id: item.product.id,
               quantity: item.quantity,
-              unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0),
+              unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? getBombaExtra(item.product) : 0),
               is_michelada: item.isMichelada || false,
               is_bomba: item.isBomba || false,
             })),
@@ -1301,7 +1301,7 @@ function SaleModal({
               items: cart.map(item => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
-                unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0),
+                unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? getBombaExtra(item.product) : 0),
                 is_michelada: item.isMichelada || false,
                 is_bomba: item.isBomba || false,
               })),
@@ -1357,7 +1357,7 @@ function SaleModal({
             items: cart.map(item => ({
               product_id: item.product.id,
               quantity: item.quantity,
-              unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0),
+              unit_price: item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? getBombaExtra(item.product) : 0),
               is_michelada: item.isMichelada || false,
               is_bomba: item.isBomba || false,
             })),
@@ -1903,7 +1903,7 @@ function SaleModal({
                       <>
                         <h3 className="font-medium text-gray-700">Productos</h3>
                         {cart.map(item => {
-                          const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? (item.product.bomba_extra || 0) : 0);
+                          const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? getBombaExtra(item.product) : 0);
                           return (
                             <div key={`${item.product.id}-${item.isMichelada}-${item.isBomba}`} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
                               <div className="flex-1">
@@ -2335,7 +2335,7 @@ function SaleModal({
                 <div className="text-3xl mb-2">💣</div>
                 <p className="font-medium text-blue-700">Con Bomba</p>
                 <p className="text-sm text-blue-600">
-                  {formatCurrency(showBombaModal.product.sale_price + (showBombaModal.product.bomba_extra || 0))}
+                  {formatCurrency(showBombaModal.product.sale_price + getBombaExtra(showBombaModal.product))}
                 </p>
               </button>
             </div>

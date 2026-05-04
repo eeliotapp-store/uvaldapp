@@ -4,6 +4,16 @@ import type { Product, CartItem, CartCombo, Combo, MICHELADA_PRICE } from '@/typ
 // Re-export para conveniencia
 export const MICHELADA_EXTRA = 4000;
 
+// Precio total (con bomba) por categoría
+const BOMBA_TOTAL_BY_CATEGORY: Partial<Record<string, number>> = {
+  agua: 7000,
+  soda: 12000,
+};
+export const getBombaExtra = (product: Product): number => {
+  const total = BOMBA_TOTAL_BY_CATEGORY[product.category];
+  return total !== undefined ? total - product.sale_price : 0;
+};
+
 interface CartState {
   items: CartItem[];
   combos: CartCombo[];
@@ -30,7 +40,7 @@ const calculateTotal = (items: CartItem[], combos: CartCombo[]): number => {
   const itemsTotal = items.reduce((sum, item) => {
     const basePrice = item.product.sale_price;
     const micheladaExtra = item.isMichelada ? MICHELADA_EXTRA : 0;
-    const bombaExtra = item.isBomba ? (item.product.bomba_extra || 0) : 0;
+    const bombaExtra = item.isBomba ? getBombaExtra(item.product) : 0;
     return sum + (basePrice + micheladaExtra + bombaExtra) * item.quantity;
   }, 0);
 
