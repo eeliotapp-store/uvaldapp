@@ -23,6 +23,7 @@ interface EditSaleBody {
     quantity: number;
     unit_price: number;
     is_michelada?: boolean;
+    is_bomba?: boolean;
   }[];
 }
 
@@ -170,6 +171,7 @@ export async function POST(
         unit_price: item.unit_price,
         subtotal: item.quantity * item.unit_price,
         is_michelada: item.is_michelada || false,
+        is_bomba: item.is_bomba || false,
         added_by_employee_id: employee_id,
       }));
 

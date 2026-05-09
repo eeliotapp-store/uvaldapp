@@ -9,6 +9,7 @@ interface AddItemsRequest {
     quantity: number;
     unit_price: number;
     is_michelada?: boolean;
+    is_bomba?: boolean;
   }[];
   combos?: {
     combo_id: string;
@@ -135,6 +136,7 @@ export async function POST(
       unit_price: number;
       subtotal: number;
       is_michelada: boolean;
+      is_bomba: boolean;
       combo_id: string | null;
       combo_price_override: number | null;
       added_by_employee_id: string;
@@ -149,6 +151,7 @@ export async function POST(
         unit_price: item.unit_price,
         subtotal: item.unit_price * item.quantity,
         is_michelada: item.is_michelada || false,
+        is_bomba: item.is_bomba || false,
         combo_id: null,
         combo_price_override: null,
         added_by_employee_id: employee_id,
@@ -172,6 +175,7 @@ export async function POST(
           unit_price: pricePerComboItem,
           subtotal: pricePerComboItem * item.quantity,
           is_michelada: item.is_michelada || false,
+          is_bomba: false,
           combo_id: combo.combo_id,
           combo_price_override: isFirstComboItem ? combo.final_price : null,
           added_by_employee_id: employee_id,
