@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuthStore, isOwner, isSuperAdmin } from '@/stores/auth-store';
@@ -51,13 +50,13 @@ export default function InventoryPage() {
     setIsLoading(true);
     try {
       const [stockResponse, suppliersResponse, historyResponse] = await Promise.all([
-        supabase.from('v_current_stock').select('*').order('product_name'),
-        supabase.from('suppliers').select('*').eq('active', true),
+        fetch('/api/inventory/stock').then(r => r.json()),
+        fetch('/api/suppliers').then(r => r.json()),
         fetch('/api/inventory?limit=200').then(r => r.json()),
       ]);
 
-      setStock((stockResponse.data as CurrentStock[]) || []);
-      setSuppliers((suppliersResponse.data as Supplier[]) || []);
+      setStock((stockResponse.stock as CurrentStock[]) || []);
+      setSuppliers(((suppliersResponse.suppliers as Supplier[]) || []).filter(s => s.active));
       setHistory(historyResponse.inventory || []);
     } catch (error) {
       console.error('Error loading inventory:', error);

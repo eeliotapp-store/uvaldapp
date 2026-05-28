@@ -8,13 +8,12 @@ import { PaymentModal } from '@/components/pos/payment-modal';
 import { OpenCashRegisterModal } from '@/components/pos/open-cash-register-modal';
 import { CashRegisterStatus } from '@/components/pos/cash-register-status';
 import { ShiftGuard } from '@/components/shift-guard';
-import { supabase } from '@/lib/supabase/client';
 import { useCartStore, MICHELADA_EXTRA } from '@/stores/cart-store';
 import { useShiftStore } from '@/stores/shift-store';
 import { useAuthStore } from '@/stores/auth-store';
 import { useCombosStore } from '@/stores/combos-store';
 import { formatCurrency } from '@/lib/utils';
-import type { Product, CurrentStock, PaymentMethod, ComboWithItems } from '@/types/database';
+import type { Product, PaymentMethod, ComboWithItems } from '@/types/database';
 
 type TabType = 'products' | 'combos';
 
@@ -63,29 +62,20 @@ function POSContent() {
         ? fetch('/api/combos').then(res => res.json()).catch(() => ({ combos: [] }))
         : Promise.resolve({ combos: combosStore.combos });
 
-      const [productsResult, stockResult, combosResult] = await Promise.all([
-        supabase
-          .from('products')
-          .select('*')
-          .eq('active', true)
-          .order('name'),
-        supabase
-          .from('v_current_stock')
-          .select('*'),
+      const [productsResult, combosResult] = await Promise.all([
+        fetch('/api/products').then(r => r.json()),
         combosPromise,
       ]);
 
-      if (productsResult.error) throw productsResult.error;
-      if (stockResult.error) throw stockResult.error;
-
-      setProducts(productsResult.data || []);
+      const allProducts = productsResult.products || [];
+      setProducts(allProducts.filter((p: Product) => p.active));
       const fetchedCombos = combosResult.combos || [];
       if (combosStale) combosStore.setCombos(fetchedCombos);
       setCombos(fetchedCombos);
 
       const stockMapData: Record<string, number> = {};
-      (stockResult.data as CurrentStock[])?.forEach((item) => {
-        stockMapData[item.product_id] = item.current_stock;
+      allProducts.forEach((item: Product & { current_stock: number }) => {
+        stockMapData[item.id] = item.current_stock || 0;
       });
       setStockMap(stockMapData);
     } catch (err) {

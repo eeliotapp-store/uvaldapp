@@ -7,8 +7,7 @@ import { ShiftGuard } from '@/components/shift-guard';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { useShiftStore } from '@/stores/shift-store';
 import { useCombosStore } from '@/stores/combos-store';
-import { supabase } from '@/lib/supabase/client';
-import type { PaymentMethod, Product, CurrentStock, OpenTab, Shift, ComboWithItems, PartialPayment } from '@/types/database';
+import type { PaymentMethod, Product, OpenTab, Shift, ComboWithItems, PartialPayment } from '@/types/database';
 import { MICHELADA_EXTRA, getBombaExtra } from '@/stores/cart-store';
 
 interface SaleWithDetails {
@@ -95,6 +94,7 @@ function SalesContent() {
   const [selectedSale, setSelectedSale] = useState<SaleWithDetails | null>(null);
   const [showVoidModal, setShowVoidModal] = useState(false);
   const [showNewSaleModal, setShowNewSaleModal] = useState(false);
+  const [showCounterSaleModal, setShowCounterSaleModal] = useState(false);
   const [editingTab, setEditingTab] = useState<OpenTab | null>(null);
 
   const [filters, setFilters] = useState({
@@ -196,9 +196,14 @@ function SalesContent() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Ventas</h1>
-        <Button onClick={() => setShowNewSaleModal(true)}>
-          + Nueva Venta
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowCounterSaleModal(true)}>
+            Cigarrillos
+          </Button>
+          <Button onClick={() => setShowNewSaleModal(true)}>
+            + Nueva Venta
+          </Button>
+        </div>
       </div>
 
       {/* Cuentas Abiertas */}
@@ -473,6 +478,23 @@ function SalesContent() {
         />
       )}
 
+      {/* Modal Venta Mostrador (Cigarrillos) */}
+      {showCounterSaleModal && (
+        <SaleModal
+          employee={employee}
+          currentShift={currentShift}
+          existingTab={null}
+          filterCategory="cigarros"
+          onSuccess={handleSaleSuccess}
+          onClose={() => setShowCounterSaleModal(false)}
+          setShift={setShift}
+          openCashRegister={openCashRegister}
+          addCashSale={addCashSale}
+          addTransferSale={addTransferSale}
+          addMixedSale={addMixedSale}
+        />
+      )}
+
       {/* Modal detalle de venta */}
       {selectedSale && !showVoidModal && (
         <SaleDetailModal sale={selectedSale} onClose={() => setSelectedSale(null)} />
@@ -498,6 +520,7 @@ function SaleModal({
   employee,
   currentShift: initialShift,
   existingTab,
+  filterCategory,
   onSuccess,
   onClose,
   setShift,
@@ -509,6 +532,7 @@ function SaleModal({
   employee: { id: string; name: string; role: string } | null;
   currentShift: Shift | null;
   existingTab: OpenTab | null;
+  filterCategory?: string;
   onSuccess: () => void;
   onClose: () => void;
   setShift: (shift: Shift | null) => void;
@@ -891,20 +915,20 @@ function SaleModal({
         ? fetch('/api/combos').then(res => res.json()).catch(() => ({ combos: [] }))
         : Promise.resolve({ combos: combosStore.combos });
 
-      const [productsRes, stockRes, combosRes] = await Promise.all([
-        supabase.from('products').select('*').eq('active', true).order('name'),
-        supabase.from('v_current_stock').select('*'),
+      const [productsRes, combosRes] = await Promise.all([
+        fetch('/api/products').then(r => r.json()),
         combosPromise,
       ]);
 
-      setProducts(productsRes.data || []);
+      const allProducts = productsRes.products || [];
+      setProducts(allProducts.filter((p: Product) => p.active));
       const fetchedCombos = combosRes.combos || [];
       if (combosStale) combosStore.setCombos(fetchedCombos);
       setCombos(fetchedCombos);
 
       const stockData: Record<string, number> = {};
-      (stockRes.data as CurrentStock[])?.forEach((item) => {
-        stockData[item.product_id] = item.current_stock;
+      allProducts.forEach((item: Product & { current_stock: number }) => {
+        stockData[item.id] = item.current_stock || 0;
       });
       setStockMap(stockData);
     } catch (err) {
@@ -1433,7 +1457,7 @@ function SaleModal({
                     ? 'Tomar Relevo'
                     : existingTab
                       ? `Mesa ${existingTab.table_number || 'Sin número'}`
-                      : step === 'products' ? 'Nueva Venta' : 'Método de Pago'
+                      : step === 'products' ? (filterCategory === 'cigarros' ? 'Venta Mostrador' : 'Nueva Venta') : 'Método de Pago'
                 }
               </h2>
               {existingTab && step !== 'shift' && (
@@ -1834,7 +1858,7 @@ function SaleModal({
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
                   >
                     <option value="">Seleccionar producto...</option>
-                    {products.map(product => {
+                    {(filterCategory ? products.filter(p => p.category === filterCategory) : products).map(product => {
                       const stock = stockMap[product.id] || 0;
                       return (
                         <option key={product.id} value={product.id} disabled={stock === 0}>
