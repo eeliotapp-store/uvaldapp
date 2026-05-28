@@ -30,6 +30,7 @@ const CATEGORIES: { value: ProductCategory; label: string }[] = [
   { value: 'agua', label: 'Agua' },
   { value: 'soda', label: 'Soda' },
   { value: 'other', label: 'Otro' },
+  { value: 'cigarros', label: 'Cigarros' },
 ];
 
 export default function ProductsPage() {
