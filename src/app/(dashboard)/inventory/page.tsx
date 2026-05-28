@@ -537,12 +537,9 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
   }, []);
 
   const loadProducts = async () => {
-    const { data } = await supabase
-      .from('products')
-      .select('id, name')
-      .eq('active', true)
-      .order('name');
-    setProducts(data || []);
+    const result = await fetch('/api/products').then(r => r.json());
+    const active = (result.products || []).filter((p: { active: boolean }) => p.active);
+    setProducts(active);
   };
 
   // Calcular totales
