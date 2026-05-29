@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { formatCurrency } from '@/lib/utils';
 import type { DailySale, CurrentStock } from '@/types/database';
@@ -37,29 +36,30 @@ export default function DashboardPage() {
 
   const loadDashboardData = async () => {
     try {
-      // Ventas del día
-      const { data: salesData } = await supabase
-        .from('v_daily_sales')
-        .select('*')
-        .eq('voided', false)
-        .order('created_at', { ascending: false });
+      const today = new Date().toISOString().split('T')[0];
 
-      const todaySales = salesData?.reduce((sum, sale) => sum + sale.total, 0) || 0;
+      const [salesResult, stockResult] = await Promise.all([
+        fetch(`/api/sales?start_date=${today}&end_date=${today}&limit=100`).then(r => r.json()),
+        fetch('/api/inventory/stock').then(r => r.json()),
+      ]);
 
-      // Stock bajo
-      const { data: stockData } = await supabase
-        .from('v_current_stock')
-        .select('*')
-        .eq('is_low_stock', true);
+      const salesData = (salesResult.sales || []).filter((s: { voided: boolean }) => !s.voided);
+      const stockData = (stockResult.stock as CurrentStock[]) || [];
+      const lowStock = stockData.filter(p => p.is_low_stock);
 
       setStats({
-        todaySales,
-        todayTransactions: salesData?.length || 0,
-        lowStockCount: stockData?.length || 0,
+        todaySales: salesData.reduce((sum: number, s: { total: number }) => sum + s.total, 0),
+        todayTransactions: salesData.length,
+        lowStockCount: lowStock.length,
       });
 
-      setRecentSales((salesData as DailySale[])?.slice(0, 5) || []);
-      setLowStockProducts((stockData as CurrentStock[]) || []);
+      setRecentSales(
+        salesData.slice(0, 5).map((s: Record<string, unknown>) => ({
+          ...s,
+          employee_name: (s.employees as { name: string } | null)?.name || '',
+        })) as DailySale[]
+      );
+      setLowStockProducts(lowStock);
     } catch (error) {
       console.error('Error loading dashboard:', error);
     } finally {

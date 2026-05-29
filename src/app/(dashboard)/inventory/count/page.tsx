@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { useShiftStore } from '@/stores/shift-store';
 import { useAuthStore } from '@/stores/auth-store';
@@ -41,14 +40,10 @@ export default function InventoryCountPage() {
   const loadProducts = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('v_current_stock')
-        .select('*')
-        .order('product_name');
+      const result = await fetch('/api/inventory/stock').then(r => r.json());
+      const data: CurrentStock[] = result.stock || [];
 
-      if (error) throw error;
-
-      const productCounts: ProductCount[] = (data as CurrentStock[]).map((p) => ({
+      const productCounts: ProductCount[] = data.map((p) => ({
         product_id: p.product_id,
         product_name: p.product_name,
         category: p.category,
