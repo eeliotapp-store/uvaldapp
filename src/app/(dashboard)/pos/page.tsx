@@ -37,7 +37,12 @@ function POSContent() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const { items, combos: cartCombos, total, clear } = useCartStore();
+  const { items, combos: cartCombos, total, clear, addItem } = useCartStore();
+
+  // Estado del modal de cigarrillos → mostrador
+  const [showCigModal, setShowCigModal] = useState(false);
+  const [cigCounts, setCigCounts] = useState<Record<string, number>>({});
+  const [isAddingCig, setIsAddingCig] = useState(false);
   const { currentShift, cashRegister, addCashSale, addTransferSale, addMixedSale } = useShiftStore();
   const employee = useAuthStore((state) => state.employee);
   const combosStore = useCombosStore();
@@ -45,6 +50,13 @@ function POSContent() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Recargar combos si el store fue invalidado (ej: alguien editó un combo en admin)
+  useEffect(() => {
+    if (activeTab === 'combos' && combosStore.isStale()) {
+      loadData();
+    }
+  }, [activeTab]);
 
   // Mostrar mensaje de éxito temporalmente
   useEffect(() => {
@@ -83,6 +95,49 @@ function POSContent() {
       setError('Error al cargar datos');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleAddToMostrador = async () => {
+    if (!employee || !currentShift) return;
+    const cigProducts = products.filter(p => p.category === 'cigarros');
+    const toAdd = cigProducts.filter(p => (cigCounts[p.id] || 0) > 0);
+    if (toAdd.length === 0) return;
+    setIsAddingCig(true);
+    setError(null);
+    try {
+      // Enviar cada producto secuencialmente para evitar crear dos tabs en paralelo
+      for (const p of toAdd) {
+        const res = await fetch('/api/sales/mostrador', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employee_id: employee.id,
+            shift_id: currentShift.id,
+            product_id: p.id,
+            quantity: cigCounts[p.id],
+            unit_price: p.sale_price,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error al agregar');
+      }
+      const resumen = toAdd.map(p => `${cigCounts[p.id]}x ${p.name}`).join(', ');
+      setShowCigModal(false);
+      setCigCounts({});
+      setSuccessMessage(`${resumen} → Mostrador ✓`);
+      // Refrescar stock
+      const stockRes = await fetch('/api/products');
+      const stockData = await stockRes.json();
+      const newMap: Record<string, number> = {};
+      (stockData.products || []).forEach((p: Product & { current_stock: number }) => {
+        newMap[p.id] = p.current_stock || 0;
+      });
+      setStockMap(newMap);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al agregar al mostrador');
+    } finally {
+      setIsAddingCig(false);
     }
   };
 
@@ -258,7 +313,20 @@ function POSContent() {
 
           {/* Content based on active tab */}
           {activeTab === 'products' ? (
-            <ProductGrid products={products} stockMap={stockMap} />
+            <>
+              {/* Botón de acceso al mostrador de cigarrillos */}
+              {products.some(p => p.category === 'cigarros') && (
+                <div className="mb-4">
+                  <button
+                    onClick={() => { setCigCounts({}); setShowCigModal(true); }}
+                    className="flex items-center gap-2 px-5 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-medium active:scale-95 transition-transform"
+                  >
+                    🚬 Cigarrillos — Mostrador
+                  </button>
+                </div>
+              )}
+              <ProductGrid products={products.filter(p => p.category !== 'cigarros')} stockMap={stockMap} />
+            </>
           ) : (
             <ComboGrid combos={combos} products={products} />
           )}
@@ -290,6 +358,72 @@ function POSContent() {
           onCancel={() => setShowOpenCash(false)}
         />
       )}
+
+      {/* Modal Cigarrillos → Mostrador */}
+      {showCigModal && (() => {
+        const cigProds = products.filter(p => p.category === 'cigarros');
+        const totalCig = cigProds.reduce((sum, p) => sum + (cigCounts[p.id] || 0) * p.sale_price, 0);
+        const hasAny = cigProds.some(p => (cigCounts[p.id] || 0) > 0);
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-bold text-gray-900">🚬 Mostrador</h2>
+                <button onClick={() => setShowCigModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+              </div>
+
+              {/* Un botón grande por producto — cada toque suma 1 */}
+              <div className="flex gap-3 mb-6">
+                {cigProds.map(p => {
+                  const count = cigCounts[p.id] || 0;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => setCigCounts(prev => ({ ...prev, [p.id]: (prev[p.id] || 0) + 1 }))}
+                      className="flex-1 flex flex-col items-center justify-center gap-1 py-6 rounded-2xl bg-gray-900 hover:bg-gray-700 active:scale-95 transition-transform text-white select-none"
+                    >
+                      <span className="text-4xl font-black">{count > 0 ? count : '+'}</span>
+                      <span className="text-base font-semibold">{p.name}</span>
+                      <span className="text-gray-400 text-sm">{formatCurrency(p.sale_price)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Reset individual con toque largo — botón de quitar */}
+              {hasAny && (
+                <div className="flex gap-2 mb-4">
+                  {cigProds.filter(p => (cigCounts[p.id] || 0) > 0).map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => setCigCounts(prev => ({ ...prev, [p.id]: Math.max(0, (prev[p.id] || 0) - 1) }))}
+                      className="flex-1 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium"
+                    >
+                      − {p.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Total */}
+              {hasAny && (
+                <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 mb-4">
+                  <span className="text-gray-500 text-sm">Total</span>
+                  <span className="font-bold text-gray-900 text-xl">{formatCurrency(totalCig)}</span>
+                </div>
+              )}
+
+              <button
+                onClick={handleAddToMostrador}
+                disabled={isAddingCig || !hasAny}
+                className="w-full py-4 rounded-xl bg-gray-900 text-white font-bold text-base hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isAddingCig ? 'Guardando...' : 'Confirmar → Mostrador'}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

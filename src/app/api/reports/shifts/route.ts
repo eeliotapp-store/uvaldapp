@@ -551,10 +551,10 @@ async function getDailyReport(date: string) {
     .gte('created_at', startOfDay)
     .lte('created_at', endOfDay);
 
-  fiadoPaymentsHoy?.forEach(fp => {
-    dayTotals.cash_sales += fp.cash_amount || 0;
-    dayTotals.transfer_sales += fp.transfer_amount || 0;
-  });
+  // Los cobros de fiados anteriores NO se suman a cash_sales/transfer_sales
+  // porque esos ingresos ya fueron contabilizados en el período en que se creó el fiado.
+  // Se ignoran aquí para que Efectivo + Transfer + Fiado_pendiente = Total_Ventas siempre.
+  void fiadoPaymentsHoy;
 
   // Obtener observaciones del día — mismo fallback
   const observationsSelect = `
@@ -670,21 +670,36 @@ async function getDateRangeReport(startDate: string, endDate: string) {
 
   // Obtener pagos parciales para desglose correcto por método de pago
   const nonVoidedSaleIds = sales?.filter(s => !s.voided).map(s => s.id) || [];
+  const fiadoSaleIds = new Set(
+    sales?.filter(s => !s.voided && s.payment_method === 'fiado').map(s => s.id) || []
+  );
   const saleIdToDay: Record<string, string> = {};
   sales?.filter(s => !s.voided).forEach(s => {
     saleIdToDay[s.id] = s.created_at.split('T')[0];
   });
   let partialCash = 0;
   let partialTransfer = 0;
+  let partialFiadoCash = 0;
+  let partialFiadoTransfer = 0;
   const partialByDay: Record<string, { cash: number; transfer: number }> = {};
   if (nonVoidedSaleIds.length > 0) {
-    const { data: partialPayments } = await supabaseAdmin
-      .from('partial_payments')
-      .select('sale_id, cash_amount, transfer_amount')
-      .in('sale_id', nonVoidedSaleIds);
-    partialPayments?.forEach(pp => {
+    // Supabase tiene límite de longitud de URL para .in() — usar lotes de 200
+    const BATCH = 200;
+    const allPP: { sale_id: string; cash_amount: number | null; transfer_amount: number | null }[] = [];
+    for (let i = 0; i < nonVoidedSaleIds.length; i += BATCH) {
+      const { data: batchPP } = await supabaseAdmin
+        .from('partial_payments')
+        .select('sale_id, cash_amount, transfer_amount')
+        .in('sale_id', nonVoidedSaleIds.slice(i, i + BATCH));
+      if (batchPP) allPP.push(...batchPP);
+    }
+    allPP.forEach(pp => {
       partialCash += pp.cash_amount || 0;
       partialTransfer += pp.transfer_amount || 0;
+      if (fiadoSaleIds.has(pp.sale_id)) {
+        partialFiadoCash += pp.cash_amount || 0;
+        partialFiadoTransfer += pp.transfer_amount || 0;
+      }
       const day = saleIdToDay[pp.sale_id];
       if (day) {
         if (!partialByDay[day]) partialByDay[day] = { cash: 0, transfer: 0 };
@@ -807,6 +822,7 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     shifts_count: shifts?.length || 0,
     fiado_total: 0,
     fiado_abonos: 0,
+    fiado_collections: 0,
   };
 
   sales?.forEach((sale) => {
@@ -825,7 +841,7 @@ async function getDateRangeReport(startDate: string, endDate: string) {
       } else if (sale.payment_method === 'fiado') {
         totals.cash_sales += sale.fiado_abono || 0;
         totals.fiado_abonos += sale.fiado_abono || 0;
-        totals.fiado_total += sale.fiado_amount || 0;
+        // fiado_total se calcula al final desde cero (fiado_amount no se actualiza al pagar)
       }
     } else {
       totals.voided_count++;
@@ -881,22 +897,47 @@ async function getDateRangeReport(startDate: string, endDate: string) {
     }
   });
 
-  // Pagos de fiados cobrados en el rango (suman a cash/transfer del día en que se cobran)
+  // Pagos de fiados cobrados en el rango.
+  // Se distingue si el fiado original es de este período o de uno anterior:
+  // - Mismo período: el pago sí va a cash_sales/transfer_sales (la venta ya está en total_sales)
+  // - Período anterior: es cartera recuperada, NO va a cash_sales (ya fue contabilizado antes)
   const { data: fiadoPaymentsRango } = await supabaseAdmin
     .from('fiado_payments')
-    .select('cash_amount, transfer_amount, created_at')
+    .select('sale_id, cash_amount, transfer_amount, created_at')
     .gte('created_at', start)
     .lte('created_at', end);
 
+  // Separar fiado_payments: los del período actual vs los de períodos anteriores.
+  // fiado_amount NO se actualiza cuando se paga un fiado, así que calculamos
+  // el pendiente real desde cero: total_fiado - abono - parciales - pagos_del_período.
+  const currentPeriodSaleIds = new Set(nonVoidedSaleIds);
+  let fpSameCash = 0;
+  let fpSameTransfer = 0;
   fiadoPaymentsRango?.forEach(fp => {
-    totals.cash_sales += fp.cash_amount || 0;
-    totals.transfer_sales += fp.transfer_amount || 0;
-    const day = (fp.created_at as string).split('T')[0];
-    if (salesByDay[day]) {
-      salesByDay[day].cash += fp.cash_amount || 0;
-      salesByDay[day].transfer += fp.transfer_amount || 0;
+    const isSamePeriod = currentPeriodSaleIds.has(fp.sale_id);
+    if (isSamePeriod) {
+      totals.cash_sales += fp.cash_amount || 0;
+      totals.transfer_sales += fp.transfer_amount || 0;
+      fpSameCash += fp.cash_amount || 0;
+      fpSameTransfer += fp.transfer_amount || 0;
+      const day = (fp.created_at as string).split('T')[0];
+      if (salesByDay[day]) {
+        salesByDay[day].cash += fp.cash_amount || 0;
+        salesByDay[day].transfer += fp.transfer_amount || 0;
+      }
+    } else {
+      totals.fiado_collections += (fp.cash_amount || 0) + (fp.transfer_amount || 0);
     }
   });
+
+  // Fiado pendiente real = total de ventas fiado - abonos - parciales - pagos registrados
+  const totalFiadoSales = sales
+    ?.filter(s => !s.voided && s.payment_method === 'fiado')
+    .reduce((sum, s) => sum + s.total, 0) || 0;
+  totals.fiado_total = Math.max(
+    0,
+    totalFiadoSales - totals.fiado_abonos - (partialFiadoCash + partialFiadoTransfer) - (fpSameCash + fpSameTransfer)
+  );
 
   // Obtener observaciones del rango
   const { data: observations } = await supabaseAdmin

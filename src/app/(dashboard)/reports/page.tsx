@@ -119,6 +119,7 @@ interface RangeReport {
     shifts_count: number;
     fiado_total: number;
     fiado_abonos: number;
+    fiado_collections?: number;
   };
   products: ProductSummary[];
   by_employee: EmployeeProductSummary[];
@@ -1759,46 +1760,50 @@ function RangeReportView({ report }: { report: RangeReport }) {
 
       {/* Resumen del período */}
       <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
-        <h3 className="text-lg font-semibold mb-4">Resumen del Período</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-blue-600">Total Ventas</p>
-            <p className="text-2xl font-bold text-blue-700">
-              {formatCurrency(report.totals.total_sales)}
-            </p>
-          </div>
-          <div className="bg-green-50 p-4 rounded-lg">
-            <p className="text-sm text-green-600">Efectivo</p>
-            <p className="text-2xl font-bold text-green-700">
-              {formatCurrency(report.totals.cash_sales)}
-            </p>
-          </div>
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <p className="text-sm text-purple-600">Transferencias</p>
-            <p className="text-2xl font-bold text-purple-700">
-              {formatCurrency(report.totals.transfer_sales)}
-            </p>
-          </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600">Transacciones</p>
-            <p className="text-2xl font-bold text-gray-700">
-              {report.totals.transactions}
-            </p>
-          </div>
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-semibold">Resumen del Período</h3>
+          <span className="text-xs text-gray-400">{report.totals.shifts_count} turnos · {report.totals.transactions} transacciones</span>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-          <div className="bg-orange-50 p-3 rounded-lg">
-            <p className="text-orange-600">Turnos</p>
-            <p className="text-lg font-bold text-orange-700">{report.totals.shifts_count}</p>
+        {/* Desglose principal — siempre cuadra */}
+        <div className="space-y-2 text-sm">
+          <div className="flex justify-between text-gray-700">
+            <span>Efectivo recibido</span>
+            <span className="font-medium text-green-700">{formatCurrency(report.totals.cash_sales)}</span>
+          </div>
+          <div className="flex justify-between text-gray-700">
+            <span>Transferencias recibidas</span>
+            <span className="font-medium text-purple-700">{formatCurrency(report.totals.transfer_sales)}</span>
           </div>
           {report.totals.fiado_total > 0 && (
-            <div className="bg-yellow-50 p-3 rounded-lg">
-              <p className="text-yellow-600">Fiados</p>
-              <p className="text-lg font-bold text-yellow-700">{formatCurrency(report.totals.fiado_total)}</p>
+            <div className="flex justify-between text-yellow-700">
+              <span>Fiados (pendiente de cobro)</span>
+              <span className="font-medium">{formatCurrency(report.totals.fiado_total)}</span>
             </div>
           )}
+          <div className="flex justify-between pt-3 border-t-2 border-gray-300 text-base font-bold">
+            <span className="text-gray-900">Total Ventas</span>
+            <span className="text-blue-700">{formatCurrency(report.totals.total_sales)}</span>
+          </div>
+          <p className="text-xs text-gray-400">
+            Efectivo + Transferencias + Fiados = Total Ventas
+          </p>
         </div>
+
+        {/* Cartera recuperada — informativo, no es venta nueva */}
+        {(report.totals.fiado_collections || 0) > 0 && (
+          <div className="mt-5 pt-4 border-t border-dashed border-gray-200">
+            <div className="flex justify-between text-sm text-sky-700">
+              <div>
+                <span className="font-medium">Cartera recuperada</span>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Cobros de fiados creados en períodos anteriores. Ya fueron contabilizados como venta en su momento, no se suman aquí.
+                </p>
+              </div>
+              <span className="font-medium shrink-0 ml-4">{formatCurrency(report.totals.fiado_collections || 0)}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Desglose por día */}

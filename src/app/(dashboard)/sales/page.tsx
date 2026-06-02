@@ -47,6 +47,7 @@ interface SaleWithDetails {
     subtotal: number;
     is_michelada?: boolean;
     combo_id?: string | null;
+    combo_price_override?: number | null;
     added_by_employee_id?: string | null;
     products: { id: string; name: string };
     combos?: { id: string; name: string } | null;
@@ -95,6 +96,10 @@ function SalesContent() {
   const [showVoidModal, setShowVoidModal] = useState(false);
   const [showNewSaleModal, setShowNewSaleModal] = useState(false);
   const [showCounterSaleModal, setShowCounterSaleModal] = useState(false);
+  const [cigProducts, setCigProducts] = useState<Product[]>([]);
+  const [cigCounts, setCigCounts] = useState<Record<string, number>>({});
+  const [cigPaymentMethod, setCigPaymentMethod] = useState<'cash' | 'transfer'>('cash');
+  const [isAddingCig, setIsAddingCig] = useState(false);
   const [editingTab, setEditingTab] = useState<OpenTab | null>(null);
 
   const [filters, setFilters] = useState({
@@ -106,6 +111,13 @@ function SalesContent() {
   useEffect(() => {
     loadSales();
   }, [filters]);
+
+  // Garantizar que la mesa mostrador siempre esté abierta
+  useEffect(() => {
+    if (employee && currentShift) {
+      fetch(`/api/sales/mostrador?employee_id=${employee.id}&shift_id=${currentShift.id}`);
+    }
+  }, [employee?.id, currentShift?.id]);
 
   const loadSales = async () => {
     setIsLoading(true);
@@ -192,13 +204,45 @@ function SalesContent() {
     }
   };
 
+  const handleAddToMostrador = async () => {
+    if (!employee || !currentShift) return;
+    const items = cigProducts
+      .filter(p => (cigCounts[p.id] || 0) > 0)
+      .map(p => ({ product_id: p.id, quantity: cigCounts[p.id], unit_price: p.sale_price }));
+    if (items.length === 0) return;
+    setIsAddingCig(true);
+    try {
+      const res = await fetch('/api/sales/mostrador', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employee_id: employee.id, shift_id: currentShift.id, items, payment_method: cigPaymentMethod }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      setShowCounterSaleModal(false);
+      setCigCounts({});
+      setCigPaymentMethod('cash');
+      loadSales();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Error al agregar');
+    } finally {
+      setIsAddingCig(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Ventas</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowCounterSaleModal(true)}>
-            Cigarrillos
+          <Button variant="outline" onClick={async () => {
+            const res = await fetch('/api/products');
+            const data = await res.json();
+            setCigProducts((data.products || []).filter((p: Product) => p.category === 'cigarros' && p.active));
+            setCigCounts({});
+            setShowCounterSaleModal(true);
+          }}>
+            🚬 Cigarrillos
           </Button>
           <Button onClick={() => setShowNewSaleModal(true)}>
             + Nueva Venta
@@ -384,6 +428,11 @@ function SalesContent() {
                       <span className="text-sm text-gray-600">
                         {sale.table_number || '-'}
                       </span>
+                      {sale.table_number === 'mostrador' && (
+                        <span className="ml-1 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                          Pagado
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-sm text-gray-900">{sale.employees?.name}</span>
@@ -478,22 +527,84 @@ function SalesContent() {
         />
       )}
 
-      {/* Modal Venta Mostrador (Cigarrillos) */}
-      {showCounterSaleModal && (
-        <SaleModal
-          employee={employee}
-          currentShift={currentShift}
-          existingTab={null}
-          filterCategory="cigarros"
-          onSuccess={handleSaleSuccess}
-          onClose={() => setShowCounterSaleModal(false)}
-          setShift={setShift}
-          openCashRegister={openCashRegister}
-          addCashSale={addCashSale}
-          addTransferSale={addTransferSale}
-          addMixedSale={addMixedSale}
-        />
-      )}
+      {/* Modal Cigarrillos → Mostrador */}
+      {showCounterSaleModal && (() => {
+        const total = cigProducts.reduce((sum, p) => sum + (cigCounts[p.id] || 0) * p.sale_price, 0);
+        const hasAny = cigProducts.some(p => (cigCounts[p.id] || 0) > 0);
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900">🚬 Mostrador</h2>
+                <button onClick={() => setShowCounterSaleModal(false)} className="text-gray-400 hover:text-gray-600 text-3xl leading-none">×</button>
+              </div>
+
+              {/* Botones grandes — cada toque suma 1 */}
+              <div className="flex gap-3 mb-5">
+                {cigProducts.map(p => {
+                  const count = cigCounts[p.id] || 0;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => setCigCounts(prev => ({ ...prev, [p.id]: (prev[p.id] || 0) + 1 }))}
+                      className="flex-1 flex flex-col items-center justify-center gap-2 py-8 rounded-2xl bg-gray-900 hover:bg-gray-700 active:scale-95 transition-transform text-white select-none"
+                    >
+                      <span className="text-5xl font-black">{count > 0 ? count : '+'}</span>
+                      <span className="text-lg font-semibold">{p.name}</span>
+                      <span className="text-gray-400 text-sm">{formatCurrency(p.sale_price)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Total */}
+              {hasAny && (
+                <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 mb-4">
+                  <span className="text-gray-500 text-sm">Total</span>
+                  <span className="font-bold text-gray-900 text-xl">{formatCurrency(total)}</span>
+                </div>
+              )}
+
+              {/* Botón resetear */}
+              {hasAny && (
+                <button
+                  onClick={() => setCigCounts({})}
+                  className="w-full py-2 mb-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium"
+                >
+                  Resetear cantidad
+                </button>
+              )}
+
+              {/* Método de pago */}
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() => setCigPaymentMethod('cash')}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${cigPaymentMethod === 'cash' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+                >
+                  💵 Efectivo
+                </button>
+                <button
+                  onClick={() => setCigPaymentMethod('transfer')}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${cigPaymentMethod === 'transfer' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+                >
+                  🔄 Transferencia
+                </button>
+              </div>
+
+              {/* Confirmar */}
+              <button
+                onClick={handleAddToMostrador}
+                disabled={isAddingCig || !hasAny}
+                className="w-full py-4 rounded-xl bg-gray-900 text-white font-bold text-base hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isAddingCig ? 'Guardando...' : 'Confirmar → Mostrador'}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Modal detalle de venta */}
       {selectedSale && !showVoidModal && (
@@ -3183,17 +3294,28 @@ function EditableComboModalSales({
 }
 
 function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: () => void }) {
-  // Agrupar items por combo
+  // Agrupar items por INSTANCIA de combo.
+  // Cada vez que aparece combo_price_override != null empieza una nueva instancia.
+  // Esto evita que 2 cubetazos se muestren como uno solo al $54k.
   const comboGroups: Record<string, { name: string; items: typeof sale.sale_items; total: number }> = {};
+  const comboInstanceCount: Record<string, number> = {};
   const individualItems: typeof sale.sale_items = [];
 
   sale.sale_items?.forEach((item) => {
     if (item.combo_id && item.combos?.name) {
-      if (!comboGroups[item.combo_id]) {
-        comboGroups[item.combo_id] = { name: item.combos.name, items: [], total: 0 };
+      if (item.combo_price_override != null) {
+        // Nueva instancia del combo
+        comboInstanceCount[item.combo_id] = (comboInstanceCount[item.combo_id] || 0) + 1;
       }
-      comboGroups[item.combo_id].items.push(item);
-      comboGroups[item.combo_id].total += item.subtotal;
+      const instanceKey = `${item.combo_id}_${comboInstanceCount[item.combo_id] || 1}`;
+      if (!comboGroups[instanceKey]) {
+        comboGroups[instanceKey] = { name: item.combos.name, items: [], total: 0 };
+      }
+      comboGroups[instanceKey].items.push(item);
+      // El precio del combo viene del override, no del subtotal por producto
+      if (item.combo_price_override != null) {
+        comboGroups[instanceKey].total += item.combo_price_override;
+      }
     } else {
       individualItems.push(item);
     }
@@ -3350,21 +3472,46 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
               );
             })}
 
-            {/* Items individuales */}
-            {individualItems.map((item) => (
-              <div key={item.id} className="text-sm py-1">
-                <div className="flex justify-between">
-                  <span>
-                    {item.quantity}x {item.products?.name}
-                    {item.is_michelada && <span className="text-amber-600 ml-1">🌶️ michelada</span>}
-                  </span>
-                  <span className="font-medium">{formatCurrency(item.subtotal)}</span>
+            {/* Items individuales (agrupados por producto) */}
+            {(() => {
+              const agg: Record<string, {
+                key: string;
+                name: string;
+                quantity: number;
+                subtotal: number;
+                is_michelada: boolean;
+                added_by_name?: string;
+              }> = {};
+              individualItems.forEach(item => {
+                const k = `${item.products?.id}_${item.unit_price}_${item.is_michelada ? '1' : '0'}`;
+                if (!agg[k]) {
+                  agg[k] = {
+                    key: k,
+                    name: item.products?.name,
+                    quantity: 0,
+                    subtotal: 0,
+                    is_michelada: item.is_michelada || false,
+                    added_by_name: item.added_by?.name,
+                  };
+                }
+                agg[k].quantity += item.quantity;
+                agg[k].subtotal += item.subtotal;
+              });
+              return Object.values(agg).map(item => (
+                <div key={item.key} className="text-sm py-1">
+                  <div className="flex justify-between">
+                    <span>
+                      {item.quantity}x {item.name}
+                      {item.is_michelada && <span className="text-amber-600 ml-1">🌶️ michelada</span>}
+                    </span>
+                    <span className="font-medium">{formatCurrency(item.subtotal)}</span>
+                  </div>
+                  {item.added_by_name && (
+                    <p className="text-xs text-gray-500">Vendido por: {item.added_by_name}</p>
+                  )}
                 </div>
-                {item.added_by?.name && (
-                  <p className="text-xs text-gray-500">Vendido por: {item.added_by.name}</p>
-                )}
-              </div>
-            ))}
+              ));
+            })()}
           </div>
         </div>
 

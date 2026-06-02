@@ -48,7 +48,7 @@ export async function POST(
     // Verificar que la venta existe y está abierta
     const { data: sale, error: saleError } = await supabaseAdmin
       .from('sales')
-      .select('id, status, total')
+      .select('id, status, total, table_number, employee_id, shift_id')
       .eq('id', id)
       .single();
 
@@ -150,6 +150,29 @@ export async function POST(
         { error: 'Error al cerrar la cuenta' },
         { status: 500 }
       );
+    }
+
+    // Si es la mesa mostrador, reinicializar automáticamente vacía
+    if (sale.table_number === 'mostrador') {
+      // Buscar el turno activo del empleado que está cerrando para el nuevo tab
+      const { data: activeShift } = await supabaseAdmin
+        .from('shifts')
+        .select('id')
+        .eq('employee_id', employee_id)
+        .eq('status', 'active')
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      await supabaseAdmin.from('sales').insert({
+        employee_id,
+        shift_id: activeShift?.id || sale.shift_id,
+        table_number: 'mostrador',
+        status: 'open',
+        subtotal: 0,
+        total: 0,
+        opened_by_employee_id: employee_id,
+      });
     }
 
     // Registrar en auditoría (el total de la venta, no solo el restante)
