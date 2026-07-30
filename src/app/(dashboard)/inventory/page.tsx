@@ -422,7 +422,7 @@ export default function InventoryPage() {
                       {entry.initial_quantity}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`font-bold ${entry.quantity === 0 ? 'text-gray-400' : 'text-gray-900'}`}>
+                      <span className={`font-bold ${entry.quantity === 0 ? 'text-gray-500' : 'text-gray-900'}`}>
                         {entry.quantity}
                       </span>
                     </td>

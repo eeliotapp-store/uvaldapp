@@ -194,7 +194,7 @@ export default function StartShiftPage() {
                 className="w-full pl-8 pr-4 py-3 text-lg text-center border-2 border-gray-200 rounded-xl focus:border-amber-500 focus:ring-0"
               />
             </div>
-            <p className="text-xs text-gray-400 text-center mt-1">
+            <p className="text-xs text-gray-500 text-center mt-1">
               Si hay transferencias del turno anterior
             </p>
           </div>

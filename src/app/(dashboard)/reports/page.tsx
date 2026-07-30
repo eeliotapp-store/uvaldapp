@@ -1124,7 +1124,7 @@ function EmployeeReportView({ report }: { report: EmployeeReport }) {
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.type === 'day' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'}`}>
                       {s.type === 'day' ? 'Día' : 'Noche'}
                     </span>
-                    <span className="text-gray-400">{s.transactions} ventas</span>
+                    <span className="text-gray-500">{s.transactions} ventas</span>
                   </div>
                   <span className="font-medium text-gray-800">{formatCurrency(s.total)}</span>
                 </div>
@@ -1141,20 +1141,20 @@ function EmployeeReportView({ report }: { report: EmployeeReport }) {
                   <div key={p.product_name}>
                     <div className="flex items-center justify-between text-sm py-1 px-3 bg-gray-50 rounded-lg">
                       <span className="text-gray-700">
-                        {p.is_combo ? '🎁 ' : ''}{p.product_name} <span className="text-gray-400">× {p.quantity}</span>
+                        {p.is_combo ? '🎁 ' : ''}{p.product_name} <span className="text-gray-500">× {p.quantity}</span>
                       </span>
                       <span className="font-medium text-gray-800">{p.total > 0 ? formatCurrency(p.total) : '—'}</span>
                     </div>
                     {p.combo_items?.map((sub, si) => (
                       <div key={si} className="flex items-center justify-between text-xs py-0.5 px-3 pl-8 bg-purple-50/50 text-gray-500">
                         <span>└ {sub.product_name} × {sub.quantity}</span>
-                        <span className="text-gray-400">—</span>
+                        <span className="text-gray-500">—</span>
                       </div>
                     ))}
                   </div>
                 ))}
                 {emp.products.length > 10 && (
-                  <p className="text-xs text-gray-400 text-center pt-1">y {emp.products.length - 10} productos más...</p>
+                  <p className="text-xs text-gray-500 text-center pt-1">y {emp.products.length - 10} productos más...</p>
                 )}
               </div>
             </div>
@@ -1179,7 +1179,7 @@ function ProductRow({ product }: { product: ProductSummary }) {
         <tr key={si} className="border-b border-purple-50 bg-purple-50/40">
           <td className="py-0.5 px-2 pl-7 text-gray-500 text-xs">└ {sub.product_name}</td>
           <td className="text-center py-0.5 px-2 text-xs text-gray-500">{sub.quantity}</td>
-          <td className="text-right py-0.5 px-2 text-xs text-gray-400">—</td>
+          <td className="text-right py-0.5 px-2 text-xs text-gray-500">—</td>
         </tr>
       ))}
     </>
@@ -1762,7 +1762,7 @@ function RangeReportView({ report }: { report: RangeReport }) {
       <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-lg font-semibold">Resumen del Período</h3>
-          <span className="text-xs text-gray-400">{report.totals.shifts_count} turnos · {report.totals.transactions} transacciones</span>
+          <span className="text-xs text-gray-500">{report.totals.shifts_count} turnos · {report.totals.transactions} transacciones</span>
         </div>
 
         {/* Desglose principal — siempre cuadra */}
@@ -1785,7 +1785,7 @@ function RangeReportView({ report }: { report: RangeReport }) {
             <span className="text-gray-900">Total Ventas</span>
             <span className="text-blue-700">{formatCurrency(report.totals.total_sales)}</span>
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-500">
             Efectivo + Transferencias + Fiados = Total Ventas
           </p>
         </div>
@@ -1796,7 +1796,7 @@ function RangeReportView({ report }: { report: RangeReport }) {
             <div className="flex justify-between text-sm text-sky-700">
               <div>
                 <span className="font-medium">Cartera recuperada</span>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-xs text-gray-500 mt-0.5">
                   Cobros de fiados creados en períodos anteriores. Ya fueron contabilizados como venta en su momento, no se suman aquí.
                 </p>
               </div>
@@ -2188,7 +2188,7 @@ function InventoryCountReportView({ report }: { report: InventoryCountReport }) 
                         ? 'text-green-600'
                         : count.difference < 0
                           ? 'text-red-600'
-                          : 'text-gray-400'
+                          : 'text-gray-500'
                     }`}>
                       {count.difference > 0 ? '+' : ''}{count.difference}
                     </td>

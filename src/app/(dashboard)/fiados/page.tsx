@@ -278,9 +278,9 @@ export default function FiadosPage() {
 
       {/* Lista */}
       {isLoading ? (
-        <div className="text-center py-12 text-gray-400">Cargando...</div>
+        <div className="text-center py-12 text-gray-500">Cargando...</div>
       ) : fiados.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-gray-500">
           {statusFilter === 'pending' ? 'No hay fiados pendientes' : 'No hay fiados en esta categoría'}
         </div>
       ) : (
@@ -342,7 +342,7 @@ export default function FiadosPage() {
                     </div>
 
                     {/* Meta info */}
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-gray-400">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-gray-500">
                       <span>{formatDate(fiado.created_at)} {formatTime(fiado.created_at)}</span>
                       {fiado.employees?.name && <span>· {fiado.employees.name}</span>}
                       {fiado.table_number && <span>· Mesa {fiado.table_number}</span>}

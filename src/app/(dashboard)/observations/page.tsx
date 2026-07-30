@@ -226,14 +226,14 @@ function ObservationsContent() {
                       </span>
                     </div>
                     <p className="text-gray-700 whitespace-pre-wrap">{obs.content}</p>
-                    <p className="text-xs text-gray-400 mt-2">
+                    <p className="text-xs text-gray-500 mt-2">
                       {formatDate(obs.created_at)} a las {formatTime(obs.created_at)}
                     </p>
                   </div>
                   {isOwner(employee?.role) && (
                     <button
                       onClick={() => handleDelete(obs.id)}
-                      className="text-gray-400 hover:text-red-500 p-1"
+                      className="text-gray-500 hover:text-red-500 p-1"
                       title="Eliminar"
                     >
                       <TrashIcon className="w-4 h-4" />

@@ -161,7 +161,7 @@ export default function CloseShiftPage() {
               Turno {getShiftTypeLabel(summary.type)}
             </span>
           </div>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-gray-500 mt-1">
             Inicio: {formatDateTime(summary.start_time)}
           </p>
         </div>
@@ -237,7 +237,7 @@ export default function CloseShiftPage() {
             Productos vendidos
           </p>
           <div className="space-y-2">
-            <div className="flex justify-between text-xs text-gray-400 pb-1 border-b border-gray-100">
+            <div className="flex justify-between text-xs text-gray-500 pb-1 border-b border-gray-100">
               <span>Producto</span>
               <div className="flex gap-6">
                 <span>Unidades</span>

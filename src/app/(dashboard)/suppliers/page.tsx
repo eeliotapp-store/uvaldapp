@@ -152,7 +152,7 @@ export default function SuppliersPage() {
                   </span>
                 ))}
                 {(supplier.product_suppliers?.length || 0) > 5 && (
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-500">
                     +{supplier.product_suppliers.length - 5} más
                   </span>
                 )}

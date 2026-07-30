@@ -285,7 +285,7 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Usuario
               {isEditing && (
-                <span className="text-gray-400 font-normal"> - no se puede cambiar</span>
+                <span className="text-gray-500 font-normal"> - no se puede cambiar</span>
               )}
             </label>
             <input
@@ -302,7 +302,7 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Contraseña
               {isEditing && (
-                <span className="text-gray-400 font-normal"> - dejar vacio para mantener</span>
+                <span className="text-gray-500 font-normal"> - dejar vacio para mantener</span>
               )}
             </label>
             <div className="relative">

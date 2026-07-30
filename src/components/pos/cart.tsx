@@ -24,7 +24,7 @@ export function Cart({ onCheckout }: CartProps) {
 
   if (isEmpty) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+      <div className="flex flex-col items-center justify-center h-full text-gray-500 py-12">
         <svg
           className="w-16 h-16 mb-4"
           fill="none"
@@ -72,7 +72,7 @@ export function Cart({ onCheckout }: CartProps) {
                 </div>
                 <button
                   onClick={() => removeItem(item.product.id, item.isMichelada)}
-                  className="text-gray-400 hover:text-red-500 ml-2"
+                  className="text-gray-500 hover:text-red-500 ml-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -134,7 +134,7 @@ export function Cart({ onCheckout }: CartProps) {
               </div>
               <button
                 onClick={() => removeCombo(index)}
-                className="text-gray-400 hover:text-red-500 ml-2"
+                className="text-gray-500 hover:text-red-500 ml-2"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path

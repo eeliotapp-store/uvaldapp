@@ -300,7 +300,7 @@ function SalesContent() {
                   </div>
                   <div className="text-sm text-gray-600">
                     {tab.items?.length === 0 ? (
-                      <span className="text-gray-400 italic">Sin productos</span>
+                      <span className="text-gray-500 italic">Sin productos</span>
                     ) : (
                       <>
                         {tab.items?.slice(0, 3).map((item, idx) => (
@@ -311,7 +311,7 @@ function SalesContent() {
                           </span>
                         ))}
                         {tab.items?.length > 3 && (
-                          <span className="text-gray-400"> +{tab.items.length - 3} más</span>
+                          <span className="text-gray-500"> +{tab.items.length - 3} más</span>
                         )}
                       </>
                     )}
@@ -446,7 +446,7 @@ function SalesContent() {
                           </p>
                         ))}
                         {sale.sale_items?.length > 2 && (
-                          <p className="text-gray-400">+{sale.sale_items.length - 2} más</p>
+                          <p className="text-gray-500">+{sale.sale_items.length - 2} más</p>
                         )}
                       </div>
                     </td>
@@ -538,7 +538,7 @@ function SalesContent() {
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900">🚬 Mostrador</h2>
-                <button onClick={() => setShowCounterSaleModal(false)} className="text-gray-400 hover:text-gray-600 text-3xl leading-none">×</button>
+                <button onClick={() => setShowCounterSaleModal(false)} className="text-gray-500 hover:text-gray-600 text-3xl leading-none">×</button>
               </div>
 
               {/* Botones grandes — cada toque suma 1 */}
@@ -553,7 +553,7 @@ function SalesContent() {
                     >
                       <span className="text-5xl font-black">{count > 0 ? count : '+'}</span>
                       <span className="text-lg font-semibold">{p.name}</span>
-                      <span className="text-gray-400 text-sm">{formatCurrency(p.sale_price)}</span>
+                      <span className="text-gray-500 text-sm">{formatCurrency(p.sale_price)}</span>
                     </button>
                   );
                 })}
@@ -1577,12 +1577,12 @@ function SaleModal({
                 </p>
               )}
               {step !== 'shift' && currentShift && (
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-500">
                   Turno: {employee?.name} - {currentShift.type === 'day' ? 'Día' : 'Noche'}
                 </p>
               )}
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -1622,7 +1622,7 @@ function SaleModal({
                     </div>
                   ))}
                   {existingTab && existingTab.items?.length > 5 && (
-                    <p className="text-xs text-gray-400">+{existingTab.items.length - 5} productos más</p>
+                    <p className="text-xs text-gray-500">+{existingTab.items.length - 5} productos más</p>
                   )}
                 </div>
                 <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between font-bold">
@@ -1930,9 +1930,9 @@ function SaleModal({
                     <ul className="mb-3 space-y-1">
                       {observations.map((obs) => (
                         <li key={obs.id} className="text-sm text-gray-600 flex items-start gap-2">
-                          <span className="text-gray-400 mt-0.5">•</span>
+                          <span className="text-gray-500 mt-0.5">•</span>
                           <span>{obs.text}</span>
-                          <span className="ml-auto text-xs text-gray-400 whitespace-nowrap">
+                          <span className="ml-auto text-xs text-gray-500 whitespace-nowrap">
                             {new Date(obs.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </li>
@@ -2028,7 +2028,7 @@ function SaleModal({
               {/* Lista de nuevos productos y combos */}
               <div className="space-y-3">
                 {cart.length === 0 && cartCombos.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
+                  <div className="text-center py-8 text-gray-500">
                     <p>No hay productos nuevos</p>
                     <p className="text-sm">Selecciona un producto o combo</p>
                   </div>

@@ -38,28 +38,36 @@ export async function GET(request: NextRequest) {
 
     const shiftIds = shifts.map((s) => s.id);
 
-    // 2. Obtener ventas cerradas no anuladas de esos turnos
-    const { data: sales, error: salesError } = await supabaseAdmin
-      .from('sales')
-      .select('id, total, payment_method, cash_amount, transfer_amount, shift_id')
-      .in('shift_id', shiftIds)
-      .eq('voided', false)
-      .eq('status', 'closed');
+    // Supabase tiene límite de longitud de URL/headers para .in() — usar lotes de 200
+    const BATCH = 200;
 
-    if (salesError) throw salesError;
+    // 2. Obtener ventas cerradas no anuladas de esos turnos
+    type SaleRow = { id: string; total: number; payment_method: string | null; cash_amount: number | null; transfer_amount: number | null; shift_id: string };
+    const sales: SaleRow[] = [];
+    for (let i = 0; i < shiftIds.length; i += BATCH) {
+      const { data: batchSales, error: salesError } = await supabaseAdmin
+        .from('sales')
+        .select('id, total, payment_method, cash_amount, transfer_amount, shift_id')
+        .in('shift_id', shiftIds.slice(i, i + BATCH))
+        .eq('voided', false)
+        .eq('status', 'closed');
+
+      if (salesError) throw salesError;
+      if (batchSales) sales.push(...batchSales);
+    }
 
     // 3. Obtener sale_items de esas ventas
-    const saleIds = (sales || []).map((s) => s.id);
-    let saleItems: { sale_id: string; quantity: number; unit_price: number; products: { name: string } | null }[] = [];
+    const saleIds = sales.map((s) => s.id);
+    const saleItems: { sale_id: string; quantity: number; unit_price: number; products: { name: string } | null }[] = [];
 
-    if (saleIds.length > 0) {
-      const { data: items, error: itemsError } = await supabaseAdmin
+    for (let i = 0; i < saleIds.length; i += BATCH) {
+      const { data: batchItems, error: itemsError } = await supabaseAdmin
         .from('sale_items')
         .select('sale_id, quantity, unit_price, products(name)')
-        .in('sale_id', saleIds);
+        .in('sale_id', saleIds.slice(i, i + BATCH));
 
       if (itemsError) throw itemsError;
-      saleItems = (items || []) as unknown as typeof saleItems;
+      if (batchItems) saleItems.push(...(batchItems as unknown as typeof saleItems));
     }
 
     // 4. Agrupar por empleada
@@ -81,6 +89,7 @@ export async function GET(request: NextRequest) {
           cash: number;
           transfer: number;
           transactions: number;
+          products: { product_name: string; quantity: number; total: number }[];
         }[];
         products: Map<string, { product_name: string; quantity: number; total: number }>;
       }
@@ -106,7 +115,7 @@ export async function GET(request: NextRequest) {
       }
 
       const emp = employeeMap.get(empId)!;
-      const shiftSales = (sales || []).filter((s) => s.shift_id === shift.id);
+      const shiftSales = sales.filter((s) => s.shift_id === shift.id);
 
       const shiftTotal = shiftSales.reduce((sum, s) => sum + (s.total || 0), 0);
       const shiftCash = shiftSales.reduce((sum, s) => sum + (s.cash_amount || 0), 0);
@@ -118,6 +127,30 @@ export async function GET(request: NextRequest) {
       emp.transfer_sales += shiftTransfer;
       emp.transactions_count += shiftSales.length;
 
+      // Productos por turno y por empleada
+      const shiftProducts = new Map<string, { product_name: string; quantity: number; total: number }>();
+      for (const sale of shiftSales) {
+        const items = saleItems.filter((i) => i.sale_id === sale.id);
+        for (const item of items) {
+          const productName = item.products?.name || 'Producto sin nombre';
+          const itemTotal = item.quantity * (item.unit_price || 0);
+
+          if (!emp.products.has(productName)) {
+            emp.products.set(productName, { product_name: productName, quantity: 0, total: 0 });
+          }
+          const empProd = emp.products.get(productName)!;
+          empProd.quantity += item.quantity;
+          empProd.total += itemTotal;
+
+          if (!shiftProducts.has(productName)) {
+            shiftProducts.set(productName, { product_name: productName, quantity: 0, total: 0 });
+          }
+          const shiftProd = shiftProducts.get(productName)!;
+          shiftProd.quantity += item.quantity;
+          shiftProd.total += itemTotal;
+        }
+      }
+
       emp.shifts.push({
         shift_id: shift.id,
         date: shift.start_time.split('T')[0],
@@ -126,21 +159,8 @@ export async function GET(request: NextRequest) {
         cash: shiftCash,
         transfer: shiftTransfer,
         transactions: shiftSales.length,
+        products: [...shiftProducts.values()].sort((a, b) => b.quantity - a.quantity),
       });
-
-      // Productos por empleada
-      for (const sale of shiftSales) {
-        const items = saleItems.filter((i) => i.sale_id === sale.id);
-        for (const item of items) {
-          const productName = item.products?.name || 'Producto sin nombre';
-          if (!emp.products.has(productName)) {
-            emp.products.set(productName, { product_name: productName, quantity: 0, total: 0 });
-          }
-          const prod = emp.products.get(productName)!;
-          prod.quantity += item.quantity;
-          prod.total += item.quantity * (item.unit_price || 0);
-        }
-      }
     }
 
     // 5. Serializar y ordenar

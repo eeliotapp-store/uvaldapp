@@ -70,7 +70,7 @@ export function ComboGrid({ combos, products }: ComboGridProps) {
                 </span>
               ))}
               {(combo.combo_items?.length || 0) > 3 && (
-                <span className="text-xs text-gray-400">+{(combo.combo_items?.length || 0) - 3}</span>
+                <span className="text-xs text-gray-500">+{(combo.combo_items?.length || 0) - 3}</span>
               )}
             </div>
             <p className="text-lg font-bold text-amber-600">

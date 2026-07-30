@@ -213,7 +213,7 @@ export default function AuditPage() {
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${actionInfo.color}`}>
                           {actionInfo.label}
                         </span>
-                        <span className="text-xs text-gray-400">{entityLabel}</span>
+                        <span className="text-xs text-gray-500">{entityLabel}</span>
                       </div>
                       <p className="text-sm text-gray-900 font-medium">
                         {log.description || `${actionInfo.label} - ${entityLabel}`}
@@ -223,7 +223,7 @@ export default function AuditPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right text-xs text-gray-400">
+                  <div className="text-right text-xs text-gray-500">
                     <p>{formatDate(log.created_at)}</p>
                     <p>{formatTime(log.created_at)}</p>
                   </div>
@@ -248,7 +248,7 @@ export default function AuditPage() {
                 </div>
                 <button
                   onClick={() => setSelectedLog(null)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-500 hover:text-gray-600"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

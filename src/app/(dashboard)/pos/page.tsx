@@ -369,7 +369,7 @@ function POSContent() {
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-bold text-gray-900">🚬 Mostrador</h2>
-                <button onClick={() => setShowCigModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+                <button onClick={() => setShowCigModal(false)} className="text-gray-500 hover:text-gray-600 text-2xl leading-none">×</button>
               </div>
 
               {/* Un botón grande por producto — cada toque suma 1 */}
@@ -384,7 +384,7 @@ function POSContent() {
                     >
                       <span className="text-4xl font-black">{count > 0 ? count : '+'}</span>
                       <span className="text-base font-semibold">{p.name}</span>
-                      <span className="text-gray-400 text-sm">{formatCurrency(p.sale_price)}</span>
+                      <span className="text-gray-500 text-sm">{formatCurrency(p.sale_price)}</span>
                     </button>
                   );
                 })}

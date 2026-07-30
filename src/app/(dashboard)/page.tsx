@@ -122,7 +122,7 @@ export default function DashboardPage() {
                       {sale.employee_name} • {sale.payment_method === 'cash' ? 'Efectivo' : 'Tarjeta'}
                     </p>
                   </div>
-                  <span className="text-sm text-gray-400">
+                  <span className="text-sm text-gray-500">
                     {new Date(sale.created_at).toLocaleTimeString('es-CO', {
                       hour: '2-digit',
                       minute: '2-digit',

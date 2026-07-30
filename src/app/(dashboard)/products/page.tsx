@@ -204,7 +204,7 @@ export default function ProductsPage() {
                         <span className={`font-bold ${product.current_stock <= product.min_stock ? 'text-red-600' : 'text-gray-900'}`}>
                           {product.current_stock}
                         </span>
-                        <span className="text-gray-400 text-sm"> / {product.min_stock}</span>
+                        <span className="text-gray-500 text-sm"> / {product.min_stock}</span>
                       </button>
                       <button
                         onClick={() => handleAddStock(product)}
@@ -227,7 +227,7 @@ export default function ProductsPage() {
                         </span>
                       ))}
                       {(!product.product_suppliers || product.product_suppliers.length === 0) && (
-                        <span className="text-gray-400 text-sm">Sin proveedores</span>
+                        <span className="text-gray-500 text-sm">Sin proveedores</span>
                       )}
                     </div>
                   </td>
@@ -803,7 +803,7 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
         <p className="text-gray-600 mb-2">{product.name}</p>
         <p className="text-sm mb-4">
           Stock actual: <span className="font-bold text-lg">{product.current_stock}</span>
-          <span className="text-gray-400"> / mín: {product.min_stock}</span>
+          <span className="text-gray-500"> / mín: {product.min_stock}</span>
         </p>
 
         {/* Tabs de modo */}

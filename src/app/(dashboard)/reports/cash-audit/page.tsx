@@ -360,7 +360,7 @@ export default function CashAuditPage() {
                         <p className="text-gray-500 text-xs">Diferencia</p>
                         <p className={`font-bold ${
                           entry.difference === null
-                            ? 'text-gray-400'
+                            ? 'text-gray-500'
                             : entry.difference === 0
                               ? 'text-green-600'
                               : entry.difference > 0
@@ -385,7 +385,7 @@ export default function CashAuditPage() {
                     {/* Conexión con siguiente turno */}
                     {index < report.entries.length - 1 && (
                       <div className="mt-3 pt-3 border-t border-dashed border-gray-200 text-center">
-                        <span className="text-gray-400 text-xs">↓</span>
+                        <span className="text-gray-500 text-xs">↓</span>
                       </div>
                     )}
                   </div>
@@ -461,7 +461,7 @@ export default function CashAuditPage() {
                             </td>
                             <td className={`py-2 px-2 text-right font-medium ${
                               shift.difference === null
-                                ? 'text-gray-400'
+                                ? 'text-gray-500'
                                 : shift.difference === 0
                                   ? 'text-green-600'
                                   : shift.difference > 0
