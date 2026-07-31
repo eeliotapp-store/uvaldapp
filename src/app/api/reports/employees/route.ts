@@ -1,6 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
 
+// Supabase/PostgREST tiene un límite por defecto de filas por respuesta (1000) que trunca
+// silenciosamente sin lanzar error — hay que paginar la SALIDA con .range(), no solo trocear
+// la lista de IDs de entrada para no exceder el límite de longitud de URL.
+async function fetchAllRows<T>(
+  page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>
+): Promise<T[]> {
+  const PAGE_SIZE = 1000;
+  const all: T[] = [];
+  let from = 0;
+  for (;;) {
+    const { data, error } = await page(from, from + PAGE_SIZE - 1);
+    if (error) throw new Error(error.message);
+    if (!data || data.length === 0) break;
+    all.push(...data);
+    if (data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+  return all;
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const startDate = searchParams.get('start_date');
@@ -19,20 +39,21 @@ export async function GET(request: NextRequest) {
 
   try {
     // 1. Obtener turnos en el rango
-    let shiftsQuery = supabaseAdmin
-      .from('shifts')
-      .select('id, type, start_time, employee_id, employees:employees!shifts_employee_id_fkey(id, name)')
-      .gte('start_time', startOfRange)
-      .lte('start_time', endOfRange)
-      .order('start_time', { ascending: true });
+    type ShiftRow = { id: string; type: 'day' | 'night'; start_time: string; employee_id: string; employees: { id: string; name: string } | { id: string; name: string }[] | null };
+    const shifts = await fetchAllRows<ShiftRow>((from, to) => {
+      let q = supabaseAdmin
+        .from('shifts')
+        .select('id, type, start_time, employee_id, employees:employees!shifts_employee_id_fkey(id, name)')
+        .gte('start_time', startOfRange)
+        .lte('start_time', endOfRange)
+        .order('start_time', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, to);
+      if (employeeId) q = q.eq('employee_id', employeeId);
+      return q as unknown as PromiseLike<{ data: ShiftRow[] | null; error: { message: string } | null }>;
+    });
 
-    if (employeeId) {
-      shiftsQuery = shiftsQuery.eq('employee_id', employeeId);
-    }
-
-    const { data: shifts, error: shiftsError } = await shiftsQuery;
-    if (shiftsError) throw shiftsError;
-    if (!shifts || shifts.length === 0) {
+    if (shifts.length === 0) {
       return NextResponse.json({ start_date: startDate, end_date: endDate, employees: [] });
     }
 
@@ -45,29 +66,36 @@ export async function GET(request: NextRequest) {
     type SaleRow = { id: string; total: number; payment_method: string | null; cash_amount: number | null; transfer_amount: number | null; shift_id: string };
     const sales: SaleRow[] = [];
     for (let i = 0; i < shiftIds.length; i += BATCH) {
-      const { data: batchSales, error: salesError } = await supabaseAdmin
-        .from('sales')
-        .select('id, total, payment_method, cash_amount, transfer_amount, shift_id')
-        .in('shift_id', shiftIds.slice(i, i + BATCH))
-        .eq('voided', false)
-        .eq('status', 'closed');
-
-      if (salesError) throw salesError;
-      if (batchSales) sales.push(...batchSales);
+      const idsBatch = shiftIds.slice(i, i + BATCH);
+      const batchSales = await fetchAllRows<SaleRow>((from, to) =>
+        supabaseAdmin
+          .from('sales')
+          .select('id, total, payment_method, cash_amount, transfer_amount, shift_id')
+          .in('shift_id', idsBatch)
+          .eq('voided', false)
+          .eq('status', 'closed')
+          .order('id', { ascending: true })
+          .range(from, to)
+      );
+      sales.push(...batchSales);
     }
 
     // 3. Obtener sale_items de esas ventas
+    type SaleItemRow = { sale_id: string; quantity: number; unit_price: number; products: { name: string } | { name: string }[] | null };
     const saleIds = sales.map((s) => s.id);
-    const saleItems: { sale_id: string; quantity: number; unit_price: number; products: { name: string } | null }[] = [];
+    const saleItems: SaleItemRow[] = [];
 
     for (let i = 0; i < saleIds.length; i += BATCH) {
-      const { data: batchItems, error: itemsError } = await supabaseAdmin
-        .from('sale_items')
-        .select('sale_id, quantity, unit_price, products(name)')
-        .in('sale_id', saleIds.slice(i, i + BATCH));
-
-      if (itemsError) throw itemsError;
-      if (batchItems) saleItems.push(...(batchItems as unknown as typeof saleItems));
+      const idsBatch = saleIds.slice(i, i + BATCH);
+      const batchItems = await fetchAllRows<SaleItemRow>((from, to) =>
+        supabaseAdmin
+          .from('sale_items')
+          .select('sale_id, quantity, unit_price, products(name)')
+          .in('sale_id', idsBatch)
+          .order('id', { ascending: true })
+          .range(from, to) as unknown as PromiseLike<{ data: SaleItemRow[] | null; error: { message: string } | null }>
+      );
+      saleItems.push(...batchItems);
     }
 
     // 4. Agrupar por empleada
@@ -97,7 +125,7 @@ export async function GET(request: NextRequest) {
 
     for (const shift of shifts) {
       const empId = shift.employee_id;
-      const emp_data = shift.employees as unknown as { id: string; name: string } | null;
+      const emp_data = Array.isArray(shift.employees) ? shift.employees[0] : shift.employees;
       const empName = emp_data?.name || 'Sin nombre';
 
       if (!employeeMap.has(empId)) {
@@ -132,7 +160,8 @@ export async function GET(request: NextRequest) {
       for (const sale of shiftSales) {
         const items = saleItems.filter((i) => i.sale_id === sale.id);
         for (const item of items) {
-          const productName = item.products?.name || 'Producto sin nombre';
+          const productInfo = Array.isArray(item.products) ? item.products[0] : item.products;
+          const productName = productInfo?.name || 'Producto sin nombre';
           const itemTotal = item.quantity * (item.unit_price || 0);
 
           if (!emp.products.has(productName)) {
@@ -173,6 +202,7 @@ export async function GET(request: NextRequest) {
         cash_sales: emp.cash_sales,
         transfer_sales: emp.transfer_sales,
         transactions_count: emp.transactions_count,
+        total_units: [...emp.products.values()].reduce((sum, p) => sum + p.quantity, 0),
         shifts: emp.shifts,
         products: [...emp.products.values()].sort((a, b) => b.total - a.total),
       }))

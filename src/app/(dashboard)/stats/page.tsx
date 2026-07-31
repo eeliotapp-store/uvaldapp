@@ -36,8 +36,11 @@ interface EmployeeReportEntry {
   cash_sales: number;
   transfer_sales: number;
   transactions_count: number;
+  total_units: number;
   shifts: EmployeeShiftEntry[];
 }
+
+const ALL_EMPLOYEES_VALUE = '__all__';
 
 interface DayOverallEntry {
   dow: number;
@@ -73,7 +76,7 @@ export default function StatsPage() {
 
   // Reporte por empleada
   const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(ALL_EMPLOYEES_VALUE);
   const [startDate, setStartDate] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
@@ -81,6 +84,8 @@ export default function StatsPage() {
   });
   const [endDate, setEndDate] = useState(getLocalDate());
   const [employeeReport, setEmployeeReport] = useState<EmployeeReportEntry | null>(null);
+  const [employeesRanking, setEmployeesRanking] = useState<EmployeeReportEntry[] | null>(null);
+  const [rankingSortBy, setRankingSortBy] = useState<'sales' | 'units'>('sales');
   const [isLoadingEmployeeReport, setIsLoadingEmployeeReport] = useState(false);
   const [employeeReportError, setEmployeeReportError] = useState('');
   const [hasSearchedEmployeeReport, setHasSearchedEmployeeReport] = useState(false);
@@ -112,7 +117,6 @@ export default function StatsPage() {
       const data = await res.json();
       const options: EmployeeOption[] = (data.employees || []).filter((e: EmployeeOption) => e.active);
       setEmployeeOptions(options);
-      if (options.length > 0) setSelectedEmployeeId(options[0].id);
     } catch (error) {
       console.error('Error loading employees:', error);
     }
@@ -134,16 +138,24 @@ export default function StatsPage() {
   };
 
   const fetchEmployeeReport = async () => {
-    if (!selectedEmployeeId) return;
+    const isAll = selectedEmployeeId === ALL_EMPLOYEES_VALUE;
     setIsLoadingEmployeeReport(true);
     setEmployeeReportError('');
     try {
-      const res = await fetch(
-        `/api/reports/employees?start_date=${startDate}&end_date=${endDate}&employee_id=${selectedEmployeeId}`
-      );
+      const url = isAll
+        ? `/api/reports/employees?start_date=${startDate}&end_date=${endDate}`
+        : `/api/reports/employees?start_date=${startDate}&end_date=${endDate}&employee_id=${selectedEmployeeId}`;
+      const res = await fetch(url);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al generar el reporte');
-      setEmployeeReport(data.employees?.[0] || null);
+
+      if (isAll) {
+        setEmployeesRanking((data.employees as EmployeeReportEntry[]) || []);
+        setEmployeeReport(null);
+      } else {
+        setEmployeeReport(data.employees?.[0] || null);
+        setEmployeesRanking(null);
+      }
     } catch (error) {
       console.error('Error loading employee report:', error);
       setEmployeeReportError('No se pudo cargar el reporte de la empleada');
@@ -272,6 +284,9 @@ export default function StatsPage() {
           isLoading={isLoadingEmployeeReport}
           error={employeeReportError}
           report={employeeReport}
+          ranking={employeesRanking}
+          rankingSortBy={rankingSortBy}
+          onRankingSortByChange={setRankingSortBy}
           hasSearched={hasSearchedEmployeeReport}
         />
       ) : (
@@ -299,6 +314,9 @@ function EmployeeShiftsView({
   isLoading,
   error,
   report,
+  ranking,
+  rankingSortBy,
+  onRankingSortByChange,
   hasSearched,
 }: {
   employeeOptions: EmployeeOption[];
@@ -312,6 +330,9 @@ function EmployeeShiftsView({
   isLoading: boolean;
   error: string;
   report: EmployeeReportEntry | null;
+  ranking: EmployeeReportEntry[] | null;
+  rankingSortBy: 'sales' | 'units';
+  onRankingSortByChange: (sortBy: 'sales' | 'units') => void;
   hasSearched: boolean;
 }) {
   return (
@@ -326,6 +347,7 @@ function EmployeeShiftsView({
               onChange={(e) => onSelectEmployee(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
             >
+              <option value={ALL_EMPLOYEES_VALUE}>Todas las empleadas</option>
               {employeeOptions.map((emp) => (
                 <option key={emp.id} value={emp.id}>
                   {emp.name}
@@ -375,13 +397,86 @@ function EmployeeShiftsView({
         </div>
       )}
 
-      {!isLoading && !error && hasSearched && report === null && (
+      {selectedEmployeeId !== ALL_EMPLOYEES_VALUE && !isLoading && !error && hasSearched && report === null && (
         <div className="text-center py-12 text-gray-500 text-sm">
           {employeeOptions.find((e) => e.id === selectedEmployeeId)?.name || 'La empleada'} no registró turnos en ese rango de fechas.
         </div>
       )}
 
-      {report && report.shifts_count > 0 && (
+      {selectedEmployeeId === ALL_EMPLOYEES_VALUE && !isLoading && !error && hasSearched && ranking && ranking.length === 0 && (
+        <div className="text-center py-12 text-gray-500 text-sm">
+          Ninguna empleada registró turnos en ese rango de fechas.
+        </div>
+      )}
+
+      {selectedEmployeeId === ALL_EMPLOYEES_VALUE && ranking && ranking.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-900">Ranking de empleadas</h3>
+            <div className="flex gap-1 bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => onRankingSortByChange('sales')}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  rankingSortBy === 'sales' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                Por ventas ($)
+              </button>
+              <button
+                onClick={() => onRankingSortByChange('units')}
+                className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  rankingSortBy === 'units' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+                }`}
+              >
+                Por unidades vendidas
+              </button>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="py-2 text-left text-sm font-medium text-gray-600">#</th>
+                  <th className="py-2 text-left text-sm font-medium text-gray-600">Empleada</th>
+                  <th className="py-2 text-right text-sm font-medium text-gray-600">Turnos</th>
+                  <th className="py-2 text-right text-sm font-medium text-gray-600">Unidades vendidas</th>
+                  <th className="py-2 text-right text-sm font-medium text-gray-600">Total ventas</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[...ranking]
+                  .sort((a, b) => (rankingSortBy === 'sales' ? b.total_sales - a.total_sales : b.total_units - a.total_units))
+                  .map((emp, index) => (
+                    <tr key={emp.employee_id} className={index === 0 ? 'bg-green-50' : ''}>
+                      <td className="py-2 text-sm text-gray-500">{index + 1}</td>
+                      <td className="py-2 text-sm text-gray-800 font-medium">
+                        {index === 0 && '🏆 '}
+                        {emp.employee_name}
+                      </td>
+                      <td className="py-2 text-sm text-right text-gray-800">{emp.shifts_count}</td>
+                      <td
+                        className={`py-2 text-sm text-right ${
+                          rankingSortBy === 'units' ? 'font-bold text-green-700' : 'text-gray-800'
+                        }`}
+                      >
+                        {emp.total_units}
+                      </td>
+                      <td
+                        className={`py-2 text-sm text-right ${
+                          rankingSortBy === 'sales' ? 'font-bold text-green-700' : 'text-gray-800'
+                        }`}
+                      >
+                        {formatCurrency(emp.total_sales)}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {selectedEmployeeId !== ALL_EMPLOYEES_VALUE && report && report.shifts_count > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-gray-900">{report.employee_name}</h3>
