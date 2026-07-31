@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/server';
 
-// GET: Estadísticas diarias (últimos 30 días) y semanales (últimas 8 semanas)
+// GET: Estadísticas diarias (últimos 30 días), semanales (últimas 8 semanas) y mensuales (últimos 6 meses)
 export async function GET() {
   try {
     const { data: daily, error: dailyError } = await supabaseAdmin
@@ -18,7 +18,14 @@ export async function GET() {
 
     if (weeklyError) throw weeklyError;
 
-    return NextResponse.json({ daily: daily || [], weekly: weekly || [] });
+    const { data: monthly, error: monthlyError } = await supabaseAdmin
+      .from('v_monthly_stats')
+      .select('*')
+      .limit(6);
+
+    if (monthlyError) throw monthlyError;
+
+    return NextResponse.json({ daily: daily || [], weekly: weekly || [], monthly: monthly || [] });
   } catch (error) {
     console.error('Error al obtener estadísticas:', error);
     return NextResponse.json({ error: 'Error al obtener estadísticas' }, { status: 500 });

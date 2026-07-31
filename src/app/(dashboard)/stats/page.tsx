@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { formatCurrency, formatDate, getLocalDate } from '@/lib/utils';
-import type { DailyStats, WeeklyStats } from '@/types/database';
+import type { DailyStats, WeeklyStats, MonthlyStats } from '@/types/database';
 
 interface EmployeeOption {
   id: string;
@@ -128,6 +128,7 @@ export default function StatsPage() {
   const employee = useAuthStore((state) => state.employee);
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats[]>([]);
+  const [monthlyStats, setMonthlyStats] = useState<MonthlyStats[]>([]);
   const [view, setView] = useState<'daily' | 'weekly' | 'employee' | 'dayOfWeek' | 'turnover' | 'reorder' | 'trend'>('daily');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -187,6 +188,7 @@ export default function StatsPage() {
 
       setDailyStats((data.daily as DailyStats[]) || []);
       setWeeklyStats((data.weekly as WeeklyStats[]) || []);
+      setMonthlyStats((data.monthly as MonthlyStats[]) || []);
     } catch (error) {
       console.error('Error loading stats:', error);
     } finally {
@@ -438,6 +440,8 @@ export default function StatsPage() {
           isLoading={isLoadingTrend}
           period={trendPeriod}
           onPeriodChange={setTrendPeriod}
+          weeklyStats={weeklyStats}
+          monthlyStats={monthlyStats}
         />
       ) : view === 'reorder' ? (
         <ReorderForecastView report={reorderReport} isLoading={isLoadingReorder} />
@@ -1230,16 +1234,75 @@ function TrendBadge({ trend, size = 'sm' }: { trend: Trend | ProductTrendEntry; 
   );
 }
 
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// Formato compacto para etiquetas sobre barras angostas: $20.7M, $850K
+function formatCompactCOP(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${Math.round(n / 1_000)}K`;
+  return `$${n}`;
+}
+
+function RevenueBarChart({ title, bars }: { title: string; bars: { label: string; value: number }[] }) {
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+  const maxValue = Math.max(...bars.map((b) => b.value), 1);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <h3 className="text-sm font-bold text-gray-900 mb-4">{title}</h3>
+      {bars.length === 0 ? (
+        <p className="text-sm text-gray-500">No hay suficientes datos todavía.</p>
+      ) : (
+        <div className="flex items-end justify-around gap-2 h-48">
+          {bars.map((b, i) => {
+            const heightPct = Math.max((b.value / maxValue) * 100, 2);
+            const isHovered = hoverIndex === i;
+            return (
+              <div
+                key={b.label}
+                className="flex flex-col items-center justify-end h-full flex-1 relative outline-none"
+                onMouseEnter={() => setHoverIndex(i)}
+                onMouseLeave={() => setHoverIndex(null)}
+                onFocus={() => setHoverIndex(i)}
+                onBlur={() => setHoverIndex(null)}
+                tabIndex={0}
+              >
+                {isHovered && (
+                  <div className="absolute -top-9 bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                    {formatCurrency(b.value)}
+                  </div>
+                )}
+                <span className="text-[11px] font-medium text-gray-700 mb-1">{formatCompactCOP(b.value)}</span>
+                <div
+                  className={`w-full max-w-[24px] rounded-t transition-colors ${isHovered ? 'bg-amber-600' : 'bg-amber-500'}`}
+                  style={{ height: `${heightPct}%` }}
+                />
+                <span className="text-[10px] text-gray-500 mt-2">{b.label}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SalesTrendView({
   report,
   isLoading,
   period,
   onPeriodChange,
+  weeklyStats,
+  monthlyStats,
 }: {
   report: SalesTrendReport | null;
   isLoading: boolean;
   period: 'week' | 'month';
   onPeriodChange: (period: 'week' | 'month') => void;
+  weeklyStats: WeeklyStats[];
+  monthlyStats: MonthlyStats[];
 }) {
   if (isLoading || !report) {
     return (
@@ -1258,8 +1321,30 @@ function SalesTrendView({
   const periodLabel = period === 'week' ? 'últimos 7 días' : 'últimos 30 días';
   const previousLabel = period === 'week' ? '7 días anteriores' : '30 días anteriores';
 
+  const monthBars = [...monthlyStats]
+    .slice(0, 6)
+    .reverse()
+    .map((m) => ({
+      label: capitalize(new Date(`${m.month_start}T12:00:00`).toLocaleDateString('es-CO', { month: 'short' }).replace('.', '')),
+      value: m.total_revenue,
+    }));
+
+  const weekBars = [...weeklyStats]
+    .slice(0, 4)
+    .reverse()
+    .map((w) => ({
+      label: new Date(`${w.week_start}T12:00:00`).toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit' }),
+      value: w.total_revenue,
+    }));
+
   return (
     <div className="space-y-6">
+      {/* Historial visual: últimos 6 meses y últimas 4 semanas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <RevenueBarChart title="Ventas por mes — últimos 6 meses" bars={monthBars} />
+        <RevenueBarChart title="Ventas por semana — últimas 4 semanas" bars={weekBars} />
+      </div>
+
       {/* Selector de período */}
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
         <button

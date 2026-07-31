@@ -300,6 +300,18 @@ export interface WeeklyStats {
   days_worked: number;
 }
 
+// Estadísticas mensuales
+export interface MonthlyStats {
+  month_start: string;
+  month_end: string;
+  total_sales: number;
+  total_revenue: number;
+  cash_revenue: number;
+  transfer_revenue: number;
+  employees_worked: number;
+  days_worked: number;
+}
+
 // ============================================
 // AUDITORÍA
 // ============================================
