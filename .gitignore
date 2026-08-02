@@ -37,6 +37,9 @@ dev-server.log
 # vercel
 .vercel
 
+# Claude Code local settings (personal, may contain approved-command history)
+.claude/settings.local.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

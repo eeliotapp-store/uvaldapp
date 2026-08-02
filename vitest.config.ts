@@ -6,6 +6,18 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/lib/**'],
+      exclude: ['src/lib/**/*.test.ts', 'src/lib/supabase/**', 'src/lib/audit/**'],
+      reporter: ['text', 'html', 'json-summary'],
+      thresholds: {
+        lines: 90,
+        functions: 90,
+        statements: 90,
+        branches: 85,
+      },
+    },
   },
   resolve: {
     alias: {
