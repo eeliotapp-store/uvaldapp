@@ -124,12 +124,31 @@ interface SalesTrendReport {
   min_units_threshold: number;
 }
 
+interface ConcentrationItem {
+  product_name: string;
+  revenue: number;
+  pct_of_total: number;
+  cumulative_pct: number;
+}
+
+interface ConcentrationBucket {
+  total_revenue: number;
+  items: ConcentrationItem[];
+  products_for_50pct: number;
+  products_for_80pct: number;
+}
+
+interface RevenueConcentrationReport {
+  week: ConcentrationBucket;
+  month: ConcentrationBucket;
+}
+
 export default function StatsPage() {
   const employee = useAuthStore((state) => state.employee);
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats[]>([]);
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStats[]>([]);
-  const [view, setView] = useState<'daily' | 'weekly' | 'employee' | 'dayOfWeek' | 'turnover' | 'reorder' | 'trend'>('daily');
+  const [view, setView] = useState<'daily' | 'weekly' | 'employee' | 'dayOfWeek' | 'turnover' | 'reorder' | 'trend' | 'concentration'>('daily');
   const [isLoading, setIsLoading] = useState(true);
 
   // Patrones por día de la semana
@@ -145,6 +164,11 @@ export default function StatsPage() {
   const [trendReport, setTrendReport] = useState<SalesTrendReport | null>(null);
   const [isLoadingTrend, setIsLoadingTrend] = useState(false);
   const [trendPeriod, setTrendPeriod] = useState<'week' | 'month'>('week');
+
+  // Concentración de ingresos (Pareto de productos)
+  const [concentrationReport, setConcentrationReport] = useState<RevenueConcentrationReport | null>(null);
+  const [isLoadingConcentration, setIsLoadingConcentration] = useState(false);
+  const [concentrationPeriod, setConcentrationPeriod] = useState<'week' | 'month'>('month');
 
   // Reporte por empleada
   const [employeeOptions, setEmployeeOptions] = useState<EmployeeOption[]>([]);
@@ -249,6 +273,21 @@ export default function StatsPage() {
       console.error('Error loading sales trend:', error);
     } finally {
       setIsLoadingTrend(false);
+    }
+  };
+
+  const loadConcentrationReport = async () => {
+    if (concentrationReport || isLoadingConcentration) return; // ya cargado, no repetir
+    setIsLoadingConcentration(true);
+    try {
+      const res = await fetch('/api/reports/revenue-concentration');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al cargar el reporte');
+      setConcentrationReport(data as RevenueConcentrationReport);
+    } catch (error) {
+      console.error('Error loading revenue concentration:', error);
+    } finally {
+      setIsLoadingConcentration(false);
     }
   };
 
@@ -431,10 +470,30 @@ export default function StatsPage() {
         >
           Tendencia
         </button>
+        <button
+          onClick={() => {
+            setView('concentration');
+            loadConcentrationReport();
+          }}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            view === 'concentration'
+              ? 'bg-amber-500 text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Productos clave
+        </button>
       </div>
 
       {/* Tabla de estadísticas */}
-      {view === 'trend' ? (
+      {view === 'concentration' ? (
+        <RevenueConcentrationView
+          report={concentrationReport}
+          isLoading={isLoadingConcentration}
+          period={concentrationPeriod}
+          onPeriodChange={setConcentrationPeriod}
+        />
+      ) : view === 'trend' ? (
         <SalesTrendView
           report={trendReport}
           isLoading={isLoadingTrend}
@@ -1284,6 +1343,130 @@ function RevenueBarChart({ title, bars }: { title: string; bars: { label: string
             );
           })}
         </div>
+      )}
+    </div>
+  );
+}
+
+function RevenueConcentrationView({
+  report,
+  isLoading,
+  period,
+  onPeriodChange,
+}: {
+  report: RevenueConcentrationReport | null;
+  isLoading: boolean;
+  period: 'week' | 'month';
+  onPeriodChange: (period: 'week' | 'month') => void;
+}) {
+  if (isLoading || !report) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  const bucket = report[period];
+  const periodLabel = period === 'week' ? 'los últimos 7 días' : 'los últimos 30 días';
+
+  return (
+    <div className="space-y-6">
+      {/* Selector de período */}
+      <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">
+        <button
+          onClick={() => onPeriodChange('week')}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            period === 'week' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+          }`}
+        >
+          Semana
+        </button>
+        <button
+          onClick={() => onPeriodChange('month')}
+          className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            period === 'month' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'
+          }`}
+        >
+          Mes
+        </button>
+      </div>
+
+      {bucket.items.length === 0 ? (
+        <div className="text-center py-12 text-gray-500 text-sm">No hay suficientes ventas en {periodLabel}.</div>
+      ) : (
+        <>
+          {/* Titular */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
+            <p className="text-sm text-amber-900 mb-1">
+              En {periodLabel}, vendiste {formatCurrency(bucket.total_revenue)} en total.
+            </p>
+            <p className="text-2xl font-bold text-amber-900">
+              {bucket.products_for_50pct} producto{bucket.products_for_50pct !== 1 ? 's' : ''} = 50% de tus ingresos
+            </p>
+            <p className="text-sm text-amber-800 mt-1">
+              Y con {bucket.products_for_80pct} producto{bucket.products_for_80pct !== 1 ? 's' : ''} ya cubres el 80%.
+              Esos son los productos en los que <strong>nunca te puedes quedar sin stock</strong>.
+            </p>
+          </div>
+
+          {/* Tabla */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h3 className="text-sm font-bold text-gray-900 mb-1">Productos ordenados por ingresos</h3>
+            <p className="text-xs text-gray-500 mb-4 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span className="inline-flex items-center gap-1">
+                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-600 text-white">
+                  🎯 Núcleo (50%)
+                </span>
+                estos productos ya suman la mitad de tus ingresos
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">
+                  80%
+                </span>
+                hasta aquí llegas al 80% del total
+              </span>
+            </p>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="py-2 text-left text-sm font-medium text-gray-600">Producto</th>
+                    <th className="py-2 text-right text-sm font-medium text-gray-600">Ingresos</th>
+                    <th className="py-2 text-right text-sm font-medium text-gray-600">% del total</th>
+                    <th className="py-2 text-right text-sm font-medium text-gray-600">% acumulado</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {bucket.items.map((p, index) => {
+                    const inCore = index < bucket.products_for_50pct;
+                    const in80 = !inCore && index < bucket.products_for_80pct;
+                    return (
+                      <tr key={p.product_name} className={inCore ? 'bg-amber-50' : ''}>
+                        <td className="py-2 text-sm text-gray-800">
+                          {p.product_name}
+                          {inCore && (
+                            <span className="ml-2 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-600 text-white align-middle">
+                              🎯
+                            </span>
+                          )}
+                          {in80 && (
+                            <span className="ml-2 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700 align-middle">
+                              80%
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2 text-sm text-right text-gray-800">{formatCurrency(p.revenue)}</td>
+                        <td className="py-2 text-sm text-right text-gray-500">{p.pct_of_total}%</td>
+                        <td className="py-2 text-sm text-right font-medium text-gray-700">{p.cumulative_pct}%</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
