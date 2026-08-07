@@ -87,7 +87,7 @@ export default function StartShiftPage() {
   if (checkingShift) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -102,9 +102,9 @@ export default function StartShiftPage() {
         {/* Header con hora y tipo de turno */}
         <div className="text-center mb-8">
           <p className="text-4xl font-bold text-gray-900 dark:text-neutral-100 mb-2">{timeString}</p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-950 rounded-full">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-violet-50 dark:bg-violet-950 rounded-full">
             <span className="text-2xl">{shiftType === 'day' ? '☀️' : '🌙'}</span>
-            <span className="font-medium text-amber-800 dark:text-amber-400">
+            <span className="font-medium text-violet-800 dark:text-violet-400">
               Turno de {getShiftTypeLabel(shiftType)}
             </span>
           </div>
@@ -131,7 +131,7 @@ export default function StartShiftPage() {
                 onClick={() => setShiftType('day')}
                 className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
                   shiftType === 'day'
-                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-400'
+                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-950 text-violet-800 dark:text-violet-400'
                     : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-gray-300 dark:hover:border-neutral-600'
                 }`}
               >
@@ -143,7 +143,7 @@ export default function StartShiftPage() {
                 onClick={() => setShiftType('night')}
                 className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
                   shiftType === 'night'
-                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-400'
+                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-950 text-violet-800 dark:text-violet-400'
                     : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-gray-300 dark:hover:border-neutral-600'
                 }`}
               >
@@ -167,7 +167,7 @@ export default function StartShiftPage() {
                 value={cashStart}
                 onChange={(e) => setCashStart(e.target.value)}
                 placeholder="0"
-                className="w-full pl-8 pr-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
+                className="w-full pl-8 pr-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-violet-500 focus:ring-0"
               />
             </div>
             {cashStart && (
@@ -191,7 +191,7 @@ export default function StartShiftPage() {
                 value={transferStart}
                 onChange={(e) => setTransferStart(e.target.value)}
                 placeholder="0"
-                className="w-full pl-8 pr-4 py-3 text-lg text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
+                className="w-full pl-8 pr-4 py-3 text-lg text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-violet-500 focus:ring-0"
               />
             </div>
             <p className="text-xs text-gray-500 dark:text-neutral-400 text-center mt-1">

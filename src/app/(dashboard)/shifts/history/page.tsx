@@ -83,7 +83,7 @@ export default function ShiftHistoryPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center h-48">
-          <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden">
@@ -172,7 +172,7 @@ export default function ShiftHistoryPage() {
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => setSelectedShift(shift)}
-                          className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400 text-sm font-medium"
+                          className="text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-400 text-sm font-medium"
                         >
                           Ver detalle
                         </button>
@@ -315,8 +315,8 @@ function ShiftDetailModal({ shift, onClose }: { shift: ShiftSummary; onClose: ()
           </div>
 
           {/* Resumen */}
-          <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-4">
-            <h3 className="text-sm font-medium text-amber-800 dark:text-amber-400 uppercase tracking-wider mb-3">Resumen del Turno</h3>
+          <div className="bg-violet-50 dark:bg-violet-950 rounded-xl p-4">
+            <h3 className="text-sm font-medium text-violet-800 dark:text-violet-400 uppercase tracking-wider mb-3">Resumen del Turno</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-700 dark:text-neutral-300">Transacciones</span>
@@ -325,12 +325,12 @@ function ShiftDetailModal({ shift, onClose }: { shift: ShiftSummary; onClose: ()
               {shift.open_tabs_count > 0 && (
                 <div className="flex justify-between">
                   <span className="text-gray-700 dark:text-neutral-300">Cuentas abiertas</span>
-                  <span className="font-medium text-amber-600 dark:text-amber-400">{shift.open_tabs_count}</span>
+                  <span className="font-medium text-violet-600 dark:text-violet-400">{shift.open_tabs_count}</span>
                 </div>
               )}
-              <div className="flex justify-between border-t border-amber-200 dark:border-amber-800 pt-2">
-                <span className="font-bold text-amber-900 dark:text-amber-300">Total ventas</span>
-                <span className="font-bold text-xl text-amber-900 dark:text-amber-300">{formatCurrency(shift.total_sales)}</span>
+              <div className="flex justify-between border-t border-violet-200 dark:border-violet-800 pt-2">
+                <span className="font-bold text-violet-900 dark:text-violet-300">Total ventas</span>
+                <span className="font-bold text-xl text-violet-900 dark:text-violet-300">{formatCurrency(shift.total_sales)}</span>
               </div>
             </div>
           </div>

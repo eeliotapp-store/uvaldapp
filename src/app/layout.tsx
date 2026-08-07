@@ -24,8 +24,8 @@ const dancingScript = Dancing_Script({
 });
 
 export const metadata: Metadata = {
-  title: "Cervecería - Sistema de Inventario",
-  description: "Sistema de gestión de inventario y ventas para cervecería",
+  title: "uvaldapp",
+  description: "uvaldapp — Sistema de inventario y ventas",
 };
 
 // Se ejecuta antes de que React hidrate, para que la página nunca "parpadee"
@@ -55,7 +55,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>

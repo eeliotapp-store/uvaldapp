@@ -170,7 +170,7 @@ export default function InventoryPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -211,7 +211,7 @@ export default function InventoryPage() {
         </div>
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 p-4">
           <p className="text-sm text-gray-500 dark:text-neutral-400">Valor Inventario</p>
-          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{formatCurrency(totalValue)}</p>
+          <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">{formatCurrency(totalValue)}</p>
         </div>
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 p-4">
           <p className="text-sm text-gray-500 dark:text-neutral-400">Stock Bajo</p>
@@ -227,7 +227,7 @@ export default function InventoryPage() {
           onClick={() => setActiveTab('stock')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'stock'
-              ? 'bg-amber-500 text-white'
+              ? 'bg-violet-500 text-white'
               : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
           }`}
         >
@@ -237,7 +237,7 @@ export default function InventoryPage() {
           onClick={() => setActiveTab('history')}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'history'
-              ? 'bg-amber-500 text-white'
+              ? 'bg-violet-500 text-white'
               : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
           }`}
         >
@@ -290,14 +290,14 @@ export default function InventoryPage() {
                           onChange={(e) => setEditValue(e.target.value)}
                           onBlur={() => saveStockEdit(item.product_id, Math.floor(parseFloat(editValue) || 0))}
                           onKeyDown={(e) => handleEditKeyDown(e, item.product_id, 'stock')}
-                          className="w-20 px-2 py-1 text-center text-lg font-bold border-2 border-amber-400 rounded focus:outline-none focus:border-amber-500"
+                          className="w-20 px-2 py-1 text-center text-lg font-bold border-2 border-violet-400 rounded focus:outline-none focus:border-violet-500"
                           autoFocus
                           min="0"
                         />
                       ) : (
                         <span
                           onClick={() => startEditing(item.product_id, 'stock', item.current_stock)}
-                          className={`text-lg font-bold cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900 px-2 py-1 rounded ${
+                          className={`text-lg font-bold cursor-pointer hover:bg-violet-100 dark:hover:bg-violet-900 px-2 py-1 rounded ${
                             item.is_low_stock ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-neutral-100'
                           }`}
                           title="Clic para editar"
@@ -314,7 +314,7 @@ export default function InventoryPage() {
                           onChange={(e) => setEditValue(e.target.value)}
                           onBlur={() => savePriceEdit(item.product_id, parseFloat(editValue) || 0)}
                           onKeyDown={(e) => handleEditKeyDown(e, item.product_id, 'price')}
-                          className="w-24 px-2 py-1 text-right border-2 border-amber-400 rounded focus:outline-none focus:border-amber-500"
+                          className="w-24 px-2 py-1 text-right border-2 border-violet-400 rounded focus:outline-none focus:border-violet-500"
                           autoFocus
                           min="0"
                           step="100"
@@ -322,7 +322,7 @@ export default function InventoryPage() {
                       ) : (
                         <span
                           onClick={() => startEditing(item.product_id, 'price', item.sale_price)}
-                          className="cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900 px-2 py-1 rounded text-gray-600 dark:text-neutral-300"
+                          className="cursor-pointer hover:bg-violet-100 dark:hover:bg-violet-900 px-2 py-1 rounded text-gray-600 dark:text-neutral-300"
                           title="Clic para editar"
                         >
                           {formatCurrency(item.sale_price)}
@@ -435,7 +435,7 @@ export default function InventoryPage() {
                     <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => handleAdjust(entry)}
-                        className="px-2 py-1 text-xs bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 rounded hover:bg-amber-100 dark:hover:bg-amber-900"
+                        className="px-2 py-1 text-xs bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-400 rounded hover:bg-violet-100 dark:hover:bg-violet-900"
                       >
                         Editar
                       </button>
@@ -607,7 +607,7 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                 setFormData({ ...formData, product_id: e.target.value })
               }
               required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             >
               <option value="">Seleccionar...</option>
               {products.map((p) => (
@@ -628,7 +628,7 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                 setFormData({ ...formData, supplier_id: e.target.value })
               }
               required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             >
               <option value="">Seleccionar...</option>
               {suppliers.map((s) => (
@@ -640,8 +640,8 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
           </div>
 
           {/* Sección de paquetes */}
-          <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-4 space-y-3">
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-400">Información del paquete</p>
+          <div className="bg-violet-50 dark:bg-violet-950 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-violet-800 dark:text-violet-400">Información del paquete</p>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
@@ -656,7 +656,7 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                   }
                   required
                   min="1"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 text-center"
                 />
               </div>
 
@@ -673,7 +673,7 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                   required
                   min="1"
                   placeholder="24"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 text-center"
                 />
               </div>
 
@@ -690,14 +690,14 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                   required
                   min="0"
                   placeholder="68000"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 text-center"
                 />
               </div>
             </div>
 
             {/* Resumen calculado */}
             {totalUnits > 0 && (
-              <div className="bg-white dark:bg-neutral-800 rounded-lg p-3 mt-3 border border-amber-200 dark:border-amber-800">
+              <div className="bg-white dark:bg-neutral-800 rounded-lg p-3 mt-3 border border-violet-200 dark:border-violet-800">
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
                     <p className="text-xs text-gray-500 dark:text-neutral-400">Total Unidades</p>
@@ -705,7 +705,7 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 dark:text-neutral-400">Precio/Unidad</p>
-                    <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{formatCurrency(unitPrice)}</p>
+                    <p className="text-lg font-bold text-violet-600 dark:text-violet-400">{formatCurrency(unitPrice)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 dark:text-neutral-400">Total Compra</p>
@@ -726,7 +726,7 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
               onChange={(e) =>
                 setFormData({ ...formData, batch_date: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 
@@ -842,7 +842,7 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
               value={formData.supplier_id}
               onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
               required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             >
               <option value="">Seleccionar proveedor...</option>
               {availableSuppliers.map((s) => (
@@ -852,8 +852,8 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
           </div>
 
           {/* Cantidades */}
-          <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-4 space-y-3">
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-400">Cantidades</p>
+          <div className="bg-violet-50 dark:bg-violet-950 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-violet-800 dark:text-violet-400">Cantidades</p>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -932,7 +932,7 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
               type="date"
               value={formData.batch_date}
               onChange={(e) => setFormData({ ...formData, batch_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 

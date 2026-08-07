@@ -69,7 +69,7 @@ export function BottomNav() {
                   className={cn(
                     'flex flex-col items-center justify-center p-3 rounded-xl',
                     isActive
-                      ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400'
+                      ? 'bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400'
                       : 'text-gray-600 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-700'
                   )}
                 >
@@ -98,7 +98,7 @@ export function BottomNav() {
                 href={item.href}
                 className={cn(
                   'flex flex-col items-center justify-center w-full h-full',
-                  isActive ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-neutral-400'
+                  isActive ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500 dark:text-neutral-400'
                 )}
               >
                 <item.icon className="w-6 h-6" />
@@ -112,7 +112,7 @@ export function BottomNav() {
             onClick={() => setShowMore(!showMore)}
             className={cn(
               'flex flex-col items-center justify-center w-full h-full',
-              showMore || isMoreActive ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-neutral-400'
+              showMore || isMoreActive ? 'text-violet-600 dark:text-violet-400' : 'text-gray-500 dark:text-neutral-400'
             )}
           >
             <MoreIcon className="w-6 h-6" />

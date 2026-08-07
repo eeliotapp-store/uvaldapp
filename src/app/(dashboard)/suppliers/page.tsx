@@ -77,7 +77,7 @@ export default function SuppliersPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -162,7 +162,7 @@ export default function SuppliersPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => handleEdit(supplier)}
-                className="flex-1 px-3 py-2 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 rounded-lg text-sm font-medium hover:bg-amber-100 dark:hover:bg-amber-900"
+                className="flex-1 px-3 py-2 bg-violet-50 dark:bg-violet-950 text-violet-700 dark:text-violet-400 rounded-lg text-sm font-medium hover:bg-violet-100 dark:hover:bg-violet-900"
               >
                 Editar
               </button>
@@ -265,7 +265,7 @@ function SupplierModal({ supplier, onClose, onSuccess }: SupplierModalProps) {
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 
@@ -277,7 +277,7 @@ function SupplierModal({ supplier, onClose, onSuccess }: SupplierModalProps) {
               type="text"
               value={formData.contact_person}
               onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 
@@ -289,7 +289,7 @@ function SupplierModal({ supplier, onClose, onSuccess }: SupplierModalProps) {
               type="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 
@@ -301,7 +301,7 @@ function SupplierModal({ supplier, onClose, onSuccess }: SupplierModalProps) {
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 
@@ -313,7 +313,7 @@ function SupplierModal({ supplier, onClose, onSuccess }: SupplierModalProps) {
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 

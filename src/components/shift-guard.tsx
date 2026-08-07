@@ -118,7 +118,7 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
   if (isChecking) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -127,8 +127,8 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-200 dark:border-neutral-700 p-8 max-w-md text-center shadow-sm">
-          <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-violet-600 dark:text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -140,7 +140,7 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
           </p>
           <Link
             href="/shifts/start"
-            className="inline-flex items-center justify-center px-6 py-3 bg-amber-500 text-white font-medium rounded-xl hover:bg-amber-600 transition-colors"
+            className="inline-flex items-center justify-center px-6 py-3 bg-violet-500 text-white font-medium rounded-xl hover:bg-violet-600 transition-colors"
           >
             Iniciar Turno
           </Link>

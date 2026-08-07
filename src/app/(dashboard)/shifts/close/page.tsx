@@ -117,7 +117,7 @@ export default function CloseShiftPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -220,7 +220,7 @@ export default function CloseShiftPage() {
           {summary.open_tabs_count > 0 && (
             <div className="flex justify-between">
               <span className="text-gray-600 dark:text-neutral-300">Cuentas abiertas</span>
-              <span className="font-medium text-amber-600 dark:text-amber-400">{summary.open_tabs_count}</span>
+              <span className="font-medium text-violet-600 dark:text-violet-400">{summary.open_tabs_count}</span>
             </div>
           )}
           <div className="flex justify-between border-t border-gray-200 dark:border-neutral-700 pt-3">
@@ -266,7 +266,7 @@ export default function CloseShiftPage() {
           value={cashEnd}
           onChange={(e) => setCashEnd(e.target.value)}
           placeholder="0"
-          className="w-full px-4 py-3 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
+          className="w-full px-4 py-3 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-violet-500 focus:ring-0"
         />
 
         {cashEnd && (
@@ -301,7 +301,7 @@ export default function CloseShiftPage() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             placeholder="Observaciones del turno..."
           />
         </div>
@@ -353,7 +353,7 @@ function StartShiftModal({
                 onClick={() => setShiftType('day')}
                 className={`p-4 rounded-xl border-2 transition-all ${
                   shiftType === 'day'
-                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-950'
                     : 'border-gray-200 dark:border-neutral-700'
                 }`}
               >
@@ -365,7 +365,7 @@ function StartShiftModal({
                 onClick={() => setShiftType('night')}
                 className={`p-4 rounded-xl border-2 transition-all ${
                   shiftType === 'night'
-                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                    ? 'border-violet-500 bg-violet-50 dark:bg-violet-950'
                     : 'border-gray-200 dark:border-neutral-700'
                 }`}
               >
@@ -384,7 +384,7 @@ function StartShiftModal({
               value={cashStart}
               onChange={(e) => setCashStart(e.target.value)}
               placeholder="0"
-              className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
+              className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-violet-500 focus:ring-0"
             />
           </div>
 

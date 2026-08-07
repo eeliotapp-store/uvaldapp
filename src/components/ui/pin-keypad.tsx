@@ -47,7 +47,7 @@ export function PinKeypad({ onComplete, isLoading, error }: PinKeypadProps) {
             className={cn(
               'w-14 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-bold transition-all',
               index < pin.length
-                ? 'bg-amber-100 dark:bg-amber-900 border-amber-500 text-amber-700 dark:text-amber-400'
+                ? 'bg-violet-100 dark:bg-violet-900 border-violet-500 text-violet-700 dark:text-violet-400'
                 : 'bg-gray-50 dark:bg-neutral-950 border-gray-300 dark:border-neutral-600'
             )}
           >
@@ -72,13 +72,13 @@ export function PinKeypad({ onComplete, isLoading, error }: PinKeypadProps) {
             disabled={isLoading}
             className={cn(
               'h-16 rounded-xl text-2xl font-semibold transition-all active:scale-95',
-              'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2',
+              'focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               key === 'C'
                 ? 'bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-neutral-300 hover:bg-gray-300'
                 : key === 'backspace'
                 ? 'bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-neutral-300 hover:bg-gray-300'
-                : 'bg-white dark:bg-neutral-800 border-2 border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-neutral-100 hover:bg-gray-50 dark:hover:bg-neutral-950 hover:border-amber-400'
+                : 'bg-white dark:bg-neutral-800 border-2 border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-neutral-100 hover:bg-gray-50 dark:hover:bg-neutral-950 hover:border-violet-400'
             )}
           >
             {key === 'backspace' ? (
@@ -106,7 +106,7 @@ export function PinKeypad({ onComplete, isLoading, error }: PinKeypadProps) {
       {/* Loading Indicator */}
       {isLoading && (
         <div className="flex justify-center mt-6">
-          <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
         </div>
       )}
     </div>

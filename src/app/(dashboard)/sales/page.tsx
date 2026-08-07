@@ -254,7 +254,7 @@ function SalesContent() {
       {openTabs.length > 0 && (
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-neutral-100 mb-3 flex items-center gap-2">
-            <span className="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></span>
+            <span className="w-3 h-3 bg-violet-500 rounded-full animate-pulse"></span>
             Cuentas Abiertas ({openTabs.length})
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -263,7 +263,7 @@ function SalesContent() {
                 key={tab.id}
                 className={`border-2 rounded-xl text-left hover:shadow-md transition-all ${
                   tab.employee_id === employee?.id
-                    ? 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800 hover:border-amber-400'
+                    ? 'bg-violet-50 dark:bg-violet-950 border-violet-200 dark:border-violet-800 hover:border-violet-400'
                     : 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 hover:border-blue-400'
                 }`}
               >
@@ -274,7 +274,7 @@ function SalesContent() {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <span className={`font-bold text-lg ${
-                        tab.employee_id === employee?.id ? 'text-amber-800 dark:text-amber-400' : 'text-blue-800 dark:text-blue-400'
+                        tab.employee_id === employee?.id ? 'text-violet-800 dark:text-violet-400' : 'text-blue-800 dark:text-blue-400'
                       }`}>
                         {tab.table_number ? `Mesa ${tab.table_number}` : 'Sin mesa'}
                       </span>
@@ -293,7 +293,7 @@ function SalesContent() {
                       {(tab.total_paid || 0) > 0 && (
                         <div className="text-xs mt-1">
                           <span className="text-green-600 dark:text-green-400">Pagado: {formatCurrency(tab.total_paid)}</span>
-                          <span className="text-amber-600 dark:text-amber-400 ml-2">Resta: {formatCurrency(tab.remaining)}</span>
+                          <span className="text-violet-600 dark:text-violet-400 ml-2">Resta: {formatCurrency(tab.remaining)}</span>
                         </div>
                       )}
                     </div>
@@ -398,7 +398,7 @@ function SalesContent() {
       {/* Lista de ventas cerradas */}
       {isLoading ? (
         <div className="flex items-center justify-center h-48">
-          <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden">
@@ -457,13 +457,13 @@ function SalesContent() {
                           : sale.payment_method === 'transfer'
                           ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-400'
                           : sale.payment_method === 'fiado'
-                          ? 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-400'
+                          ? 'bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400'
                           : 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-400'
                       }`}>
                         {sale.payment_method === 'cash' ? 'Efectivo' : sale.payment_method === 'transfer' ? 'Transferencia' : sale.payment_method === 'fiado' ? 'Fiado' : 'Mixto'}
                       </span>
                       {sale.payment_method === 'fiado' && sale.fiado_customer_name && (
-                        <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">{sale.fiado_customer_name}</p>
+                        <p className="text-xs text-violet-600 dark:text-violet-400 mt-1">{sale.fiado_customer_name}</p>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -477,7 +477,7 @@ function SalesContent() {
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => setSelectedSale(sale)}
-                        className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400 text-sm font-medium mr-2"
+                        className="text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-400 text-sm font-medium mr-2"
                       >
                         Ver
                       </button>
@@ -1548,7 +1548,7 @@ function SaleModal({
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white dark:bg-neutral-800 rounded-2xl p-8">
-          <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin mx-auto" />
         </div>
       </div>
     );
@@ -1595,14 +1595,14 @@ function SaleModal({
           {step === 'takeover' ? (
             /* Paso de tomar relevo */
             <div className="space-y-6">
-              <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-6 text-center">
+              <div className="bg-violet-50 dark:bg-violet-950 rounded-xl p-6 text-center">
                 <div className="text-4xl mb-3">🔄</div>
-                <h3 className="font-bold text-amber-800 dark:text-amber-400 text-lg mb-2">Cuenta de otro empleado</h3>
-                <p className="text-amber-700 dark:text-amber-400">
+                <h3 className="font-bold text-violet-800 dark:text-violet-400 text-lg mb-2">Cuenta de otro empleado</h3>
+                <p className="text-violet-700 dark:text-violet-400">
                   Esta cuenta fue abierta por <strong>{existingTab?.employee_name}</strong>
                 </p>
                 {existingTab?.opened_by_name && existingTab.opened_by_name !== existingTab.employee_name && (
-                  <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+                  <p className="text-sm text-violet-600 dark:text-violet-400 mt-1">
                     (Originalmente de {existingTab.opened_by_name})
                   </p>
                 )}
@@ -1615,7 +1615,7 @@ function SaleModal({
                     <div key={idx} className="flex justify-between text-sm">
                       <span>
                         {item.quantity}x {item.product_name}
-                        {item.is_michelada && <span className="text-amber-600 dark:text-amber-400"> Michelada</span>}
+                        {item.is_michelada && <span className="text-violet-600 dark:text-violet-400"> Michelada</span>}
                         {item.combo_name && <span className="text-purple-600 dark:text-purple-400 text-xs"> (🎁 {item.combo_name})</span>}
                       </span>
                       <span>{formatCurrency(item.subtotal)}</span>
@@ -1662,9 +1662,9 @@ function SaleModal({
           ) : step === 'shift' ? (
             /* Paso de inicio de turno */
             <div className="space-y-6">
-              <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-4 text-center">
-                <p className="text-amber-800 dark:text-amber-400 font-medium">No hay turno activo</p>
-                <p className="text-sm text-amber-600 dark:text-amber-400">Inicia un turno para poder registrar ventas</p>
+              <div className="bg-violet-50 dark:bg-violet-950 rounded-xl p-4 text-center">
+                <p className="text-violet-800 dark:text-violet-400 font-medium">No hay turno activo</p>
+                <p className="text-sm text-violet-600 dark:text-violet-400">Inicia un turno para poder registrar ventas</p>
               </div>
 
               {/* Empleado */}
@@ -1681,7 +1681,7 @@ function SaleModal({
                     onClick={() => setShiftType('day')}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       shiftType === 'day'
-                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-950'
                         : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
                     }`}
                   >
@@ -1692,7 +1692,7 @@ function SaleModal({
                     onClick={() => setShiftType('night')}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       shiftType === 'night'
-                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-950'
                         : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
                     }`}
                   >
@@ -1711,7 +1711,7 @@ function SaleModal({
                   type="number"
                   value={cashStart}
                   onChange={(e) => setCashStart(e.target.value)}
-                  className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500"
+                  className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-violet-500"
                   placeholder="0"
                 />
                 <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1 text-center">
@@ -1747,7 +1747,7 @@ function SaleModal({
                     value={tableNumber}
                     onChange={(e) => setTableNumber(e.target.value)}
                     placeholder="Ej: 5, Barra, Terraza..."
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
                   />
                 </div>
               )}
@@ -1762,7 +1762,7 @@ function SaleModal({
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Sin hielo, alergia, pedido especial..."
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 resize-none"
                 />
               </div>
 
@@ -1790,7 +1790,7 @@ function SaleModal({
                       <h3 className="font-medium text-gray-700 dark:text-neutral-300">Productos ya agregados</h3>
                       <button
                         onClick={() => setEditingExistingItem(editingExistingItem ? null : 'all')}
-                        className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400"
+                        className="text-xs text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-400"
                       >
                         {editingExistingItem ? 'Cancelar edición' : '✏️ Editar'}
                       </button>
@@ -1836,7 +1836,7 @@ function SaleModal({
                                 <div key={item.id} className="flex items-center justify-between">
                                   <span>
                                     {item.quantity}x {item.product_name}
-                                    {item.is_michelada && <span className="text-amber-600 dark:text-amber-400"> Michelada</span>}
+                                    {item.is_michelada && <span className="text-violet-600 dark:text-violet-400"> Michelada</span>}
                                   </span>
                                   {editingExistingItem && (
                                     <div className="flex gap-1">
@@ -1881,7 +1881,7 @@ function SaleModal({
                             <div className="flex-1">
                               <div className="text-gray-900 dark:text-neutral-100">
                                 {item.quantity}x {item.product_name}
-                                {item.is_michelada && <span className="text-amber-600 dark:text-amber-400"> Michelada</span>}
+                                {item.is_michelada && <span className="text-violet-600 dark:text-violet-400"> Michelada</span>}
                               </div>
                               {item.added_by_name && (
                                 <div className="text-xs text-gray-500 dark:text-neutral-400">
@@ -1946,7 +1946,7 @@ function SaleModal({
                       onChange={(e) => setNewObservation(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleAddObservation()}
                       placeholder="Escribe una observación..."
-                      className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
                     />
                     <Button
                       onClick={handleAddObservation}
@@ -1960,13 +1960,13 @@ function SaleModal({
               )}
 
               {/* Agregar producto */}
-              <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-4 mb-4">
-                <h3 className="font-medium text-amber-800 dark:text-amber-400 mb-3">Agregar Producto</h3>
+              <div className="bg-violet-50 dark:bg-violet-950 rounded-xl p-4 mb-4">
+                <h3 className="font-medium text-violet-800 dark:text-violet-400 mb-3">Agregar Producto</h3>
                 <div className="flex gap-3">
                   <select
                     value={selectedProduct}
                     onChange={(e) => setSelectedProduct(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
                   >
                     <option value="">Seleccionar producto...</option>
                     {(filterCategory ? products.filter(p => p.category === filterCategory) : products).map(product => {
@@ -2044,7 +2044,7 @@ function SaleModal({
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900 dark:text-neutral-100">
                                   {item.product.name}
-                                  {item.isMichelada && <span className="text-amber-600 dark:text-amber-400 ml-1">🌶️</span>}
+                                  {item.isMichelada && <span className="text-violet-600 dark:text-violet-400 ml-1">🌶️</span>}
                                   {item.isBomba && <span className="text-blue-600 dark:text-blue-400 ml-1">💣</span>}
                                 </p>
                                 <p className="text-sm text-gray-500 dark:text-neutral-400">{formatCurrency(unitPrice)} c/u</p>
@@ -2060,7 +2060,7 @@ function SaleModal({
                                   <span className="w-8 text-center font-medium">{item.quantity}</span>
                                   <button
                                     onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1, item.isMichelada, item.isBomba)}
-                                    className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-700 dark:text-amber-400 hover:bg-amber-200"
+                                    className="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center text-violet-700 dark:text-violet-400 hover:bg-violet-200"
                                   >
                                     +
                                   </button>
@@ -2127,11 +2127,11 @@ function SaleModal({
             /* Paso de pago */
             <div className="space-y-6">
               {/* Resumen */}
-              <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-4 text-center">
+              <div className="bg-violet-50 dark:bg-violet-950 rounded-xl p-4 text-center">
                 <p className="text-gray-600 dark:text-neutral-300 text-sm">
                   {totalPaid > 0 ? 'Restante a cobrar' : 'Total a cobrar'}
                 </p>
-                <p className="text-3xl font-bold text-amber-700 dark:text-amber-400">{formatCurrency(totalToPay)}</p>
+                <p className="text-3xl font-bold text-violet-700 dark:text-violet-400">{formatCurrency(totalToPay)}</p>
                 {totalPaid > 0 && (
                   <p className="text-sm text-green-600 dark:text-green-400 mt-1">
                     (Pagos parciales: {formatCurrency(totalPaid)} de {formatCurrency(total)})
@@ -2155,7 +2155,7 @@ function SaleModal({
                     onClick={() => setPaymentMethod(method)}
                     className={`p-3 rounded-xl border-2 transition-all ${
                       paymentMethod === method
-                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                        ? 'border-violet-500 bg-violet-50 dark:bg-violet-950'
                         : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
                     }`}
                   >
@@ -2179,7 +2179,7 @@ function SaleModal({
                     type="number"
                     value={cashReceived}
                     onChange={(e) => setCashReceived(e.target.value)}
-                    className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500"
+                    className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-violet-500"
                     placeholder="0"
                     autoFocus
                   />
@@ -2239,7 +2239,7 @@ function SaleModal({
                       {getChange() > 0 && (
                         <div className="flex justify-between text-sm pt-2 border-t border-gray-200 dark:border-neutral-700 mt-2">
                           <span>Cambio:</span>
-                          <span className="text-amber-600 dark:text-amber-400 font-bold">{formatCurrency(getChange())}</span>
+                          <span className="text-violet-600 dark:text-violet-400 font-bold">{formatCurrency(getChange())}</span>
                         </div>
                       )}
                     </div>
@@ -2249,8 +2249,8 @@ function SaleModal({
 
               {paymentMethod === 'fiado' && (
                 <div className="space-y-4">
-                  <div className="bg-orange-50 dark:bg-orange-950 rounded-xl p-4 text-center">
-                    <p className="text-orange-700 dark:text-orange-400 text-sm font-medium">⚠️ Esta venta quedará como fiado</p>
+                  <div className="bg-violet-50 dark:bg-violet-950 rounded-xl p-4 text-center">
+                    <p className="text-violet-700 dark:text-violet-400 text-sm font-medium">⚠️ Esta venta quedará como fiado</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
@@ -2260,7 +2260,7 @@ function SaleModal({
                       type="text"
                       value={fiadoCustomerName}
                       onChange={(e) => setFiadoCustomerName(e.target.value)}
-                      className="w-full px-4 py-3 text-lg border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-orange-500"
+                      className="w-full px-4 py-3 text-lg border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-violet-500"
                       placeholder="¿A quién se le fía?"
                       autoFocus
                     />
@@ -2277,7 +2277,7 @@ function SaleModal({
                       placeholder="0"
                     />
                   </div>
-                  <div className="bg-orange-100 dark:bg-orange-900 rounded-lg p-4">
+                  <div className="bg-violet-100 dark:bg-violet-900 rounded-lg p-4">
                     <div className="flex justify-between text-sm mb-1">
                       <span>{totalPaid > 0 ? 'Restante:' : 'Total:'}</span>
                       <span className="font-medium">{formatCurrency(totalToPay)}</span>
@@ -2288,9 +2288,9 @@ function SaleModal({
                         <span className="text-green-600 dark:text-green-400 font-medium">-{formatCurrency(parseFloat(fiadoAbono) || 0)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-lg pt-2 border-t border-orange-200 dark:border-orange-800 mt-2">
+                    <div className="flex justify-between text-lg pt-2 border-t border-violet-200 dark:border-violet-800 mt-2">
                       <span className="font-medium">Queda debiendo:</span>
-                      <span className="text-orange-700 dark:text-orange-400 font-bold">{formatCurrency(getFiadoAmount())}</span>
+                      <span className="text-violet-700 dark:text-violet-400 font-bold">{formatCurrency(getFiadoAmount())}</span>
                     </div>
                   </div>
                 </div>
@@ -2316,7 +2316,7 @@ function SaleModal({
                   {existingTab && totalPaid > 0 && (
                     <div className="text-sm mt-1">
                       <span className="text-green-600 dark:text-green-400">Pagado: {formatCurrency(totalPaid)}</span>
-                      <span className="text-amber-600 dark:text-amber-400 ml-3">Resta: {formatCurrency(remaining)}</span>
+                      <span className="text-violet-600 dark:text-violet-400 ml-3">Resta: {formatCurrency(remaining)}</span>
                       <button
                         onClick={() => setShowPartialPaymentsHistory(true)}
                         className="ml-3 text-blue-600 dark:text-blue-400 hover:underline"
@@ -2409,7 +2409,7 @@ function SaleModal({
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => handleMicheladaChoice(false)}
-                className="p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all"
+                className="p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-violet-500 hover:bg-violet-50 dark:hover:bg-violet-950 transition-all"
               >
                 <div className="text-3xl mb-2">🍺</div>
                 <p className="font-medium">Normal</p>
@@ -2420,11 +2420,11 @@ function SaleModal({
 
               <button
                 onClick={() => handleMicheladaChoice(true)}
-                className="p-4 rounded-xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 transition-all"
+                className="p-4 rounded-xl border-2 border-violet-500 bg-violet-50 dark:bg-violet-950 hover:bg-violet-100 dark:hover:bg-violet-900 transition-all"
               >
                 <div className="text-3xl mb-2">🌶️</div>
-                <p className="font-medium text-amber-700 dark:text-amber-400">Michelada</p>
-                <p className="text-sm text-amber-600 dark:text-amber-400">
+                <p className="font-medium text-violet-700 dark:text-violet-400">Michelada</p>
+                <p className="text-sm text-violet-600 dark:text-violet-400">
                   {formatCurrency(showMicheladaModal.product.sale_price + MICHELADA_EXTRA)}
                 </p>
               </button>
@@ -2465,11 +2465,11 @@ function SaleModal({
 
               <button
                 onClick={() => handleBombaChoice(true, false)}
-                className="p-4 rounded-xl border-2 border-amber-400 bg-amber-50 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 transition-all"
+                className="p-4 rounded-xl border-2 border-violet-400 bg-violet-50 dark:bg-violet-950 hover:bg-violet-100 dark:hover:bg-violet-900 transition-all"
               >
                 <div className="text-3xl mb-2">🌶️</div>
-                <p className="font-medium text-amber-700 dark:text-amber-400">Michelada</p>
-                <p className="text-sm text-amber-600 dark:text-amber-400">
+                <p className="font-medium text-violet-700 dark:text-violet-400">Michelada</p>
+                <p className="text-sm text-violet-600 dark:text-violet-400">
                   {formatCurrency(showBombaModal.product.sale_price + MICHELADA_EXTRA)}
                 </p>
               </button>
@@ -2568,14 +2568,14 @@ function SaleModal({
                         setDirectAmount(e.target.value);
                         if (partialPaymentMethod === 'cash') setPartialCashReceived(e.target.value);
                       }}
-                      className="w-full p-3 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 outline-none"
+                      className="w-full p-3 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-violet-500 outline-none"
                       placeholder="0"
                       autoFocus
                     />
                     <div className="flex gap-2 mt-2">
                       <button
                         onClick={() => { setDirectAmount(remaining.toString()); if (partialPaymentMethod === 'cash') setPartialCashReceived(remaining.toString()); }}
-                        className="flex-1 text-xs py-1.5 border border-amber-300 text-amber-700 dark:text-amber-400 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950"
+                        className="flex-1 text-xs py-1.5 border border-violet-300 text-violet-700 dark:text-violet-400 rounded-lg hover:bg-violet-50 dark:hover:bg-violet-950"
                       >
                         Cobrar todo ({formatCurrency(remaining)})
                       </button>
@@ -2590,7 +2590,7 @@ function SaleModal({
                         <button
                           key={method}
                           onClick={() => { setPartialPaymentMethod(method); if (method === 'cash') setPartialCashReceived(directAmount); }}
-                          className={`p-3 rounded-lg border-2 text-center transition-all ${partialPaymentMethod === method ? 'border-amber-500 bg-amber-50 dark:bg-amber-950' : 'border-gray-200 dark:border-neutral-700'}`}
+                          className={`p-3 rounded-lg border-2 text-center transition-all ${partialPaymentMethod === method ? 'border-violet-500 bg-violet-50 dark:bg-violet-950' : 'border-gray-200 dark:border-neutral-700'}`}
                         >
                           <div className="text-xl mb-1">{method === 'cash' ? '💵' : method === 'transfer' ? '📱' : '💳'}</div>
                           <div className="text-sm font-medium">{method === 'cash' ? 'Efectivo' : method === 'transfer' ? 'Transfer' : 'Mixto'}</div>
@@ -2692,7 +2692,7 @@ function SaleModal({
                               max={item.remainingAmount}
                               min={0}
                             />
-                            <span className="text-sm text-amber-600 dark:text-amber-400 w-28 text-right font-medium">
+                            <span className="text-sm text-violet-600 dark:text-violet-400 w-28 text-right font-medium">
                               / {formatCurrency(item.remainingAmount)}
                             </span>
                           </div>
@@ -2730,7 +2730,7 @@ function SaleModal({
                         }}
                         className={`p-3 rounded-lg border-2 text-center transition-all ${
                           partialPaymentMethod === method
-                            ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                            ? 'border-violet-500 bg-violet-50 dark:bg-violet-950'
                             : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
                         }`}
                       >
@@ -2839,7 +2839,7 @@ function SaleModal({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
           <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">⚠️</span>
               </div>
               <h2 className="text-xl font-bold">Confirmar Pago Parcial</h2>
@@ -2941,7 +2941,7 @@ function SaleModal({
               </div>
               <div className="flex items-center justify-between">
                 <span className="font-medium text-gray-700 dark:text-neutral-300">Restante:</span>
-                <span className="text-xl font-bold text-amber-600 dark:text-amber-400">{formatCurrency(remaining)}</span>
+                <span className="text-xl font-bold text-violet-600 dark:text-violet-400">{formatCurrency(remaining)}</span>
               </div>
             </div>
           </div>
@@ -3006,7 +3006,7 @@ function EditExistingItemModal({
             <span className="text-2xl font-bold w-12 text-center">{quantity}</span>
             <button
               onClick={() => setQuantity(quantity + 1)}
-              className="w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl text-amber-700 dark:text-amber-400 hover:bg-amber-300"
+              className="w-10 h-10 rounded-full bg-violet-200 flex items-center justify-center text-xl text-violet-700 dark:text-violet-400 hover:bg-violet-300"
             >
               +
             </button>
@@ -3023,7 +3023,7 @@ function EditExistingItemModal({
               onClick={() => setIsMichelada(false)}
               className={`p-3 rounded-xl border-2 transition-all ${
                 !isMichelada
-                  ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                  ? 'border-violet-500 bg-violet-50 dark:bg-violet-950'
                   : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
               }`}
             >
@@ -3035,26 +3035,26 @@ function EditExistingItemModal({
               onClick={() => setIsMichelada(true)}
               className={`p-3 rounded-xl border-2 transition-all ${
                 isMichelada
-                  ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                  ? 'border-violet-500 bg-violet-50 dark:bg-violet-950'
                   : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
               }`}
             >
               <div className="text-2xl mb-1">🌶️</div>
-              <p className="font-medium text-sm text-amber-700 dark:text-amber-400">Michelada</p>
-              <p className="text-xs text-amber-600 dark:text-amber-400">{formatCurrency(item.original_price + MICHELADA_EXTRA)}</p>
+              <p className="font-medium text-sm text-violet-700 dark:text-violet-400">Michelada</p>
+              <p className="text-xs text-violet-600 dark:text-violet-400">{formatCurrency(item.original_price + MICHELADA_EXTRA)}</p>
             </button>
           </div>
         </div>
 
         {/* Resumen */}
-        <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-3 mb-4">
+        <div className="bg-violet-50 dark:bg-violet-950 rounded-lg p-3 mb-4">
           <div className="flex justify-between text-sm">
             <span>Precio unitario:</span>
             <span>{formatCurrency(newUnitPrice)}</span>
           </div>
           <div className="flex justify-between font-bold text-lg mt-1">
             <span>Subtotal:</span>
-            <span className="text-amber-700 dark:text-amber-400">{formatCurrency(newSubtotal)}</span>
+            <span className="text-violet-700 dark:text-violet-400">{formatCurrency(newSubtotal)}</span>
           </div>
         </div>
 
@@ -3208,7 +3208,7 @@ function EditableComboModalSales({
                   <span className="text-sm font-medium w-8 text-center">{item.quantity}x</span>
                   <span className="flex-1 text-sm">{product?.name}</span>
                   {item.is_michelada && (
-                    <span className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded">Mich</span>
+                    <span className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400 px-2 py-0.5 rounded">Mich</span>
                   )}
                 </div>
               );
@@ -3221,7 +3221,7 @@ function EditableComboModalSales({
           <div className="space-y-2 mb-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-medium text-gray-700 dark:text-neutral-300">
-                Cervezas a elegir: <span className="text-amber-600 dark:text-amber-400">{currentSwappableQty}/{totalSwappableQty}</span>
+                Cervezas a elegir: <span className="text-violet-600 dark:text-violet-400">{currentSwappableQty}/{totalSwappableQty}</span>
               </p>
               {remainingQty > 0 && (
                 <button
@@ -3246,7 +3246,7 @@ function EditableComboModalSales({
                   <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
                   <button
                     onClick={() => handleSwappableQtyChange(index, item.quantity + 1)}
-                    className="w-6 h-6 rounded bg-amber-200 text-amber-700 dark:text-amber-400 text-sm hover:bg-amber-300"
+                    className="w-6 h-6 rounded bg-violet-200 text-violet-700 dark:text-violet-400 text-sm hover:bg-violet-300"
                     disabled={remainingQty <= 0}
                   >
                     +
@@ -3273,7 +3273,7 @@ function EditableComboModalSales({
             ))}
 
             {remainingQty > 0 && (
-              <p className="text-xs text-amber-600 dark:text-amber-400">
+              <p className="text-xs text-violet-600 dark:text-violet-400">
                 Faltan {remainingQty} cerveza(s) por seleccionar
               </p>
             )}
@@ -3371,25 +3371,25 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
 
           {/* Observaciones */}
           {(sale.notes || sale.close_notes || sale.takeover_notes) && (
-            <div className="bg-yellow-50 dark:bg-yellow-950 rounded-lg p-3 mt-2 border border-yellow-200 dark:border-yellow-800">
-              <p className="text-xs font-medium text-yellow-800 dark:text-yellow-400 mb-2">Observaciones:</p>
+            <div className="bg-violet-50 dark:bg-violet-950 rounded-lg p-3 mt-2 border border-violet-200 dark:border-violet-800">
+              <p className="text-xs font-medium text-violet-800 dark:text-violet-400 mb-2">Observaciones:</p>
               <div className="space-y-2 text-sm">
                 {sale.notes && (
                   <div>
-                    <span className="text-yellow-700 dark:text-yellow-400 font-medium">General: </span>
-                    <span className="text-yellow-900 dark:text-yellow-300">{sale.notes}</span>
+                    <span className="text-violet-700 dark:text-violet-400 font-medium">General: </span>
+                    <span className="text-violet-900 dark:text-violet-300">{sale.notes}</span>
                   </div>
                 )}
                 {sale.takeover_notes && (
                   <div>
-                    <span className="text-yellow-700 dark:text-yellow-400 font-medium">Al retomar: </span>
-                    <span className="text-yellow-900 dark:text-yellow-300">{sale.takeover_notes}</span>
+                    <span className="text-violet-700 dark:text-violet-400 font-medium">Al retomar: </span>
+                    <span className="text-violet-900 dark:text-violet-300">{sale.takeover_notes}</span>
                   </div>
                 )}
                 {sale.close_notes && (
                   <div>
-                    <span className="text-yellow-700 dark:text-yellow-400 font-medium">Al cerrar: </span>
-                    <span className="text-yellow-900 dark:text-yellow-300">{sale.close_notes}</span>
+                    <span className="text-violet-700 dark:text-violet-400 font-medium">Al cerrar: </span>
+                    <span className="text-violet-900 dark:text-violet-300">{sale.close_notes}</span>
                   </div>
                 )}
               </div>
@@ -3419,10 +3419,10 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
             </>
           )}
           {sale.payment_method === 'fiado' && (
-            <div className="bg-orange-50 dark:bg-orange-950 rounded-lg p-3 mt-2">
+            <div className="bg-violet-50 dark:bg-violet-950 rounded-lg p-3 mt-2">
               <div className="flex justify-between text-sm mb-1">
                 <span className="text-gray-600 dark:text-neutral-300">Cliente:</span>
-                <span className="font-medium text-orange-700 dark:text-orange-400">{sale.fiado_customer_name}</span>
+                <span className="font-medium text-violet-700 dark:text-violet-400">{sale.fiado_customer_name}</span>
               </div>
               {sale.fiado_abono && sale.fiado_abono > 0 && (
                 <div className="flex justify-between text-sm mb-1">
@@ -3432,7 +3432,7 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
               )}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600 dark:text-neutral-300">Queda debiendo:</span>
-                <span className="font-bold text-orange-700 dark:text-orange-400">{formatCurrency(sale.fiado_amount || 0)}</span>
+                <span className="font-bold text-violet-700 dark:text-violet-400">{formatCurrency(sale.fiado_amount || 0)}</span>
               </div>
               {sale.fiado_paid && (
                 <p className="text-xs text-green-600 dark:text-green-400 mt-2">✅ Pagado</p>
@@ -3502,7 +3502,7 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
                   <div className="flex justify-between">
                     <span>
                       {item.quantity}x {item.name}
-                      {item.is_michelada && <span className="text-amber-600 dark:text-amber-400 ml-1">🌶️ michelada</span>}
+                      {item.is_michelada && <span className="text-violet-600 dark:text-violet-400 ml-1">🌶️ michelada</span>}
                     </span>
                     <span className="font-medium">{formatCurrency(item.subtotal)}</span>
                   </div>

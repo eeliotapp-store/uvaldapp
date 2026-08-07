@@ -41,7 +41,7 @@ export function OpenCashRegisterModal({ onConfirm, onCancel }: OpenCashRegisterM
             value={initialAmount}
             onChange={(e) => setInitialAmount(e.target.value)}
             placeholder="0"
-            className="w-full px-4 py-4 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
+            className="w-full px-4 py-4 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-violet-500 focus:ring-0"
             autoFocus
           />
         </div>
@@ -52,7 +52,7 @@ export function OpenCashRegisterModal({ onConfirm, onCancel }: OpenCashRegisterM
             <button
               key={amt}
               onClick={() => setInitialAmount(amt.toString())}
-              className="py-2 px-1 text-sm bg-gray-100 dark:bg-neutral-700 hover:bg-amber-100 dark:hover:bg-amber-900 rounded-lg transition-colors"
+              className="py-2 px-1 text-sm bg-gray-100 dark:bg-neutral-700 hover:bg-violet-100 dark:hover:bg-violet-900 rounded-lg transition-colors"
             >
               {formatCurrency(amt)}
             </button>
@@ -60,9 +60,9 @@ export function OpenCashRegisterModal({ onConfirm, onCancel }: OpenCashRegisterM
         </div>
 
         {amount > 0 && (
-          <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-4 mb-6 text-center">
+          <div className="bg-violet-50 dark:bg-violet-950 rounded-xl p-4 mb-6 text-center">
             <p className="text-gray-600 dark:text-neutral-300 text-sm">Iniciar caja con</p>
-            <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">{formatCurrency(amount)}</p>
+            <p className="text-2xl font-bold text-violet-700 dark:text-violet-400">{formatCurrency(amount)}</p>
           </div>
         )}
 

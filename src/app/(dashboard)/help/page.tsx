@@ -16,11 +16,11 @@ export default function HelpPage() {
           puede cambiar a mano en la pantalla de &quot;Iniciar Turno&quot;.
         </p>
         <div className="grid sm:grid-cols-2 gap-3">
-          <div className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-950 rounded-lg">
+          <div className="flex items-center gap-3 p-4 bg-violet-50 dark:bg-violet-950 rounded-lg">
             <span className="text-2xl">☀️</span>
             <div>
-              <p className="font-semibold text-amber-800 dark:text-amber-400">Turno de Día</p>
-              <p className="text-sm text-amber-800/80 dark:text-amber-400/80">6:00 a.m. – 5:59 p.m.</p>
+              <p className="font-semibold text-violet-800 dark:text-violet-400">Turno de Día</p>
+              <p className="text-sm text-violet-800/80 dark:text-violet-400/80">6:00 a.m. – 5:59 p.m.</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">

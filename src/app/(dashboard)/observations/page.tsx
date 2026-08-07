@@ -140,7 +140,7 @@ function ObservationsContent() {
               value={newObservation}
               onChange={(e) => setNewObservation(e.target.value)}
               placeholder="Escribe tu observación aquí... (ej: Se rompió una cerveza Corona, Se compró hielo por $10,000)"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-violet-500 focus:ring-0"
               rows={3}
             />
             {error && (
@@ -160,8 +160,8 @@ function ObservationsContent() {
           </form>
         </div>
       ) : (
-        <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 mb-6">
-          <p className="text-yellow-800 dark:text-yellow-400">
+        <div className="bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 rounded-xl p-4 mb-6">
+          <p className="text-violet-800 dark:text-violet-400">
             <strong>Sin turno activo.</strong> Debes iniciar un turno para poder agregar observaciones.
           </p>
         </div>
@@ -203,7 +203,7 @@ function ObservationsContent() {
 
         {isLoading ? (
           <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-600 mx-auto"></div>
             <p className="text-gray-500 dark:text-neutral-400 mt-2">Cargando...</p>
           </div>
         ) : observations.length === 0 ? (

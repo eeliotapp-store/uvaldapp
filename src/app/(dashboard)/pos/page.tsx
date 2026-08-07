@@ -236,7 +236,7 @@ function POSContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -253,7 +253,7 @@ function POSContent() {
             <h1 className="text-xl font-bold text-gray-900 dark:text-neutral-100">Punto de Venta</h1>
             <div className="flex items-center gap-2">
               {!currentShift && (
-                <span className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-3 py-1 rounded-full">
+                <span className="text-sm text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950 px-3 py-1 rounded-full">
                   Sin turno activo
                 </span>
               )}
@@ -293,7 +293,7 @@ function POSContent() {
               onClick={() => setActiveTab('products')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'products'
-                  ? 'bg-amber-500 text-white'
+                  ? 'bg-violet-500 text-white'
                   : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
               }`}
             >
@@ -303,7 +303,7 @@ function POSContent() {
               onClick={() => setActiveTab('combos')}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'combos'
-                  ? 'bg-amber-500 text-white'
+                  ? 'bg-violet-500 text-white'
                   : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
               }`}
             >

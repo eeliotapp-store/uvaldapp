@@ -196,7 +196,7 @@ export default function AdminPage() {
       )}
 
       {!canExecute && (
-        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg text-yellow-800 dark:text-yellow-400">
+        <div className="mb-6 p-4 bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 rounded-lg text-violet-800 dark:text-violet-400">
           Solo owner o superadmin pueden ejecutar estas acciones. Tu rol actual: <strong>{employee?.role}</strong>
         </div>
       )}
@@ -269,8 +269,8 @@ export default function AdminPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 max-w-md w-full">
             <div className="flex items-center gap-3 mb-4">
-              <div className={`p-3 rounded-full ${confirmDialog.danger ? 'bg-red-100 dark:bg-red-900' : 'bg-orange-100 dark:bg-orange-900'}`}>
-                <AlertTriangleIcon className={`w-6 h-6 ${confirmDialog.danger ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`} />
+              <div className={`p-3 rounded-full ${confirmDialog.danger ? 'bg-red-100 dark:bg-red-900' : 'bg-violet-100 dark:bg-violet-900'}`}>
+                <AlertTriangleIcon className={`w-6 h-6 ${confirmDialog.danger ? 'text-red-600 dark:text-red-400' : 'text-violet-600 dark:text-violet-400'}`} />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">Confirmar: {confirmDialog.label}</h3>
             </div>

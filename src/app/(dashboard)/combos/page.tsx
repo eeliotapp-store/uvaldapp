@@ -69,7 +69,7 @@ export default function CombosPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -117,7 +117,7 @@ export default function CombosPage() {
                             item.is_swappable
                               ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-400'
                               : item.is_michelada
-                              ? 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400'
+                              ? 'bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400'
                               : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300'
                           }`}
                         >
@@ -159,7 +159,7 @@ export default function CombosPage() {
                   <td className="px-4 py-3 text-right space-x-2">
                     <button
                       onClick={() => handleEdit(combo)}
-                      className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400 text-sm font-medium"
+                      className="text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-400 text-sm font-medium"
                     >
                       Editar
                     </button>
@@ -313,7 +313,7 @@ function ComboModal({ combo, products, onClose, onSuccess }: ComboModalProps) {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Ej: 2 Coronitas Micheladas"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
               />
             </div>
 
@@ -324,7 +324,7 @@ function ComboModal({ combo, products, onClose, onSuccess }: ComboModalProps) {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Ej: Aguardiente azul o verde"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
               />
             </div>
 
@@ -335,7 +335,7 @@ function ComboModal({ combo, products, onClose, onSuccess }: ComboModalProps) {
                 value={formData.base_price}
                 onChange={(e) => setFormData({ ...formData, base_price: e.target.value })}
                 placeholder="12000"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
               />
             </div>
 
@@ -345,7 +345,7 @@ function ComboModal({ combo, products, onClose, onSuccess }: ComboModalProps) {
                   type="checkbox"
                   checked={formData.is_price_editable}
                   onChange={(e) => setFormData({ ...formData, is_price_editable: e.target.checked })}
-                  className="w-4 h-4 text-amber-500 border-gray-300 dark:border-neutral-600 rounded focus:ring-amber-500"
+                  className="w-4 h-4 text-violet-500 border-gray-300 dark:border-neutral-600 rounded focus:ring-violet-500"
                 />
                 <span className="text-sm font-medium text-gray-700 dark:text-neutral-300">Precio editable</span>
               </label>
@@ -360,7 +360,7 @@ function ComboModal({ combo, products, onClose, onSuccess }: ComboModalProps) {
               <button
                 type="button"
                 onClick={addItem}
-                className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400"
+                className="text-sm text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-400"
               >
                 + Agregar producto
               </button>

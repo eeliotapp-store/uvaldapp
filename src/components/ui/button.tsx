@@ -16,7 +16,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           'inline-flex items-center justify-center rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed',
           {
             // Variants
-            'bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500':
+            'bg-violet-600 text-white hover:bg-violet-700 focus:ring-violet-500':
               variant === 'primary',
             'bg-gray-200 dark:bg-neutral-700 text-gray-900 dark:text-neutral-100 hover:bg-gray-300 dark:hover:bg-neutral-600 focus:ring-gray-500':
               variant === 'secondary',

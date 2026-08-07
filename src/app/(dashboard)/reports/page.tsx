@@ -1121,7 +1121,7 @@ function EmployeeReportView({ report }: { report: EmployeeReport }) {
                 <div key={s.shift_id} className="flex items-center justify-between text-sm py-1.5 px-3 bg-gray-50 dark:bg-neutral-950 rounded-lg">
                   <div className="flex items-center gap-3">
                     <span className="text-gray-500 dark:text-neutral-400">{formatDate(s.date + 'T12:00:00')}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.type === 'day' ? 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400' : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-400'}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.type === 'day' ? 'bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400' : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-400'}`}>
                       {s.type === 'day' ? 'Día' : 'Noche'}
                     </span>
                     <span className="text-gray-500 dark:text-neutral-400">{s.transactions} ventas</span>
@@ -1239,13 +1239,13 @@ function DailyReportView({
         {(report.day_totals.fiado_total > 0 || report.day_totals.voided_count > 0) && (
           <div className="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-4">
             {report.day_totals.fiado_total > 0 && (
-              <div className="bg-orange-50 dark:bg-orange-950 p-3 rounded-lg">
-                <p className="text-sm text-orange-600 dark:text-orange-400">Fiados</p>
-                <p className="text-lg font-bold text-orange-700 dark:text-orange-400">
+              <div className="bg-violet-50 dark:bg-violet-950 p-3 rounded-lg">
+                <p className="text-sm text-violet-600 dark:text-violet-400">Fiados</p>
+                <p className="text-lg font-bold text-violet-700 dark:text-violet-400">
                   {formatCurrency(report.day_totals.fiado_total)}
                 </p>
                 {report.day_totals.fiado_abonos > 0 && (
-                  <p className="text-xs text-orange-500">
+                  <p className="text-xs text-violet-500">
                     Abonos: {formatCurrency(report.day_totals.fiado_abonos)}
                   </p>
                 )}
@@ -1278,7 +1278,7 @@ function DailyReportView({
                   <div className="flex items-center gap-2">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                       shift.type === 'day'
-                        ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-400'
+                        ? 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-400'
                         : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-400'
                     }`}>
                       {shift.type === 'day' ? 'Día' : 'Noche'}
@@ -1303,9 +1303,9 @@ function DailyReportView({
 
               {/* Observaciones */}
               {shift.notes && (
-                <div className="mt-3 bg-yellow-50 dark:bg-yellow-950 p-3 rounded-lg">
-                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">Observaciones:</p>
-                  <p className="text-sm text-yellow-700 dark:text-yellow-400">{shift.notes}</p>
+                <div className="mt-3 bg-violet-50 dark:bg-violet-950 p-3 rounded-lg">
+                  <p className="text-sm font-medium text-violet-800 dark:text-violet-400">Observaciones:</p>
+                  <p className="text-sm text-violet-700 dark:text-violet-400">{shift.notes}</p>
                 </div>
               )}
 
@@ -1360,14 +1360,14 @@ function DailyReportView({
 
           <div className="space-y-6">
             {report.by_shift_type.day.employees.map((emp) => (
-              <div key={emp.employee_id} className="border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 bg-yellow-50 dark:bg-yellow-950/50">
+              <div key={emp.employee_id} className="border border-violet-200 dark:border-violet-800 rounded-lg p-4 bg-violet-50 dark:bg-violet-950/50">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-yellow-800 dark:text-yellow-400">{emp.employee_name}</h4>
-                  <span className="font-bold text-yellow-700 dark:text-yellow-400">{formatCurrency(emp.total)}</span>
+                  <h4 className="font-semibold text-violet-800 dark:text-violet-400">{emp.employee_name}</h4>
+                  <span className="font-bold text-violet-700 dark:text-violet-400">{formatCurrency(emp.total)}</span>
                 </div>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-yellow-200 dark:border-yellow-800">
+                    <tr className="border-b border-violet-200 dark:border-violet-800">
                       <th className="text-left py-1 px-2">Producto</th>
                       <th className="text-center py-1 px-2">Unidades</th>
                       <th className="text-right py-1 px-2">Total</th>
@@ -1384,11 +1384,11 @@ function DailyReportView({
           </div>
 
           {/* Total del turno de día */}
-          <div className="mt-4 pt-4 border-t border-yellow-200 dark:border-yellow-800">
+          <div className="mt-4 pt-4 border-t border-violet-200 dark:border-violet-800">
             <h4 className="font-semibold mb-2">Resumen Turno Día</h4>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-neutral-700 bg-yellow-100 dark:bg-yellow-900">
+                <tr className="border-b border-gray-200 dark:border-neutral-700 bg-violet-100 dark:bg-violet-900">
                   <th className="text-left py-2 px-2">Producto</th>
                   <th className="text-center py-2 px-2">Unidades</th>
                   <th className="text-right py-2 px-2">Total</th>
@@ -1400,7 +1400,7 @@ function DailyReportView({
                 ))}
               </tbody>
               <tfoot>
-                <tr className="font-bold bg-yellow-100 dark:bg-yellow-900">
+                <tr className="font-bold bg-violet-100 dark:bg-violet-900">
                   <td className="py-2 px-2">TOTAL TURNO DÍA</td>
                   <td className="text-center py-2 px-2">
                     {report.by_shift_type.day.products.reduce((sum, p) => sum + p.quantity, 0)}
@@ -1523,19 +1523,19 @@ function DailyReportView({
 
       {/* Observaciones del día */}
       {report.observations && report.observations.length > 0 && (
-        <div className="bg-amber-50 dark:bg-amber-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200 dark:border-amber-800">
-          <h3 className="text-lg font-semibold mb-4 text-amber-800 dark:text-amber-400 flex items-center gap-2">
+        <div className="bg-violet-50 dark:bg-violet-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-violet-200 dark:border-violet-800">
+          <h3 className="text-lg font-semibold mb-4 text-violet-800 dark:text-violet-400 flex items-center gap-2">
             <NoteIcon className="w-5 h-5" />
             Observaciones del Día ({report.observations.length})
           </h3>
           <div className="space-y-3">
             {report.observations.map((obs) => (
-              <div key={obs.id} className="bg-white dark:bg-neutral-800 p-3 rounded-lg border border-amber-100">
+              <div key={obs.id} className="bg-white dark:bg-neutral-800 p-3 rounded-lg border border-violet-100">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-amber-900 dark:text-amber-300">{obs.employee_name}</span>
+                  <span className="font-medium text-violet-900 dark:text-violet-300">{obs.employee_name}</span>
                   <span className={`text-xs px-2 py-0.5 rounded ${
                     obs.shift_type === 'day'
-                      ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-400'
+                      ? 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-400'
                       : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-400'
                   }`}>
                     {obs.shift_type === 'day' ? 'Día' : 'Noche'}
@@ -1626,9 +1626,9 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
             <h4 className="text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Detalle por Método de Pago</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
               {payment_totals.fiado > 0 && (
-                <div className="bg-orange-50 dark:bg-orange-950 p-2 rounded">
-                  <span className="text-orange-600 dark:text-orange-400">Fiados:</span>
-                  <span className="ml-2 font-medium text-orange-700 dark:text-orange-400">
+                <div className="bg-violet-50 dark:bg-violet-950 p-2 rounded">
+                  <span className="text-violet-600 dark:text-violet-400">Fiados:</span>
+                  <span className="ml-2 font-medium text-violet-700 dark:text-violet-400">
                     {formatCurrency(payment_totals.fiado)}
                   </span>
                 </div>
@@ -1676,9 +1676,9 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
 
       {/* Observaciones */}
       {shift.notes && (
-        <div className="bg-yellow-50 dark:bg-yellow-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-yellow-200 dark:border-yellow-800">
-          <h3 className="text-lg font-semibold mb-2 text-yellow-800 dark:text-yellow-400">Observaciones</h3>
-          <p className="text-yellow-700 dark:text-yellow-400 whitespace-pre-wrap">{shift.notes}</p>
+        <div className="bg-violet-50 dark:bg-violet-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-violet-200 dark:border-violet-800">
+          <h3 className="text-lg font-semibold mb-2 text-violet-800 dark:text-violet-400">Observaciones</h3>
+          <p className="text-violet-700 dark:text-violet-400 whitespace-pre-wrap">{shift.notes}</p>
         </div>
       )}
 
@@ -1720,16 +1720,16 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
 
       {/* Observaciones del turno */}
       {observations && observations.length > 0 && (
-        <div className="bg-amber-50 dark:bg-amber-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200 dark:border-amber-800">
-          <h3 className="text-lg font-semibold mb-4 text-amber-800 dark:text-amber-400 flex items-center gap-2">
+        <div className="bg-violet-50 dark:bg-violet-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-violet-200 dark:border-violet-800">
+          <h3 className="text-lg font-semibold mb-4 text-violet-800 dark:text-violet-400 flex items-center gap-2">
             <NoteIcon className="w-5 h-5" />
             Observaciones del Turno ({observations.length})
           </h3>
           <div className="space-y-3">
             {observations.map((obs) => (
-              <div key={obs.id} className="bg-white dark:bg-neutral-800 p-3 rounded-lg border border-amber-100">
+              <div key={obs.id} className="bg-white dark:bg-neutral-800 p-3 rounded-lg border border-violet-100">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-amber-900 dark:text-amber-300">{obs.employee_name}</span>
+                  <span className="font-medium text-violet-900 dark:text-violet-300">{obs.employee_name}</span>
                   <span className="text-xs text-gray-500 dark:text-neutral-400">
                     {formatTime(obs.created_at)}
                   </span>
@@ -1776,7 +1776,7 @@ function RangeReportView({ report }: { report: RangeReport }) {
             <span className="font-medium text-purple-700 dark:text-purple-400">{formatCurrency(report.totals.transfer_sales)}</span>
           </div>
           {report.totals.fiado_total > 0 && (
-            <div className="flex justify-between text-yellow-700 dark:text-yellow-400">
+            <div className="flex justify-between text-violet-700 dark:text-violet-400">
               <span>Fiados (pendiente de cobro)</span>
               <span className="font-medium">{formatCurrency(report.totals.fiado_total)}</span>
             </div>
@@ -1915,19 +1915,19 @@ function RangeReportView({ report }: { report: RangeReport }) {
 
       {/* Observaciones del período */}
       {report.observations && report.observations.length > 0 && (
-        <div className="bg-amber-50 dark:bg-amber-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200 dark:border-amber-800">
-          <h3 className="text-lg font-semibold mb-4 text-amber-800 dark:text-amber-400 flex items-center gap-2">
+        <div className="bg-violet-50 dark:bg-violet-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-violet-200 dark:border-violet-800">
+          <h3 className="text-lg font-semibold mb-4 text-violet-800 dark:text-violet-400 flex items-center gap-2">
             <NoteIcon className="w-5 h-5" />
             Observaciones del Período ({report.observations.length})
           </h3>
           <div className="space-y-3">
             {report.observations.map((obs) => (
-              <div key={obs.id} className="bg-white dark:bg-neutral-800 p-3 rounded-lg border border-amber-100">
+              <div key={obs.id} className="bg-white dark:bg-neutral-800 p-3 rounded-lg border border-violet-100">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-amber-900 dark:text-amber-300">{obs.employee_name}</span>
+                  <span className="font-medium text-violet-900 dark:text-violet-300">{obs.employee_name}</span>
                   <span className={`text-xs px-2 py-0.5 rounded ${
                     obs.shift_type === 'day'
-                      ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-400'
+                      ? 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-400'
                       : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-400'
                   }`}>
                     {obs.shift_type === 'day' ? 'Día' : 'Noche'}
@@ -1960,7 +1960,7 @@ function RankingReportView({ report }: { report: RankingReport }) {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
-      <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl shadow-sm p-6 text-white print:bg-amber-100 print:text-amber-900">
+      <div className="bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl shadow-sm p-6 text-white print:bg-violet-100 print:text-violet-900">
         <div className="flex items-center gap-3 mb-2">
           <TrophyIcon className="w-8 h-8" />
           <h2 className="text-xl font-bold">Ranking de Productos Más Vendidos</h2>
@@ -1974,15 +1974,15 @@ function RankingReportView({ report }: { report: RankingReport }) {
       <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h3 className="text-lg font-semibold mb-4">Resumen</h3>
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-amber-50 dark:bg-amber-950 p-4 rounded-lg text-center">
-            <p className="text-sm text-amber-600 dark:text-amber-400">Productos Diferentes</p>
-            <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">
+          <div className="bg-violet-50 dark:bg-violet-950 p-4 rounded-lg text-center">
+            <p className="text-sm text-violet-600 dark:text-violet-400">Productos Diferentes</p>
+            <p className="text-2xl font-bold text-violet-700 dark:text-violet-400">
               {report.summary.total_products}
             </p>
           </div>
-          <div className="bg-orange-50 dark:bg-orange-950 p-4 rounded-lg text-center">
-            <p className="text-sm text-orange-600 dark:text-orange-400">Unidades Vendidas</p>
-            <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">
+          <div className="bg-violet-50 dark:bg-violet-950 p-4 rounded-lg text-center">
+            <p className="text-sm text-violet-600 dark:text-violet-400">Unidades Vendidas</p>
+            <p className="text-2xl font-bold text-violet-700 dark:text-violet-400">
               {report.summary.total_quantity}
             </p>
           </div>
@@ -2010,19 +2010,19 @@ function RankingReportView({ report }: { report: RankingReport }) {
             </div>
             {/* 1er lugar */}
             <div className="flex flex-col items-center -mt-4">
-              <div className="bg-amber-400 w-24 h-24 rounded-full flex items-center justify-center mb-2 shadow-lg">
+              <div className="bg-violet-400 w-24 h-24 rounded-full flex items-center justify-center mb-2 shadow-lg">
                 <span className="text-3xl font-bold text-white">1</span>
               </div>
               <p className="text-sm font-medium text-center max-w-28 truncate">{report.ranking[0]?.product_name}</p>
-              <p className="text-xl font-bold text-amber-600 dark:text-amber-400">{report.ranking[0]?.quantity}</p>
+              <p className="text-xl font-bold text-violet-600 dark:text-violet-400">{report.ranking[0]?.quantity}</p>
             </div>
             {/* 3er lugar */}
             <div className="flex flex-col items-center">
-              <div className="bg-orange-300 w-16 h-16 rounded-full flex items-center justify-center mb-2">
-                <span className="text-xl font-bold text-orange-800 dark:text-orange-400">3</span>
+              <div className="bg-violet-300 w-16 h-16 rounded-full flex items-center justify-center mb-2">
+                <span className="text-xl font-bold text-violet-800 dark:text-violet-400">3</span>
               </div>
               <p className="text-sm font-medium text-center max-w-20 truncate">{report.ranking[2]?.product_name}</p>
-              <p className="text-lg font-bold text-orange-600 dark:text-orange-400">{report.ranking[2]?.quantity}</p>
+              <p className="text-lg font-bold text-violet-600 dark:text-violet-400">{report.ranking[2]?.quantity}</p>
             </div>
           </div>
         </div>
@@ -2044,11 +2044,11 @@ function RankingReportView({ report }: { report: RankingReport }) {
             </thead>
             <tbody>
               {report.ranking.map((product) => (
-                <tr key={`${product.product_id}-${product.rank}`} className={`border-b border-gray-100 dark:border-neutral-700 ${product.rank <= 3 ? 'bg-amber-50 dark:bg-amber-950' : ''}`}>
+                <tr key={`${product.product_id}-${product.rank}`} className={`border-b border-gray-100 dark:border-neutral-700 ${product.rank <= 3 ? 'bg-violet-50 dark:bg-violet-950' : ''}`}>
                   <td className="text-center py-2 px-2">
                     {product.rank <= 3 ? (
                       <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold ${
-                        product.rank === 1 ? 'bg-amber-500' : product.rank === 2 ? 'bg-gray-400' : 'bg-orange-400'
+                        product.rank === 1 ? 'bg-violet-500' : product.rank === 2 ? 'bg-gray-400' : 'bg-violet-400'
                       }`}>
                         {product.rank}
                       </span>
@@ -2084,7 +2084,7 @@ function RankingReportView({ report }: { report: RankingReport }) {
                   <div className="flex-1">
                     <div className="bg-gray-200 dark:bg-neutral-700 rounded-full h-6 relative">
                       <div
-                        className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-full h-6 flex items-center justify-end pr-2"
+                        className="bg-gradient-to-r from-violet-400 to-violet-500 rounded-full h-6 flex items-center justify-end pr-2"
                         style={{ width: `${Math.max(percentage, 5)}%` }}
                       >
                         <span className="text-xs font-bold text-white">{percentage.toFixed(1)}%</span>
@@ -2172,7 +2172,7 @@ function InventoryCountReportView({ report }: { report: InventoryCountReport }) 
                       {count.shifts ? (
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                           count.shifts.type === 'day'
-                            ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-400'
+                            ? 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-400'
                             : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-400'
                         }`}>
                           {count.shifts.type === 'day' ? 'Día' : 'Noche'}

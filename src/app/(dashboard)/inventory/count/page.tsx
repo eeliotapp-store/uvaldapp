@@ -118,7 +118,7 @@ export default function InventoryCountPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -343,7 +343,7 @@ function AddProductModal({ onClose, onSuccess }: AddProductModalProps) {
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="Ej: Corona Extra"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 
@@ -354,7 +354,7 @@ function AddProductModal({ onClose, onSuccess }: AddProductModalProps) {
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             >
               <option value="cerveza">Cerveza</option>
               <option value="licor">Licor</option>
@@ -375,7 +375,7 @@ function AddProductModal({ onClose, onSuccess }: AddProductModalProps) {
               required
               min="0"
               placeholder="5000"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 
@@ -388,7 +388,7 @@ function AddProductModal({ onClose, onSuccess }: AddProductModalProps) {
               value={minStock}
               onChange={(e) => setMinStock(e.target.value)}
               min="0"
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 

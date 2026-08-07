@@ -126,7 +126,7 @@ export default function ProductsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -208,7 +208,7 @@ export default function ProductsPage() {
                       </button>
                       <button
                         onClick={() => handleAddStock(product)}
-                        className="w-6 h-6 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-sm font-bold flex items-center justify-center"
+                        className="w-6 h-6 bg-violet-500 hover:bg-violet-600 text-white rounded-full text-sm font-bold flex items-center justify-center"
                         title="Agregar stock"
                       >
                         +
@@ -220,7 +220,7 @@ export default function ProductsPage() {
                       {product.product_suppliers?.map((ps) => (
                         <span
                           key={ps.id}
-                          className={`px-2 py-0.5 rounded text-xs ${ps.is_preferred ? 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400' : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300'}`}
+                          className={`px-2 py-0.5 rounded text-xs ${ps.is_preferred ? 'bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400' : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300'}`}
                           title={`${formatCurrency(ps.purchase_price)}`}
                         >
                           {ps.suppliers?.name}
@@ -234,7 +234,7 @@ export default function ProductsPage() {
                   <td className="px-4 py-3 text-right space-x-2">
                     <button
                       onClick={() => handleEdit(product)}
-                      className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400 text-sm font-medium"
+                      className="text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-400 text-sm font-medium"
                     >
                       Editar
                     </button>
@@ -420,7 +420,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
               />
             </div>
 
@@ -429,7 +429,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value as ProductCategory })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
               >
                 {CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
@@ -443,7 +443,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
                 type="number"
                 value={formData.sale_price}
                 onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
               />
             </div>
 
@@ -456,7 +456,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
                 type="number"
                 value={formData.min_stock}
                 onChange={(e) => setFormData({ ...formData, min_stock: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
               />
             </div>
           </div>
@@ -468,7 +468,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
               <button
                 type="button"
                 onClick={addSupplier}
-                className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400"
+                className="text-sm text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-400"
               >
                 + Agregar proveedor
               </button>
@@ -617,7 +617,7 @@ function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockM
               value={formData.supplier_id}
               onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
               required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             >
               <option value="">Seleccionar...</option>
               {suppliers.filter(s => s.active).map((s) => (
@@ -627,8 +627,8 @@ function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockM
           </div>
 
           {/* Sección de paquetes */}
-          <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-4 space-y-3">
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-400">Información del paquete</p>
+          <div className="bg-violet-50 dark:bg-violet-950 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-violet-800 dark:text-violet-400">Información del paquete</p>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
@@ -669,7 +669,7 @@ function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockM
             </div>
 
             {totalUnits > 0 && (
-              <div className="bg-white dark:bg-neutral-800 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
+              <div className="bg-white dark:bg-neutral-800 rounded-lg p-3 border border-violet-200 dark:border-violet-800">
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
                     <p className="text-xs text-gray-500 dark:text-neutral-400">Total Uds</p>
@@ -677,7 +677,7 @@ function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockM
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 dark:text-neutral-400">$/Unidad</p>
-                    <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{formatCurrency(unitPrice)}</p>
+                    <p className="text-lg font-bold text-violet-600 dark:text-violet-400">{formatCurrency(unitPrice)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 dark:text-neutral-400">Total</p>
@@ -813,7 +813,7 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
             onClick={() => setMode('quick')}
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
               mode === 'quick'
-                ? 'bg-amber-500 text-white'
+                ? 'bg-violet-500 text-white'
                 : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
             }`}
           >
@@ -824,7 +824,7 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
             onClick={() => setMode('package')}
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
               mode === 'package'
-                ? 'bg-amber-500 text-white'
+                ? 'bg-violet-500 text-white'
                 : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
             }`}
           >
@@ -845,7 +845,7 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
                 onChange={(e) => setNewStock(e.target.value)}
                 required
                 min="0"
-                className="w-full px-3 py-3 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center text-2xl font-bold"
+                className="w-full px-3 py-3 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 text-center text-2xl font-bold"
               />
               {quickDiff !== 0 && (
                 <p className={`text-sm mt-2 text-center font-medium ${quickDiff > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
@@ -927,7 +927,7 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Ej: Conteo físico, producto dañado, venta..."
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 

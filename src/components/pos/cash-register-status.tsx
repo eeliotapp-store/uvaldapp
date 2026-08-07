@@ -33,9 +33,9 @@ export function CashRegisterStatus() {
           <p className="font-bold text-blue-700 dark:text-blue-400">{formatCurrency(cashRegister.totalTransfer)}</p>
         </div>
 
-        <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-3">
-          <p className="text-amber-600 dark:text-amber-400 text-xs mb-1">Ventas Hoy</p>
-          <p className="font-bold text-amber-700 dark:text-amber-400">{formatCurrency(totalSales)}</p>
+        <div className="bg-violet-50 dark:bg-violet-950 rounded-lg p-3">
+          <p className="text-violet-600 dark:text-violet-400 text-xs mb-1">Ventas Hoy</p>
+          <p className="font-bold text-violet-700 dark:text-violet-400">{formatCurrency(totalSales)}</p>
         </div>
       </div>
 

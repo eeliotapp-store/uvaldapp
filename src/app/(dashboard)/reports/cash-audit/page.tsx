@@ -253,10 +253,10 @@ export default function CashAuditPage() {
               </p>
             </div>
             <div className={`rounded-xl shadow-sm p-4 ${
-              report.stats.shifts_missing_cash > 0 ? 'bg-orange-50 dark:bg-orange-950' : 'bg-white dark:bg-neutral-800'
+              report.stats.shifts_missing_cash > 0 ? 'bg-violet-50 dark:bg-violet-950' : 'bg-white dark:bg-neutral-800'
             }`}>
               <p className="text-sm text-gray-500 dark:text-neutral-400">Faltante en Caja</p>
-              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+              <p className="text-2xl font-bold text-violet-600 dark:text-violet-400">
                 {report.stats.shifts_missing_cash}
               </p>
             </div>
@@ -305,7 +305,7 @@ export default function CashAuditPage() {
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
                             entry.type === 'day'
-                              ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-400'
+                              ? 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-400'
                               : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-400'
                           }`}>
                             {entry.type === 'day' ? '☀️ Día' : '🌙 Noche'}
@@ -376,9 +376,9 @@ export default function CashAuditPage() {
 
                     {/* Observaciones */}
                     {entry.notes && (
-                      <div className="mt-3 bg-yellow-50 dark:bg-yellow-950 p-3 rounded-lg">
-                        <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">Observaciones:</p>
-                        <p className="text-sm text-yellow-700 dark:text-yellow-400">{entry.notes}</p>
+                      <div className="mt-3 bg-violet-50 dark:bg-violet-950 p-3 rounded-lg">
+                        <p className="text-sm font-medium text-violet-800 dark:text-violet-400">Observaciones:</p>
+                        <p className="text-sm text-violet-700 dark:text-violet-400">{entry.notes}</p>
                       </div>
                     )}
 

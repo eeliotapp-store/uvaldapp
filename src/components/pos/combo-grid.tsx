@@ -46,7 +46,7 @@ export function ComboGrid({ combos, products }: ComboGridProps) {
           <button
             key={combo.id}
             onClick={() => handleComboClick(combo)}
-            className="bg-white dark:bg-neutral-800 rounded-xl p-4 border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 transition-colors text-left"
+            className="bg-white dark:bg-neutral-800 rounded-xl p-4 border-2 border-gray-200 dark:border-neutral-700 hover:border-violet-500 transition-colors text-left"
           >
             <div className="flex items-start justify-between mb-2">
               <span className="text-2xl">🎁</span>
@@ -73,7 +73,7 @@ export function ComboGrid({ combos, products }: ComboGridProps) {
                 <span className="text-xs text-gray-500 dark:text-neutral-400">+{(combo.combo_items?.length || 0) - 3}</span>
               )}
             </div>
-            <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
+            <p className="text-lg font-bold text-violet-600 dark:text-violet-400">
               {formatCurrency(combo.base_price)}
             </p>
           </button>
@@ -191,7 +191,7 @@ function EditableComboModal({ combo, products, onClose, onAdd }: EditableComboMo
                   <span className="flex-1 text-sm">{currentProduct?.name}</span>
                 )}
                 {item.isMichelada && (
-                  <span className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400 px-2 py-0.5 rounded">
                     Mich
                   </span>
                 )}

@@ -25,9 +25,9 @@ const ACTION_LABELS: Record<AuditAction, { label: string; color: string; icon: s
   DELETE: { label: 'Eliminado', color: 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-400', icon: '🗑️' },
   VOID: { label: 'Anulado', color: 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-400', icon: '❌' },
   CLOSE: { label: 'Cerrado', color: 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-400', icon: '✅' },
-  TAKEOVER: { label: 'Relevo', color: 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400', icon: '🔄' },
+  TAKEOVER: { label: 'Relevo', color: 'bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400', icon: '🔄' },
   ADD_ITEMS: { label: 'Items agregados', color: 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400', icon: '📦' },
-  PRICE_CHANGE: { label: 'Precio cambiado', color: 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-400', icon: '💰' },
+  PRICE_CHANGE: { label: 'Precio cambiado', color: 'bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400', icon: '💰' },
 };
 
 const ENTITY_LABELS: Record<AuditEntity, string> = {
@@ -186,7 +186,7 @@ export default function AuditPage() {
       {/* Lista de logs */}
       {isLoading ? (
         <div className="flex items-center justify-center h-48">
-          <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : logs.length === 0 ? (
         <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 p-12 text-center">

@@ -487,7 +487,7 @@ export default function StatsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -503,7 +503,7 @@ export default function StatsPage() {
               onClick={() => handleSelectView('daily')}
               className="md:col-start-1 md:row-start-1 rounded-2xl bg-white dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 shadow-sm p-3 flex flex-col justify-between text-left h-full hover:-translate-y-0.5 transition-transform"
             >
-              <span className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <span className="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-900 flex items-center justify-center text-violet-600 dark:text-violet-400">
                 <ViewClockIcon className="w-4 h-4" />
               </span>
               <span>
@@ -531,8 +531,8 @@ export default function StatsPage() {
               onClick={() => handleSelectView('employee')}
               className="col-span-2 md:col-start-3 md:col-span-2 md:row-start-1 md:row-span-2 relative overflow-hidden rounded-2xl bg-neutral-900 dark:bg-black p-5 flex flex-col justify-between text-left text-white min-h-[110px] h-full hover:-translate-y-0.5 transition-transform"
             >
-              <div className="absolute -right-10 -top-10 w-32 h-32 bg-amber-500/25 rounded-full blur-2xl pointer-events-none" />
-              <span className="relative w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-400">
+              <div className="absolute -right-10 -top-10 w-32 h-32 bg-violet-500/25 rounded-full blur-2xl pointer-events-none" />
+              <span className="relative w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-violet-400">
                 <ViewUsersIcon className="w-5 h-5" />
               </span>
               <span className="relative">
@@ -574,8 +574,8 @@ export default function StatsPage() {
               onClick={() => handleSelectView('dayOfWeek')}
               className="col-span-2 md:col-start-1 md:col-span-2 md:row-start-3 md:row-span-2 relative overflow-hidden rounded-2xl bg-neutral-900 dark:bg-black p-5 flex flex-col justify-between text-left text-white min-h-[110px] h-full hover:-translate-y-0.5 transition-transform"
             >
-              <div className="absolute -right-10 -top-10 w-32 h-32 bg-amber-500/25 rounded-full blur-2xl pointer-events-none" />
-              <span className="relative w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-400">
+              <div className="absolute -right-10 -top-10 w-32 h-32 bg-violet-500/25 rounded-full blur-2xl pointer-events-none" />
+              <span className="relative w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-violet-400">
                 <ViewBarsIcon className="w-5 h-5" />
               </span>
               <span className="relative">
@@ -587,14 +587,14 @@ export default function StatsPage() {
             {/* Productos clave — 1x2, alta, ámbar */}
             <button
               onClick={() => handleSelectView('concentration')}
-              className="md:col-start-3 md:row-start-3 md:row-span-2 rounded-2xl bg-amber-500 p-4 flex flex-col justify-between text-left text-white min-h-[52px] h-full hover:-translate-y-0.5 transition-transform"
+              className="md:col-start-3 md:row-start-3 md:row-span-2 rounded-2xl bg-violet-500 p-4 flex flex-col justify-between text-left text-white min-h-[52px] h-full hover:-translate-y-0.5 transition-transform"
             >
               <span className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
                 <ViewTagIcon className="w-4 h-4" />
               </span>
               <span>
                 <span className="block text-3xl font-handwrite font-bold leading-none">Productos clave</span>
-                <span className="block text-xs font-mono tracking-tight text-amber-100 mt-1">De dónde viene tu plata</span>
+                <span className="block text-xs font-mono tracking-tight text-violet-100 mt-1">De dónde viene tu plata</span>
               </span>
             </button>
 
@@ -755,7 +755,7 @@ function EmployeeShiftsView({
             <select
               value={selectedEmployeeId}
               onChange={(e) => onSelectEmployee(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-colors"
             >
               <option value={ALL_EMPLOYEES_VALUE}>Todas las empleadas</option>
               {employeeOptions.map((emp) => (
@@ -771,7 +771,7 @@ function EmployeeShiftsView({
               type="date"
               value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-colors"
             />
           </div>
           <div>
@@ -780,14 +780,14 @@ function EmployeeShiftsView({
               type="date"
               value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-colors"
             />
           </div>
           <div className="flex items-end">
             <button
               onClick={onSearch}
               disabled={isLoading || !selectedEmployeeId}
-              className="w-full px-4 py-2 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 disabled:opacity-50 transition-colors"
+              className="w-full px-4 py-2 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors"
             >
               {isLoading ? 'Buscando...' : 'Buscar'}
             </button>
@@ -929,9 +929,9 @@ function EmployeeShiftsView({
               <p className="text-xs text-gray-500 dark:text-neutral-400">Ventas</p>
               <p className="text-lg font-bold text-gray-800 dark:text-neutral-100">{report.transactions_count}</p>
             </div>
-            <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-3 text-center">
-              <p className="text-xs text-amber-600 dark:text-amber-400">Ticket promedio</p>
-              <p className="text-lg font-bold text-amber-700 dark:text-amber-400">
+            <div className="bg-violet-50 dark:bg-violet-950 rounded-xl p-3 text-center">
+              <p className="text-xs text-violet-600 dark:text-violet-400">Ticket promedio</p>
+              <p className="text-lg font-bold text-violet-700 dark:text-violet-400">
                 {formatCurrency(report.transactions_count > 0 ? report.total_sales / report.transactions_count : 0)}
               </p>
             </div>
@@ -954,7 +954,7 @@ function EmployeeShiftsView({
                     <span className="text-sm text-gray-700 dark:text-neutral-300">{formatDate(shift.date + 'T12:00:00')}</span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                        shift.type === 'day' ? 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400' : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-400'
+                        shift.type === 'day' ? 'bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400' : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-400'
                       }`}
                     >
                       {shift.type === 'day' ? 'Día' : 'Noche'}
@@ -1004,7 +1004,7 @@ function DayOfWeekView({
   if (isLoading || !report) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -1024,17 +1024,17 @@ function DayOfWeekView({
     <div className="space-y-3">
       {/* Predicción para hoy */}
       {today && (
-        <div className="relative overflow-hidden bg-amber-50 dark:bg-neutral-900 border border-amber-200 dark:border-neutral-800 rounded-2xl p-4">
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-amber-500/25 rounded-full blur-3xl pointer-events-none hidden dark:block" />
+        <div className="relative overflow-hidden bg-violet-50 dark:bg-neutral-900 border border-violet-200 dark:border-neutral-800 rounded-2xl p-4">
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-violet-500/25 rounded-full blur-3xl pointer-events-none hidden dark:block" />
           <div className="relative flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h3 className="text-xl font-display font-bold text-amber-900 dark:text-amber-300">Predicción para hoy — {today.day_name}</h3>
-            <p className="text-[10px] font-mono text-amber-700 dark:text-amber-400">
+            <h3 className="text-xl font-display font-bold text-violet-900 dark:text-violet-300">Predicción para hoy — {today.day_name}</h3>
+            <p className="text-[10px] font-mono text-violet-700 dark:text-violet-400">
               Promedio de {today.occurrences} {today.day_name.toLowerCase()}{today.day_name.toLowerCase().endsWith('s') ? '' : 's'} anteriores (no es tendencia)
             </p>
           </div>
-          <p className="relative text-3xl font-bold text-amber-900 dark:text-amber-300 mt-1 mb-3">
+          <p className="relative text-3xl font-bold text-violet-900 dark:text-violet-300 mt-1 mb-3">
             {formatCurrency(today.avg_revenue)}{' '}
-            <span className="text-sm font-medium text-amber-700 dark:text-amber-400">~{today.avg_sales_count} ventas esperadas hoy</span>
+            <span className="text-sm font-medium text-violet-700 dark:text-violet-400">~{today.avg_sales_count} ventas esperadas hoy</span>
           </p>
           {todayProducts.length > 0 && (
             <div className="relative grid grid-cols-4 gap-2">
@@ -1043,7 +1043,7 @@ function DayOfWeekView({
                   <p className="text-[10px] text-gray-500 dark:text-neutral-400 truncate" title={p.product_name}>
                     {p.product_name}
                   </p>
-                  <p className="text-base font-bold text-amber-900 dark:text-amber-300">~{p.avg_units}</p>
+                  <p className="text-base font-bold text-violet-900 dark:text-violet-300">~{p.avg_units}</p>
                   <p className="text-[9px] font-mono text-gray-400">unidades</p>
                 </div>
               ))}
@@ -1070,7 +1070,7 @@ function DayOfWeekView({
                   key={d.dow}
                   onClick={() => onSelectDow(d.dow)}
                   className={`cursor-pointer transition-colors ${
-                    d.dow === selectedDow ? 'bg-amber-50 dark:bg-amber-500/10' : 'hover:bg-gray-50 dark:hover:bg-neutral-800/60'
+                    d.dow === selectedDow ? 'bg-violet-50 dark:bg-violet-500/10' : 'hover:bg-gray-50 dark:hover:bg-neutral-800/60'
                   }`}
                 >
                   <td className="py-1.5">
@@ -1125,7 +1125,7 @@ function DayOfWeekView({
                           {strong && <span className="ml-1">🔥</span>}
                           {notable && <span className="ml-1 text-green-700 dark:text-green-400">↑</span>}
                         </td>
-                        <td className="py-1.5 text-sm text-right font-mono text-amber-700 dark:text-amber-400 font-medium">~{p.avg_units}</td>
+                        <td className="py-1.5 text-sm text-right font-mono text-violet-700 dark:text-violet-400 font-medium">~{p.avg_units}</td>
                         <td className="py-1.5 text-sm text-right font-mono text-gray-500 dark:text-neutral-400">{p.total_units}</td>
                       </tr>
                     );
@@ -1143,10 +1143,10 @@ function DayOfWeekView({
 function domIntensityClass(value: number, max: number, occurrences: number): string {
   if (occurrences === 0) return 'bg-gray-50 dark:bg-neutral-900 text-gray-300 dark:text-neutral-700';
   const ratio = max > 0 ? value / max : 0;
-  if (ratio >= 0.8) return 'bg-amber-500 text-white';
-  if (ratio >= 0.6) return 'bg-amber-300 dark:bg-amber-700 text-amber-900 dark:text-white';
-  if (ratio >= 0.4) return 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300';
-  if (ratio >= 0.2) return 'bg-amber-50 dark:bg-neutral-800 text-amber-700 dark:text-neutral-300';
+  if (ratio >= 0.8) return 'bg-violet-500 text-white';
+  if (ratio >= 0.6) return 'bg-violet-300 dark:bg-violet-700 text-violet-900 dark:text-white';
+  if (ratio >= 0.4) return 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-300';
+  if (ratio >= 0.2) return 'bg-violet-50 dark:bg-neutral-800 text-violet-700 dark:text-neutral-300';
   return 'bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-neutral-400';
 }
 
@@ -1160,7 +1160,7 @@ function MonthCycleView({
   if (isLoading || !report) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -1189,7 +1189,7 @@ function MonthCycleView({
           </thead>
           <tbody className="divide-y divide-gray-50 dark:divide-neutral-800">
             {report.by_week.map((w) => (
-              <tr key={w.week_bucket} className={w.avg_revenue === maxWeekAvg && w.avg_revenue > 0 ? 'bg-amber-50 dark:bg-amber-500/10' : ''}>
+              <tr key={w.week_bucket} className={w.avg_revenue === maxWeekAvg && w.avg_revenue > 0 ? 'bg-violet-50 dark:bg-violet-500/10' : ''}>
                 <td className="py-1.5">
                   <span className="block text-sm text-gray-800 dark:text-neutral-100 font-medium">
                     {w.label} {w.avg_revenue === maxWeekAvg && w.avg_revenue > 0 ? '🔥' : ''}
@@ -1264,7 +1264,7 @@ function InventoryTurnoverView({
               type="date"
               value={startDate}
               onChange={(e) => onStartDateChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-colors"
             />
           </div>
           <div>
@@ -1273,14 +1273,14 @@ function InventoryTurnoverView({
               type="date"
               value={endDate}
               onChange={(e) => onEndDateChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 dark:bg-neutral-700 dark:text-neutral-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-colors"
             />
           </div>
           <div className="flex items-end">
             <button
               onClick={onSearch}
               disabled={isLoading}
-              className="w-full px-4 py-2 bg-amber-500 text-white rounded-xl font-medium hover:bg-amber-600 disabled:opacity-50 transition-colors"
+              className="w-full px-4 py-2 bg-violet-500 text-white rounded-xl font-medium hover:bg-violet-600 disabled:opacity-50 transition-colors"
             >
               {isLoading ? 'Calculando...' : 'Calcular'}
             </button>
@@ -1308,7 +1308,7 @@ function InventoryTurnoverView({
                 No se pudo calcular — el inventario valorizado a costo es $0. Revisa que tus productos tengan costo de compra y stock registrado.
               </p>
             ) : (
-              <p className="text-4xl font-bold text-amber-700 dark:text-amber-400">
+              <p className="text-4xl font-bold text-violet-700 dark:text-violet-400">
                 {report.turnover.toLocaleString('es-CO', { maximumFractionDigits: 2 })}{' '}
                 <span className="text-lg font-medium text-gray-500 dark:text-neutral-400">veces</span>
               </p>
@@ -1327,13 +1327,13 @@ function InventoryTurnoverView({
           </div>
 
           {/* Cómo leerlo */}
-          <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-2xl p-6 space-y-3">
-            <h3 className="text-sm font-bold text-amber-900 dark:text-amber-300">¿Cómo se lee este número?</h3>
-            <p className="text-sm text-amber-900 dark:text-amber-300">
+          <div className="bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 rounded-2xl p-6 space-y-3">
+            <h3 className="text-sm font-bold text-violet-900 dark:text-violet-300">¿Cómo se lee este número?</h3>
+            <p className="text-sm text-violet-900 dark:text-violet-300">
               La rotación te dice cuántas veces &quot;diste la vuelta&quot; a tu inventario en el rango de fechas que
               elegiste — es decir, cuántas veces vendiste el equivalente al valor de lo que tienes hoy en existencias.
             </p>
-            <ul className="text-sm text-amber-900 dark:text-amber-300 list-disc list-inside space-y-1">
+            <ul className="text-sm text-violet-900 dark:text-violet-300 list-disc list-inside space-y-1">
               <li>
                 <strong>Número alto</strong> = tu plata se mueve rápido: compras, vendes, repones. Es señal de buen
                 flujo de caja.
@@ -1344,7 +1344,7 @@ function InventoryTurnoverView({
               </li>
             </ul>
             {report.turnover !== null && (
-              <p className="text-sm text-amber-900 dark:text-amber-300 bg-amber-100 dark:bg-amber-900 rounded-xl p-3">
+              <p className="text-sm text-violet-900 dark:text-violet-300 bg-violet-100 dark:bg-violet-900 rounded-xl p-3">
                 En tu caso: vendiste {formatCurrency(report.cogs)} en costo de mercancía, y tu inventario actual vale{' '}
                 {formatCurrency(report.inventory_value_at_cost)} a costo → rotaste tu inventario{' '}
                 <strong>{report.turnover.toLocaleString('es-CO', { maximumFractionDigits: 2 })} veces</strong> en este
@@ -1383,7 +1383,7 @@ function ReorderForecastView({
   if (isLoading || !report) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -1405,7 +1405,7 @@ function ReorderForecastView({
             se acaba en menos de 7 días
           </span>
           <span className="inline-flex items-center gap-1">
-            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400">
+            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400">
               🟡 Pronto
             </span>
             se acaba entre 7 y 14 días
@@ -1440,7 +1440,7 @@ function ReorderForecastView({
                       <td className="py-2 text-sm text-right">
                         <span
                           className={`font-bold ${
-                            urgent ? 'text-red-700 dark:text-red-400' : soon ? 'text-amber-700 dark:text-amber-400' : 'text-gray-800 dark:text-neutral-100'
+                            urgent ? 'text-red-700 dark:text-red-400' : soon ? 'text-violet-700 dark:text-violet-400' : 'text-gray-800 dark:text-neutral-100'
                           }`}
                         >
                           {p.days_remaining}
@@ -1451,7 +1451,7 @@ function ReorderForecastView({
                           </span>
                         )}
                         {soon && (
-                          <span className="ml-2 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400 align-middle">
+                          <span className="ml-2 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400 align-middle">
                             🟡 Pronto
                           </span>
                         )}
@@ -1551,7 +1551,7 @@ function RevenueBarChart({ title, bars, compact = false }: { title: string; bars
                 )}
                 <span className="text-[11px] font-medium text-gray-700 dark:text-neutral-300 mb-1">{formatCompactCOP(b.value)}</span>
                 <div
-                  className={`w-full max-w-[24px] rounded-t transition-colors ${isHovered ? 'bg-amber-600' : 'bg-amber-500'}`}
+                  className={`w-full max-w-[24px] rounded-t transition-colors ${isHovered ? 'bg-violet-600' : 'bg-violet-500'}`}
                   style={{ height: `${heightPct}%` }}
                 />
                 <span className="text-[10px] text-gray-500 dark:text-neutral-400 mt-2">{b.label}</span>
@@ -1578,7 +1578,7 @@ function RevenueConcentrationView({
   if (isLoading || !report) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -1613,14 +1613,14 @@ function RevenueConcentrationView({
       ) : (
         <>
           {/* Titular */}
-          <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-2xl p-6">
-            <p className="text-sm text-amber-900 dark:text-amber-300 mb-1">
+          <div className="bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 rounded-2xl p-6">
+            <p className="text-sm text-violet-900 dark:text-violet-300 mb-1">
               En {periodLabel}, vendiste {formatCurrency(bucket.total_revenue)} en total.
             </p>
-            <p className="text-2xl font-bold text-amber-900 dark:text-amber-300">
+            <p className="text-2xl font-bold text-violet-900 dark:text-violet-300">
               {bucket.products_for_50pct} producto{bucket.products_for_50pct !== 1 ? 's' : ''} = 50% de tus ingresos
             </p>
-            <p className="text-sm text-amber-800 dark:text-amber-400 mt-1">
+            <p className="text-sm text-violet-800 dark:text-violet-400 mt-1">
               Y con {bucket.products_for_80pct} producto{bucket.products_for_80pct !== 1 ? 's' : ''} ya cubres el 80%.
               Esos son los productos en los que <strong>nunca te puedes quedar sin stock</strong>.
             </p>
@@ -1631,13 +1631,13 @@ function RevenueConcentrationView({
             <h3 className="text-sm font-bold text-gray-900 dark:text-neutral-100 mb-1">Productos ordenados por ingresos</h3>
             <p className="text-xs text-gray-500 dark:text-neutral-400 mb-4 flex flex-wrap items-center gap-x-4 gap-y-1">
               <span className="inline-flex items-center gap-1">
-                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-600 text-white">
+                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-600 text-white">
                   🎯 Núcleo (50%)
                 </span>
                 estos productos ya suman la mitad de tus ingresos
               </span>
               <span className="inline-flex items-center gap-1">
-                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400">
+                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400">
                   80%
                 </span>
                 hasta aquí llegas al 80% del total
@@ -1658,16 +1658,16 @@ function RevenueConcentrationView({
                     const inCore = index < bucket.products_for_50pct;
                     const in80 = !inCore && index < bucket.products_for_80pct;
                     return (
-                      <tr key={p.product_name} className={inCore ? 'bg-amber-50 dark:bg-amber-950' : ''}>
+                      <tr key={p.product_name} className={inCore ? 'bg-violet-50 dark:bg-violet-950' : ''}>
                         <td className="py-2 text-sm text-gray-800 dark:text-neutral-100">
                           {p.product_name}
                           {inCore && (
-                            <span className="ml-2 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-600 text-white align-middle">
+                            <span className="ml-2 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-600 text-white align-middle">
                               🎯
                             </span>
                           )}
                           {in80 && (
-                            <span className="ml-2 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400 align-middle">
+                            <span className="ml-2 inline-block px-1.5 py-0.5 rounded text-[10px] font-bold bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400 align-middle">
                               80%
                             </span>
                           )}
@@ -1706,7 +1706,7 @@ function SalesTrendView({
   if (isLoading || !report) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -1873,11 +1873,11 @@ function DailyStatsTable({ stats }: { stats: DailyStats[] }) {
           {stats.map((stat, index) => (
             <tr
               key={stat.date}
-              className={index === 0 ? 'bg-amber-50 dark:bg-amber-950' : 'hover:bg-gray-50 dark:hover:bg-neutral-800/60 transition-colors'}
+              className={index === 0 ? 'bg-violet-50 dark:bg-violet-950' : 'hover:bg-gray-50 dark:hover:bg-neutral-800/60 transition-colors'}
             >
               <td className="px-4 py-2.5 text-sm">
                 {index === 0 ? (
-                  <span className="font-semibold text-amber-700 dark:text-amber-400">Hoy</span>
+                  <span className="font-semibold text-violet-700 dark:text-violet-400">Hoy</span>
                 ) : (
                   <span className="text-gray-700 dark:text-neutral-300">{formatDate(stat.date)}</span>
                 )}
@@ -1924,11 +1924,11 @@ function WeeklyStatsTable({ stats }: { stats: WeeklyStats[] }) {
           {stats.map((stat, index) => (
             <tr
               key={stat.week_start}
-              className={index === 0 ? 'bg-amber-50 dark:bg-amber-950' : 'hover:bg-gray-50 dark:hover:bg-neutral-800/60 transition-colors'}
+              className={index === 0 ? 'bg-violet-50 dark:bg-violet-950' : 'hover:bg-gray-50 dark:hover:bg-neutral-800/60 transition-colors'}
             >
               <td className="px-4 py-2.5 text-sm">
                 {index === 0 ? (
-                  <span className="font-semibold text-amber-700 dark:text-amber-400">Esta semana</span>
+                  <span className="font-semibold text-violet-700 dark:text-violet-400">Esta semana</span>
                 ) : (
                   <span className="text-gray-700 dark:text-neutral-300">{`${formatDate(stat.week_start)} - ${formatDate(stat.week_end)}`}</span>
                 )}

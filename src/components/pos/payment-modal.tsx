@@ -153,7 +153,7 @@ export function PaymentModal({
                 <span className="font-medium">{item.quantity}x</span>{' '}
                 <span>{item.product.name}</span>
                 {item.isMichelada && (
-                  <span className="text-xs text-amber-600 dark:text-amber-400 ml-1">🌶️</span>
+                  <span className="text-xs text-violet-600 dark:text-violet-400 ml-1">🌶️</span>
                 )}
               </div>
               <span className="font-medium">
@@ -170,7 +170,7 @@ export function PaymentModal({
               <div>
                 <span className="font-medium">🎁 {cartCombo.combo.name}</span>
               </div>
-              <span className="font-medium text-amber-600 dark:text-amber-400">
+              <span className="font-medium text-violet-600 dark:text-violet-400">
                 {formatCurrency(cartCombo.finalPrice)}
               </span>
             </div>
@@ -184,9 +184,9 @@ export function PaymentModal({
       </div>
 
       {/* Total grande */}
-      <div className="text-center py-6 bg-amber-50 dark:bg-amber-950 rounded-xl mb-6">
+      <div className="text-center py-6 bg-violet-50 dark:bg-violet-950 rounded-xl mb-6">
         <p className="text-gray-600 dark:text-neutral-300 text-sm mb-1">Total a pagar</p>
-        <p className="text-4xl font-bold text-amber-700 dark:text-amber-400">
+        <p className="text-4xl font-bold text-violet-700 dark:text-violet-400">
           {formatCurrency(total)}
         </p>
       </div>
@@ -216,7 +216,7 @@ export function PaymentModal({
             setPaymentMethod('cash');
             setStep('payment');
           }}
-          className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all flex items-center gap-4"
+          className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-violet-500 hover:bg-violet-50 dark:hover:bg-violet-950 transition-all flex items-center gap-4"
         >
           <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center text-2xl">
             💵
@@ -232,7 +232,7 @@ export function PaymentModal({
             setPaymentMethod('transfer');
             setStep('payment');
           }}
-          className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all flex items-center gap-4"
+          className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-violet-500 hover:bg-violet-50 dark:hover:bg-violet-950 transition-all flex items-center gap-4"
         >
           <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-2xl">
             📱
@@ -248,7 +248,7 @@ export function PaymentModal({
             setPaymentMethod('mixed');
             setStep('payment');
           }}
-          className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all flex items-center gap-4"
+          className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-violet-500 hover:bg-violet-50 dark:hover:bg-violet-950 transition-all flex items-center gap-4"
         >
           <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center text-2xl">
             💳
@@ -296,7 +296,7 @@ export function PaymentModal({
           value={cashReceived}
           onChange={(e) => setCashReceived(e.target.value)}
           placeholder="0"
-          className="w-full px-4 py-4 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
+          className="w-full px-4 py-4 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-violet-500 focus:ring-0"
           autoFocus
         />
       </div>
@@ -325,7 +325,7 @@ export function PaymentModal({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
-          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-violet-500 focus:ring-0"
           rows={2}
         />
       </div>
@@ -374,7 +374,7 @@ export function PaymentModal({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
-          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-violet-500 focus:ring-0"
           rows={2}
         />
       </div>
@@ -423,7 +423,7 @@ export function PaymentModal({
             <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
               💵 Efectivo recibido
               {transferAmountNum > 0 && (
-                <span className="text-amber-600 dark:text-amber-400 ml-2">
+                <span className="text-violet-600 dark:text-violet-400 ml-2">
                   (Faltan {formatCurrency(Math.max(0, remaining))})
                 </span>
               )}
@@ -457,7 +457,7 @@ export function PaymentModal({
             {change > 0 && (
               <div className="flex justify-between mt-2">
                 <span className="text-gray-600 dark:text-neutral-300">Devolver:</span>
-                <span className="text-xl font-bold text-amber-600 dark:text-amber-400">{formatCurrency(change)}</span>
+                <span className="text-xl font-bold text-violet-600 dark:text-violet-400">{formatCurrency(change)}</span>
               </div>
             )}
           </div>
@@ -472,7 +472,7 @@ export function PaymentModal({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
-            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-violet-500 focus:ring-0"
             rows={2}
           />
         </div>

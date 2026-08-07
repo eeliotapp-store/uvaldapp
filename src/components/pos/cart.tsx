@@ -65,7 +65,7 @@ export function Cart({ onCheckout }: CartProps) {
                     {item.product.name}
                   </h4>
                   {item.isMichelada && (
-                    <span className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded inline-flex items-center gap-1 mt-1">
+                    <span className="text-xs bg-violet-100 dark:bg-violet-900 text-violet-700 dark:text-violet-400 px-2 py-0.5 rounded inline-flex items-center gap-1 mt-1">
                       🌶️ Michelada +{formatCurrency(MICHELADA_EXTRA)}
                     </span>
                   )}
@@ -96,7 +96,7 @@ export function Cart({ onCheckout }: CartProps) {
                   <span className="w-8 text-center font-medium">{item.quantity}</span>
                   <button
                     onClick={() => incrementQuantity(item.product.id, item.isMichelada)}
-                    className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-700 dark:text-amber-400 hover:bg-amber-200"
+                    className="w-8 h-8 rounded-full bg-violet-100 dark:bg-violet-900 flex items-center justify-center text-violet-700 dark:text-violet-400 hover:bg-violet-200"
                   >
                     +
                   </button>
@@ -113,7 +113,7 @@ export function Cart({ onCheckout }: CartProps) {
         {combos.map((cartCombo, index) => (
           <div
             key={`combo-${index}`}
-            className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-3 border border-amber-200 dark:border-amber-800"
+            className="bg-gradient-to-r from-violet-50 to-violet-100 rounded-lg p-3 border border-violet-200 dark:border-violet-800"
           >
             <div className="flex justify-between items-start mb-2">
               <div className="flex-1">
@@ -149,7 +149,7 @@ export function Cart({ onCheckout }: CartProps) {
 
             <div className="flex justify-between items-center">
               <span className="text-xs text-gray-500 dark:text-neutral-400">COMBO</span>
-              <span className="font-bold text-amber-700 dark:text-amber-400">
+              <span className="font-bold text-violet-700 dark:text-violet-400">
                 {formatCurrency(cartCombo.finalPrice)}
               </span>
             </div>

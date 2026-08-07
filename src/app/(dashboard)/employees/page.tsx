@@ -66,7 +66,7 @@ export default function EmployeesPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -133,7 +133,7 @@ export default function EmployeesPage() {
                 <td className="px-4 py-3 text-right space-x-2">
                   <button
                     onClick={() => handleEdit(employee)}
-                    className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400 text-sm font-medium"
+                    className="text-violet-600 dark:text-violet-400 hover:text-violet-800 dark:hover:text-violet-400 text-sm font-medium"
                   >
                     Editar
                   </button>
@@ -276,7 +276,7 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
               placeholder="Ej: María García"
             />
           </div>
@@ -293,7 +293,7 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/\s/g, '') })}
               disabled={isEditing}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
               placeholder="Ej: maria"
             />
           </div>
@@ -310,7 +310,7 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 pr-10"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500 pr-10"
                 placeholder="Minimo 4 caracteres"
               />
               <button
@@ -331,7 +331,7 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
               type={showPassword ? 'text' : 'password'}
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
               placeholder="Repite la contraseña"
             />
           </div>
@@ -343,7 +343,7 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as 'employee' | 'owner' })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-violet-500 focus:border-violet-500"
             >
               <option value="employee">Empleado</option>
               <option value="owner">Dueña (Admin)</option>

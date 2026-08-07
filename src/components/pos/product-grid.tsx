@@ -75,7 +75,7 @@ export function ProductGrid({ products, stockMap }: ProductGridProps) {
                 relative p-4 rounded-xl border-2 text-left transition-all
                 ${isOutOfStock
                   ? 'bg-gray-100 dark:bg-neutral-700 border-gray-200 dark:border-neutral-700 opacity-50 cursor-not-allowed'
-                  : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 hover:border-amber-400 hover:shadow-md active:scale-95'
+                  : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 hover:border-violet-400 hover:shadow-md active:scale-95'
                 }
               `}
             >
@@ -89,10 +89,10 @@ export function ProductGrid({ products, stockMap }: ProductGridProps) {
               </span>
 
               {/* Product Image Placeholder */}
-              <div className={`w-12 h-12 ${isBeer ? 'bg-amber-100 dark:bg-amber-900' : 'bg-gray-100 dark:bg-neutral-700'} rounded-lg flex items-center justify-center mb-3`}>
+              <div className={`w-12 h-12 ${isBeer ? 'bg-violet-100 dark:bg-violet-900' : 'bg-gray-100 dark:bg-neutral-700'} rounded-lg flex items-center justify-center mb-3`}>
                 {isBeer ? (
                   <svg
-                    className="w-6 h-6 text-amber-600 dark:text-amber-400"
+                    className="w-6 h-6 text-violet-600 dark:text-violet-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -120,13 +120,13 @@ export function ProductGrid({ products, stockMap }: ProductGridProps) {
               <h3 className="font-medium text-gray-900 dark:text-neutral-100 text-sm line-clamp-2">
                 {product.name}
               </h3>
-              <p className="text-amber-600 dark:text-amber-400 font-bold mt-1">
+              <p className="text-violet-600 dark:text-violet-400 font-bold mt-1">
                 {formatCurrency(product.sale_price)}
               </p>
 
               {/* Beer indicator */}
               {isBeer && !isOutOfStock && (
-                <span className="absolute bottom-2 right-2 text-xs text-amber-500">
+                <span className="absolute bottom-2 right-2 text-xs text-violet-500">
                   🍺
                 </span>
               )}
@@ -236,7 +236,7 @@ function MicheladaModal({ product, onClose, onSelect }: MicheladaModalProps) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6">
         <div className="text-center mb-4">
-          <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center mx-auto mb-3">
+          <div className="w-16 h-16 bg-violet-100 dark:bg-violet-900 rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-3xl">🍺</span>
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-neutral-100">{product.name}</h2>
@@ -246,7 +246,7 @@ function MicheladaModal({ product, onClose, onSelect }: MicheladaModalProps) {
         <div className="space-y-3">
           <button
             onClick={() => onSelect(false)}
-            className="w-full p-4 border-2 border-gray-200 dark:border-neutral-700 rounded-xl hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950 transition-colors flex items-center justify-between"
+            className="w-full p-4 border-2 border-gray-200 dark:border-neutral-700 rounded-xl hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-950 transition-colors flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">🍺</span>
@@ -257,16 +257,16 @@ function MicheladaModal({ product, onClose, onSelect }: MicheladaModalProps) {
 
           <button
             onClick={() => onSelect(true)}
-            className="w-full p-4 border-2 border-amber-400 bg-amber-50 dark:bg-amber-950 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors flex items-center justify-between"
+            className="w-full p-4 border-2 border-violet-400 bg-violet-50 dark:bg-violet-950 rounded-xl hover:bg-violet-100 dark:hover:bg-violet-900 transition-colors flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">🌶️</span>
               <div className="text-left">
                 <span className="font-medium">Michelada</span>
-                <p className="text-xs text-amber-600 dark:text-amber-400">+{formatCurrency(MICHELADA_EXTRA)}</p>
+                <p className="text-xs text-violet-600 dark:text-violet-400">+{formatCurrency(MICHELADA_EXTRA)}</p>
               </div>
             </div>
-            <span className="text-lg font-bold text-amber-600 dark:text-amber-400">{formatCurrency(micheladaPrice)}</span>
+            <span className="text-lg font-bold text-violet-600 dark:text-violet-400">{formatCurrency(micheladaPrice)}</span>
           </button>
         </div>
 
