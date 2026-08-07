@@ -33,3 +33,11 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Sistema tipográfico: los títulos (h1–h3) usan la fuente display (Space Grotesk) en toda la app.
+   Cualquier elemento con una utilidad de fuente explícita (font-sans/font-mono/font-handwrite)
+   la sobreescribe, porque las clases ganan en especificidad sobre este selector de elemento. */
+h1, h2, h3 {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  letter-spacing: -0.01em;
+}

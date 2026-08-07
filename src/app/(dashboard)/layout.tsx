@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/layout/sidebar';
 import { BottomNav } from '@/components/layout/bottom-nav';
+import { SupportButton } from '@/components/support-button';
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
         <div className="p-4 lg:p-6">{children}</div>
       </main>
       <BottomNav />
+      <SupportButton />
     </div>
   );
 }

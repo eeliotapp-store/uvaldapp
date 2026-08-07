@@ -53,25 +53,27 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 to-violet-100 dark:from-neutral-950 dark:to-neutral-900 flex flex-col items-center justify-center p-4">
-      {/* Logo */}
-      <div className="mb-8 text-center">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/uvaldapp-icon.png"
-          alt="uvaldapp"
-          className="w-20 h-20 rounded-2xl mx-auto mb-4 shadow-lg"
-        />
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">uvaldapp</h1>
-        <p className="text-gray-600 dark:text-neutral-400 mt-1">Sistema de Inventario</p>
+    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-violet-100 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Resplandor de marca */}
+      <div className="absolute top-[18%] left-1/2 -translate-x-1/2 w-[420px] h-[420px] bg-violet-500/20 dark:bg-violet-600/25 rounded-full blur-[110px] pointer-events-none" />
+
+      {/* Logo + bienvenida */}
+      <div className="relative mb-6 text-center">
+        <div className="relative inline-block mb-3">
+          <div className="absolute inset-0 bg-violet-500/40 rounded-2xl blur-xl pointer-events-none" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/uvaldapp-icon.png"
+            alt="La Boli Fenix"
+            className="relative w-20 h-20 rounded-2xl shadow-2xl ring-1 ring-white/20"
+          />
+        </div>
+        <h1 className="text-3xl font-display font-bold tracking-tight text-gray-900 dark:text-neutral-50">La Boli Fenix</h1>
+        <p className="font-handwrite text-3xl text-violet-500 dark:text-violet-400 mt-1">Bienvenida de nuevo</p>
       </div>
 
       {/* Card */}
-      <div className="bg-white dark:bg-neutral-800 rounded-3xl shadow-xl p-8 w-full max-w-sm">
-        <h2 className="text-center text-lg font-semibold text-gray-700 dark:text-neutral-200 mb-6">
-          Iniciar Sesion
-        </h2>
-
+      <div className="relative bg-white/80 dark:bg-neutral-800/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/60 dark:border-neutral-700/60 p-7 w-full max-w-sm">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
@@ -148,8 +150,8 @@ export default function LoginPage() {
       </div>
 
       {/* Footer */}
-      <p className="mt-8 text-sm text-gray-500 dark:text-neutral-400">
-        v1.0 - Sistema de Inventario
+      <p className="relative mt-6 text-xs text-gray-500 dark:text-neutral-500">
+        Hecho con ♥ para La Boli Fenix <span className="opacity-60">· uvaldapp</span>
       </p>
     </div>
   );

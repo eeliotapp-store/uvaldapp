@@ -17,7 +17,6 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
   const router = useRouter();
   const pathname = usePathname();
   const employee = useAuthStore((state) => state.employee);
-  const { currentShift, setShift, shiftVerifiedAt, setShiftVerifiedAt, inventoryCountVerified, setInventoryCountVerified } = useShiftStore();
   const [isChecking, setIsChecking] = useState(true);
   const [hasShift, setHasShift] = useState(false);
   const [hasInventoryCount, setHasInventoryCount] = useState(false);
@@ -29,6 +28,18 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
         router.push('/login');
         return;
       }
+
+      // Leemos el estado MÁS RECIENTE del store de forma imperativa (getState), NO como
+      // dependencias del efecto. Así el efecto no se vuelve a disparar cada vez que él mismo
+      // actualiza el store — lo que antes generaba un bucle de fetch (y facturación en Vercel).
+      const {
+        currentShift,
+        shiftVerifiedAt,
+        inventoryCountVerified,
+        setShift,
+        setShiftVerifiedAt,
+        setInventoryCountVerified,
+      } = useShiftStore.getState();
 
       // Si ya verificamos hace menos de 60s y hay turno en el store, usar caché
       if (shiftVerifiedAt && Date.now() - shiftVerifiedAt < COOLDOWN_MS && currentShift) {
@@ -108,7 +119,10 @@ export function ShiftGuard({ children, requireInventoryCount = true }: ShiftGuar
     };
 
     checkShift();
-  }, [employee, currentShift, router, setShift, requireInventoryCount, shiftVerifiedAt, inventoryCountVerified, setShiftVerifiedAt, setInventoryCountVerified]);
+    // Solo re-verifica al montar, al cambiar de empleada (login/logout) o si cambia la config.
+    // El estado del turno se lee con getState() adentro, por eso no va en las dependencias.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [employee?.id, requireInventoryCount]);
 
   // Owners y superadmins pueden acceder sin turno activo
   if (isOwner(employee?.role)) {

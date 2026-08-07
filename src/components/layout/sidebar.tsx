@@ -53,8 +53,8 @@ export function Sidebar() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/uvaldapp-icon.png" alt="uvaldapp" className="w-10 h-10 rounded-lg shrink-0" />
         <div>
-          <h1 className="text-white font-bold">uvaldapp</h1>
-          <p className="text-neutral-400 text-sm">Inventario</p>
+          <h1 className="text-white font-bold">La Boli Fenix</h1>
+          <p className="text-neutral-400 text-sm">uvaldapp</p>
         </div>
       </div>
 

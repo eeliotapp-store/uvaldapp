@@ -521,7 +521,7 @@ export default function StatsPage() {
                 <ViewCalendarIcon className="w-4 h-4" />
               </span>
               <span>
-                <span className="block text-2xl font-handwrite font-bold leading-none text-gray-900 dark:text-neutral-100">Semanal</span>
+                <span className="block text-sm font-semibold text-gray-900 dark:text-neutral-100">Semanal</span>
                 <span className="block text-[10px] font-mono tracking-tight text-gray-500 dark:text-neutral-400 mt-0.5">Resumen por semana</span>
               </span>
             </button>
@@ -579,7 +579,7 @@ export default function StatsPage() {
                 <ViewBarsIcon className="w-5 h-5" />
               </span>
               <span className="relative">
-                <span className="block text-4xl font-handwrite font-bold leading-none">Por día de la semana</span>
+                <span className="block text-xl font-display font-bold tracking-tight">Por día de la semana</span>
                 <span className="block text-xs font-mono tracking-tight text-neutral-400 mt-1">Patrones históricos</span>
               </span>
             </button>
@@ -593,7 +593,7 @@ export default function StatsPage() {
                 <ViewTagIcon className="w-4 h-4" />
               </span>
               <span>
-                <span className="block text-3xl font-handwrite font-bold leading-none">Productos clave</span>
+                <span className="block text-lg font-display font-bold tracking-tight">Productos clave</span>
                 <span className="block text-xs font-mono tracking-tight text-violet-100 mt-1">De dónde viene tu plata</span>
               </span>
             </button>
@@ -621,7 +621,7 @@ export default function StatsPage() {
                 <ViewTrendIcon className="w-4 h-4" />
               </span>
               <span>
-                <span className="block text-2xl font-handwrite font-bold leading-none text-gray-900 dark:text-neutral-100">Tendencia</span>
+                <span className="block text-sm font-semibold text-gray-900 dark:text-neutral-100">Tendencia</span>
                 <span className="block text-[10px] font-mono tracking-tight text-gray-500 dark:text-neutral-400 mt-0.5">Subiendo o bajando</span>
               </span>
             </button>
