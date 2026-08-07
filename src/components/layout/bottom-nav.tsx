@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { ThemeToggle } from './theme-toggle';
 
 // Navegación principal (siempre visible)
 const mainNavigation = [
@@ -29,6 +30,7 @@ const moreNavigation = [
   { name: 'Empleados', href: '/employees', icon: UsersIcon, ownerOnly: true },
   { name: 'Auditoría', href: '/audit', icon: AuditIcon, ownerOnly: true },
   { name: 'Admin', href: '/admin', icon: SettingsIcon, ownerOnly: true },
+  { name: 'Ayuda', href: '/help', icon: HelpIcon, ownerOnly: false },
 ];
 
 export function BottomNav() {
@@ -55,7 +57,7 @@ export function BottomNav() {
 
       {/* Menú expandido */}
       {showMore && (
-        <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 z-50 max-h-[60vh] overflow-y-auto shadow-lg rounded-t-2xl">
+        <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-white dark:bg-neutral-800 border-t border-gray-200 dark:border-neutral-700 z-50 max-h-[60vh] overflow-y-auto shadow-lg rounded-t-2xl">
           <div className="p-4 grid grid-cols-4 gap-3">
             {filteredMoreNav.map((item) => {
               const isActive = pathname === item.href;
@@ -67,8 +69,8 @@ export function BottomNav() {
                   className={cn(
                     'flex flex-col items-center justify-center p-3 rounded-xl',
                     isActive
-                      ? 'bg-amber-100 text-amber-600'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400'
+                      : 'text-gray-600 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-700'
                   )}
                 >
                   <item.icon className="w-6 h-6" />
@@ -76,12 +78,17 @@ export function BottomNav() {
                 </Link>
               );
             })}
+            <ThemeToggle
+              className="flex flex-col items-center justify-center p-3 rounded-xl text-gray-600 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-700"
+              iconClassName="w-6 h-6"
+              labelClassName="text-xs mt-1 text-center leading-tight"
+            />
           </div>
         </div>
       )}
 
       {/* Barra de navegación fija */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-800 border-t border-gray-200 dark:border-neutral-700 z-50">
         <div className="flex justify-around items-center h-16">
           {mainNavigation.map((item) => {
             const isActive = pathname === item.href;
@@ -91,7 +98,7 @@ export function BottomNav() {
                 href={item.href}
                 className={cn(
                   'flex flex-col items-center justify-center w-full h-full',
-                  isActive ? 'text-amber-600' : 'text-gray-500'
+                  isActive ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-neutral-400'
                 )}
               >
                 <item.icon className="w-6 h-6" />
@@ -105,7 +112,7 @@ export function BottomNav() {
             onClick={() => setShowMore(!showMore)}
             className={cn(
               'flex flex-col items-center justify-center w-full h-full',
-              showMore || isMoreActive ? 'text-amber-600' : 'text-gray-500'
+              showMore || isMoreActive ? 'text-amber-600 dark:text-amber-400' : 'text-gray-500 dark:text-neutral-400'
             )}
           >
             <MoreIcon className="w-6 h-6" />
@@ -261,6 +268,14 @@ function AuditIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+    </svg>
+  );
+}
+
+function HelpIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
 }

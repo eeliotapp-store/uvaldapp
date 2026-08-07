@@ -134,7 +134,7 @@ export default function ProductsPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Productos</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Productos</h1>
         <Button onClick={handleCreate}>+ Nuevo Producto</Button>
       </div>
 
@@ -143,7 +143,7 @@ export default function ProductsPage() {
         <select
           value={filter.category}
           onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-          className="px-3 py-2 border border-gray-300 rounded-lg"
+          className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg"
         >
           <option value="">Todas las categorías</option>
           {CATEGORIES.map((c) => (
@@ -156,55 +156,55 @@ export default function ProductsPage() {
             checked={filter.showInactive}
             onChange={(e) => setFilter({ ...filter, showInactive: e.target.checked })}
           />
-          <span className="text-sm text-gray-600">Mostrar inactivos</span>
+          <span className="text-sm text-gray-600 dark:text-neutral-300">Mostrar inactivos</span>
         </label>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50 dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-700">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Producto</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Categoría</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Precio Venta</th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">Stock</th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Proveedores</th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Acciones</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">Producto</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">Categoría</th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-neutral-300">Precio Venta</th>
+                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300">Stock</th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">Proveedores</th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-neutral-300">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredProducts.map((product) => (
-                <tr key={product.id} className={`hover:bg-gray-50 ${!product.active ? 'opacity-50' : ''}`}>
+                <tr key={product.id} className={`hover:bg-gray-50 dark:hover:bg-neutral-950 ${!product.active ? 'opacity-50' : ''}`}>
                   <td className="px-4 py-3">
-                    <span className="font-medium text-gray-900">{product.name}</span>
+                    <span className="font-medium text-gray-900 dark:text-neutral-100">{product.name}</span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-neutral-300">
                       {CATEGORIES.find((c) => c.value === product.category)?.label}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right font-medium text-gray-900">
+                  <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-neutral-100">
                     {formatCurrency(product.sale_price)}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-1">
                       <button
                         onClick={() => handleAdjustStock(product)}
-                        className="w-6 h-6 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full text-sm font-bold flex items-center justify-center"
+                        className="w-6 h-6 bg-gray-200 dark:bg-neutral-700 hover:bg-gray-300 text-gray-700 dark:text-neutral-300 rounded-full text-sm font-bold flex items-center justify-center"
                         title="Ajustar stock"
                       >
                         −
                       </button>
                       <button
                         onClick={() => handleAdjustStock(product)}
-                        className="px-2 py-1 hover:bg-gray-100 rounded cursor-pointer"
+                        className="px-2 py-1 hover:bg-gray-100 dark:hover:bg-neutral-700 rounded cursor-pointer"
                         title="Click para ajustar"
                       >
-                        <span className={`font-bold ${product.current_stock <= product.min_stock ? 'text-red-600' : 'text-gray-900'}`}>
+                        <span className={`font-bold ${product.current_stock <= product.min_stock ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-neutral-100'}`}>
                           {product.current_stock}
                         </span>
-                        <span className="text-gray-500 text-sm"> / {product.min_stock}</span>
+                        <span className="text-gray-500 dark:text-neutral-400 text-sm"> / {product.min_stock}</span>
                       </button>
                       <button
                         onClick={() => handleAddStock(product)}
@@ -220,27 +220,27 @@ export default function ProductsPage() {
                       {product.product_suppliers?.map((ps) => (
                         <span
                           key={ps.id}
-                          className={`px-2 py-0.5 rounded text-xs ${ps.is_preferred ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}
+                          className={`px-2 py-0.5 rounded text-xs ${ps.is_preferred ? 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400' : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300'}`}
                           title={`${formatCurrency(ps.purchase_price)}`}
                         >
                           {ps.suppliers?.name}
                         </span>
                       ))}
                       {(!product.product_suppliers || product.product_suppliers.length === 0) && (
-                        <span className="text-gray-500 text-sm">Sin proveedores</span>
+                        <span className="text-gray-500 dark:text-neutral-400 text-sm">Sin proveedores</span>
                       )}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right space-x-2">
                     <button
                       onClick={() => handleEdit(product)}
-                      className="text-amber-600 hover:text-amber-800 text-sm font-medium"
+                      className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400 text-sm font-medium"
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => handleToggleActive(product)}
-                      className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+                      className="text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300 text-sm font-medium"
                     >
                       {product.active ? 'Desactivar' : 'Activar'}
                     </button>
@@ -252,7 +252,7 @@ export default function ProductsPage() {
         </div>
 
         {filteredProducts.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-neutral-400">
             No hay productos
           </div>
         )}
@@ -407,7 +407,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-2xl p-6 my-8">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-2xl p-6 my-8">
         <h2 className="text-xl font-bold mb-6">
           {isEditing ? 'Editar Producto' : 'Nuevo Producto'}
         </h2>
@@ -415,21 +415,21 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Nombre</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Categoría</label>
               <select
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value as ProductCategory })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
               >
                 {CATEGORIES.map((c) => (
                   <option key={c.value} value={c.value}>{c.label}</option>
@@ -438,12 +438,12 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Precio de Venta</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Precio de Venta</label>
               <input
                 type="number"
                 value={formData.sale_price}
                 onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
               />
             </div>
 
@@ -451,39 +451,39 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Stock Mínimo</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Stock Mínimo</label>
               <input
                 type="number"
                 value={formData.min_stock}
                 onChange={(e) => setFormData({ ...formData, min_stock: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
               />
             </div>
           </div>
 
           {/* Proveedores */}
-          <div className="border-t border-gray-200 pt-4">
+          <div className="border-t border-gray-200 dark:border-neutral-700 pt-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium text-gray-900">Proveedores y Precios de Compra</h3>
+              <h3 className="font-medium text-gray-900 dark:text-neutral-100">Proveedores y Precios de Compra</h3>
               <button
                 type="button"
                 onClick={addSupplier}
-                className="text-sm text-amber-600 hover:text-amber-800"
+                className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400"
               >
                 + Agregar proveedor
               </button>
             </div>
 
             {productSuppliers.length === 0 ? (
-              <p className="text-sm text-gray-500">No hay proveedores asignados</p>
+              <p className="text-sm text-gray-500 dark:text-neutral-400">No hay proveedores asignados</p>
             ) : (
               <div className="space-y-3">
                 {productSuppliers.map((ps, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-neutral-950 rounded-lg">
                     <select
                       value={ps.supplier_id}
                       onChange={(e) => updateSupplier(index, 'supplier_id', e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm"
                     >
                       <option value="">Seleccionar proveedor...</option>
                       {suppliers.filter((s) => s.active).map((s) => (
@@ -495,7 +495,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
                       value={ps.purchase_price}
                       onChange={(e) => updateSupplier(index, 'purchase_price', e.target.value)}
                       placeholder="Precio compra"
-                      className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="w-32 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm"
                     />
                     <label className="flex items-center gap-1 text-sm whitespace-nowrap">
                       <input
@@ -508,7 +508,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
                     <button
                       type="button"
                       onClick={() => removeSupplier(index)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 dark:hover:text-red-400"
                     >
                       ✕
                     </button>
@@ -519,7 +519,7 @@ function ProductModal({ product, suppliers, onClose, onSuccess }: ProductModalPr
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-3 rounded-lg">{error}</div>
           )}
 
           <div className="flex gap-3 pt-4">
@@ -603,21 +603,21 @@ function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockM
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-2">Agregar Stock</h2>
-        <p className="text-gray-600 mb-4">{product.name}</p>
-        <p className="text-sm text-gray-500 mb-4">Stock actual: <span className="font-bold">{product.current_stock}</span></p>
+        <p className="text-gray-600 dark:text-neutral-300 mb-4">{product.name}</p>
+        <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">Stock actual: <span className="font-bold">{product.current_stock}</span></p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Proveedor *
             </label>
             <select
               value={formData.supplier_id}
               onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             >
               <option value="">Seleccionar...</option>
               {suppliers.filter(s => s.active).map((s) => (
@@ -627,23 +627,23 @@ function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockM
           </div>
 
           {/* Sección de paquetes */}
-          <div className="bg-amber-50 rounded-lg p-4 space-y-3">
-            <p className="text-sm font-medium text-amber-800">Información del paquete</p>
+          <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-400">Información del paquete</p>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Paquetes</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">Paquetes</label>
                 <input
                   type="number"
                   value={formData.packages}
                   onChange={(e) => setFormData({ ...formData, packages: e.target.value })}
                   required
                   min="1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Uds/Paquete</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">Uds/Paquete</label>
                 <input
                   type="number"
                   value={formData.units_per_package}
@@ -651,11 +651,11 @@ function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockM
                   required
                   min="1"
                   placeholder="24"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">$/Paquete</label>
+                <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">$/Paquete</label>
                 <input
                   type="number"
                   value={formData.price_per_package}
@@ -663,25 +663,25 @@ function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockM
                   required
                   min="0"
                   placeholder="68000"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                 />
               </div>
             </div>
 
             {totalUnits > 0 && (
-              <div className="bg-white rounded-lg p-3 border border-amber-200">
+              <div className="bg-white dark:bg-neutral-800 rounded-lg p-3 border border-amber-200 dark:border-amber-800">
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <p className="text-xs text-gray-500">Total Uds</p>
-                    <p className="text-lg font-bold text-gray-900">{totalUnits}</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-400">Total Uds</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-neutral-100">{totalUnits}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">$/Unidad</p>
-                    <p className="text-lg font-bold text-amber-600">{formatCurrency(unitPrice)}</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-400">$/Unidad</p>
+                    <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{formatCurrency(unitPrice)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Total</p>
-                    <p className="text-lg font-bold text-gray-900">{formatCurrency(totalCost)}</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-400">Total</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(totalCost)}</p>
                   </div>
                 </div>
               </div>
@@ -689,7 +689,7 @@ function QuickStockModal({ product, suppliers, onClose, onSuccess }: QuickStockM
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-3 rounded-lg">{error}</div>
           )}
 
           <div className="flex gap-3 pt-2">
@@ -798,12 +798,12 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-2">Ajustar Stock</h2>
-        <p className="text-gray-600 mb-2">{product.name}</p>
+        <p className="text-gray-600 dark:text-neutral-300 mb-2">{product.name}</p>
         <p className="text-sm mb-4">
           Stock actual: <span className="font-bold text-lg">{product.current_stock}</span>
-          <span className="text-gray-500"> / mín: {product.min_stock}</span>
+          <span className="text-gray-500 dark:text-neutral-400"> / mín: {product.min_stock}</span>
         </p>
 
         {/* Tabs de modo */}
@@ -814,7 +814,7 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
               mode === 'quick'
                 ? 'bg-amber-500 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
             }`}
           >
             Ajuste Directo
@@ -825,7 +825,7 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
             className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
               mode === 'package'
                 ? 'bg-amber-500 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
             }`}
           >
             Por Paquetes
@@ -836,7 +836,7 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
           {mode === 'quick' ? (
             /* Modo ajuste directo */
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                 Nuevo Stock *
               </label>
               <input
@@ -845,33 +845,33 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
                 onChange={(e) => setNewStock(e.target.value)}
                 required
                 min="0"
-                className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center text-2xl font-bold"
+                className="w-full px-3 py-3 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center text-2xl font-bold"
               />
               {quickDiff !== 0 && (
-                <p className={`text-sm mt-2 text-center font-medium ${quickDiff > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <p className={`text-sm mt-2 text-center font-medium ${quickDiff > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                   {quickDiff > 0 ? '+' : ''}{quickDiff} unidades
                 </p>
               )}
             </div>
           ) : (
             /* Modo paquetes - para restar */
-            <div className="bg-red-50 rounded-lg p-4 space-y-3">
-              <p className="text-sm font-medium text-red-800">Restar por paquetes vendidos/dañados</p>
+            <div className="bg-red-50 dark:bg-red-950 rounded-lg p-4 space-y-3">
+              <p className="text-sm font-medium text-red-800 dark:text-red-400">Restar por paquetes vendidos/dañados</p>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Paquetes</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">Paquetes</label>
                   <input
                     type="number"
                     value={packageData.packages}
                     onChange={(e) => setPackageData({ ...packageData, packages: e.target.value })}
                     required
                     min="1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Uds/Paquete</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">Uds/Paquete</label>
                   <input
                     type="number"
                     value={packageData.units_per_package}
@@ -879,36 +879,36 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
                     required
                     min="1"
                     placeholder="24"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">$/Paquete</label>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">$/Paquete</label>
                   <input
                     type="number"
                     value={packageData.price_per_package}
                     onChange={(e) => setPackageData({ ...packageData, price_per_package: e.target.value })}
                     min="0"
                     placeholder="68000"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                   />
                 </div>
               </div>
 
               {packageUnits > 0 && (
-                <div className="bg-white rounded-lg p-3 border border-red-200">
+                <div className="bg-white dark:bg-neutral-800 rounded-lg p-3 border border-red-200 dark:border-red-800">
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
-                      <p className="text-xs text-gray-500">Restar</p>
-                      <p className="text-lg font-bold text-red-600">-{packageUnits}</p>
+                      <p className="text-xs text-gray-500 dark:text-neutral-400">Restar</p>
+                      <p className="text-lg font-bold text-red-600 dark:text-red-400">-{packageUnits}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">$/Unidad</p>
-                      <p className="text-lg font-bold text-gray-600">{formatCurrency(unitPrice)}</p>
+                      <p className="text-xs text-gray-500 dark:text-neutral-400">$/Unidad</p>
+                      <p className="text-lg font-bold text-gray-600 dark:text-neutral-300">{formatCurrency(unitPrice)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500">Nuevo Stock</p>
-                      <p className={`text-lg font-bold ${product.current_stock - packageUnits < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                      <p className="text-xs text-gray-500 dark:text-neutral-400">Nuevo Stock</p>
+                      <p className={`text-lg font-bold ${product.current_stock - packageUnits < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-neutral-100'}`}>
                         {product.current_stock - packageUnits}
                       </p>
                     </div>
@@ -919,7 +919,7 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Razón del ajuste
             </label>
             <input
@@ -927,12 +927,12 @@ function AdjustProductStockModal({ product, onClose, onSuccess }: AdjustProductS
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Ej: Conteo físico, producto dañado, venta..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-3 rounded-lg">{error}</div>
           )}
 
           <div className="flex gap-3 pt-2">

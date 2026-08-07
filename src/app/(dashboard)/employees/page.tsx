@@ -74,46 +74,46 @@ export default function EmployeesPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Empleados</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Empleados</h1>
         <Button onClick={handleCreate}>+ Nuevo Empleado</Button>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-50 dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-700">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">
                 Usuario
               </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">
                 Nombre
               </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">
                 Rol
               </th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+              <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300">
                 Estado
               </th>
-              <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">
+              <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-neutral-300">
                 Acciones
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {employees.map((employee) => (
-              <tr key={employee.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-gray-600">
+              <tr key={employee.id} className="hover:bg-gray-50 dark:hover:bg-neutral-950">
+                <td className="px-4 py-3 text-gray-600 dark:text-neutral-300">
                   @{employee.username}
                 </td>
-                <td className="px-4 py-3 font-medium text-gray-900">
+                <td className="px-4 py-3 font-medium text-gray-900 dark:text-neutral-100">
                   {employee.name}
                 </td>
                 <td className="px-4 py-3">
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       employee.role === 'owner'
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'bg-blue-100 text-blue-700'
+                        ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-400'
+                        : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-400'
                     }`}
                   >
                     {employee.role === 'owner' ? 'Dueña' : 'Empleado'}
@@ -123,8 +123,8 @@ export default function EmployeesPage() {
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${
                       employee.active
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-500'
+                        ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400'
+                        : 'bg-gray-100 dark:bg-neutral-700 text-gray-500 dark:text-neutral-400'
                     }`}
                   >
                     {employee.active ? 'Activo' : 'Inactivo'}
@@ -133,13 +133,13 @@ export default function EmployeesPage() {
                 <td className="px-4 py-3 text-right space-x-2">
                   <button
                     onClick={() => handleEdit(employee)}
-                    className="text-amber-600 hover:text-amber-800 text-sm font-medium"
+                    className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400 text-sm font-medium"
                   >
                     Editar
                   </button>
                   <button
                     onClick={() => handleToggleActive(employee)}
-                    className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+                    className="text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300 text-sm font-medium"
                   >
                     {employee.active ? 'Desactivar' : 'Activar'}
                   </button>
@@ -150,7 +150,7 @@ export default function EmployeesPage() {
         </table>
 
         {employees.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-neutral-400">
             No hay empleados registrados
           </div>
         )}
@@ -262,30 +262,30 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-6">
           {isEditing ? 'Editar Empleado' : 'Nuevo Empleado'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Nombre completo
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
               placeholder="Ej: María García"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Usuario
               {isEditing && (
-                <span className="text-gray-500 font-normal"> - no se puede cambiar</span>
+                <span className="text-gray-500 dark:text-neutral-400 font-normal"> - no se puede cambiar</span>
               )}
             </label>
             <input
@@ -293,16 +293,16 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/\s/g, '') })}
               disabled={isEditing}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 disabled:bg-gray-100 dark:disabled:bg-gray-700"
               placeholder="Ej: maria"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Contraseña
               {isEditing && (
-                <span className="text-gray-500 font-normal"> - dejar vacio para mantener</span>
+                <span className="text-gray-500 dark:text-neutral-400 font-normal"> - dejar vacio para mantener</span>
               )}
             </label>
             <div className="relative">
@@ -310,13 +310,13 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 pr-10"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 pr-10"
                 placeholder="Minimo 4 caracteres"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-neutral-400"
               >
                 {showPassword ? '🙈' : '👁️'}
               </button>
@@ -324,26 +324,26 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Confirmar contraseña
             </label>
             <input
               type={showPassword ? 'text' : 'password'}
               value={formData.confirmPassword}
               onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
               placeholder="Repite la contraseña"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Rol
             </label>
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value as 'employee' | 'owner' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             >
               <option value="employee">Empleado</option>
               <option value="owner">Dueña (Admin)</option>
@@ -351,7 +351,7 @@ function EmployeeModal({ employee, onClose, onSuccess }: EmployeeModalProps) {
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-3 rounded-lg">
               {error}
             </div>
           )}

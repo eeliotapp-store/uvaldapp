@@ -12,35 +12,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verificar que no hay turno activo reciente
-    const { data: activeShift } = await supabaseAdmin
+    // Cerrar cualquier turno que esta empleada haya dejado abierto, sin importar su antigüedad.
+    // Al llegar aquí el cliente ya verificó que no hay un turno activo reciente en curso
+    // (ver /api/shifts/active), así que estos son turnos olvidados: cerrarlos evita que un
+    // turno colgado bloquee el inicio del nuevo. Se cierran todos por si quedó más de uno.
+    await supabaseAdmin
       .from('shifts')
-      .select('id, start_time')
+      .update({
+        is_active: false,
+        end_time: new Date().toISOString(),
+        notes: 'Cerrado automáticamente al iniciar un nuevo turno',
+      })
       .eq('employee_id', employee_id)
-      .eq('is_active', true)
-      .single();
-
-    if (activeShift) {
-      const ageMs = Date.now() - new Date(activeShift.start_time).getTime();
-      const isStale = ageMs > 20 * 60 * 60 * 1000; // Más de 20 horas = turno olvidado
-
-      if (isStale) {
-        // Cerrar automáticamente el turno olvidado
-        await supabaseAdmin
-          .from('shifts')
-          .update({
-            is_active: false,
-            end_time: new Date().toISOString(),
-            notes: 'Turno cerrado automáticamente por inactividad',
-          })
-          .eq('id', activeShift.id);
-      } else {
-        return NextResponse.json(
-          { error: 'Ya tienes un turno activo' },
-          { status: 400 }
-        );
-      }
-    }
+      .eq('is_active', true);
 
     // Crear nuevo turno
     const { data: shift, error } = await supabaseAdmin

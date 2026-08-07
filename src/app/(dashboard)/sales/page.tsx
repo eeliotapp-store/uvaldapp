@@ -233,7 +233,7 @@ function SalesContent() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Ventas</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Ventas</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={async () => {
             const res = await fetch('/api/products');
@@ -253,7 +253,7 @@ function SalesContent() {
       {/* Cuentas Abiertas */}
       {openTabs.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-neutral-100 mb-3 flex items-center gap-2">
             <span className="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></span>
             Cuentas Abiertas ({openTabs.length})
           </h2>
@@ -263,8 +263,8 @@ function SalesContent() {
                 key={tab.id}
                 className={`border-2 rounded-xl text-left hover:shadow-md transition-all ${
                   tab.employee_id === employee?.id
-                    ? 'bg-amber-50 border-amber-200 hover:border-amber-400'
-                    : 'bg-blue-50 border-blue-200 hover:border-blue-400'
+                    ? 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800 hover:border-amber-400'
+                    : 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 hover:border-blue-400'
                 }`}
               >
                 <div
@@ -274,33 +274,33 @@ function SalesContent() {
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <span className={`font-bold text-lg ${
-                        tab.employee_id === employee?.id ? 'text-amber-800' : 'text-blue-800'
+                        tab.employee_id === employee?.id ? 'text-amber-800 dark:text-amber-400' : 'text-blue-800 dark:text-blue-400'
                       }`}>
                         {tab.table_number ? `Mesa ${tab.table_number}` : 'Sin mesa'}
                       </span>
-                      <p className="text-sm text-gray-500">{formatTime(tab.created_at)}</p>
+                      <p className="text-sm text-gray-500 dark:text-neutral-400">{formatTime(tab.created_at)}</p>
                       {tab.employee_id !== employee?.id && (
-                        <p className="text-xs text-blue-600 font-medium mt-1">
+                        <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">
                           De: {tab.employee_name}
                           {tab.taken_over_by_name && ` (tomado de ${tab.opened_by_name})`}
                         </p>
                       )}
                     </div>
                     <div className="text-right">
-                      <span className="text-xl font-bold text-gray-900">
+                      <span className="text-xl font-bold text-gray-900 dark:text-neutral-100">
                         {formatCurrency(tab.total)}
                       </span>
                       {(tab.total_paid || 0) > 0 && (
                         <div className="text-xs mt-1">
-                          <span className="text-green-600">Pagado: {formatCurrency(tab.total_paid)}</span>
-                          <span className="text-amber-600 ml-2">Resta: {formatCurrency(tab.remaining)}</span>
+                          <span className="text-green-600 dark:text-green-400">Pagado: {formatCurrency(tab.total_paid)}</span>
+                          <span className="text-amber-600 dark:text-amber-400 ml-2">Resta: {formatCurrency(tab.remaining)}</span>
                         </div>
                       )}
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 dark:text-neutral-300">
                     {tab.items?.length === 0 ? (
-                      <span className="text-gray-500 italic">Sin productos</span>
+                      <span className="text-gray-500 dark:text-neutral-400 italic">Sin productos</span>
                     ) : (
                       <>
                         {tab.items?.slice(0, 3).map((item, idx) => (
@@ -311,7 +311,7 @@ function SalesContent() {
                           </span>
                         ))}
                         {tab.items?.length > 3 && (
-                          <span className="text-gray-500"> +{tab.items.length - 3} más</span>
+                          <span className="text-gray-500 dark:text-neutral-400"> +{tab.items.length - 3} más</span>
                         )}
                       </>
                     )}
@@ -321,7 +321,7 @@ function SalesContent() {
                 <div className="px-4 pb-3 flex justify-end">
                   <button
                     onClick={() => handleDiscardTab(tab)}
-                    className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                    className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 px-2 py-1 rounded transition-colors"
                   >
                     Descartar cuenta
                   </button>
@@ -335,21 +335,21 @@ function SalesContent() {
       {/* Totales */}
       {totals && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-sm text-gray-600">Total Ventas</p>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(totals.total_sales)}</p>
+          <div className="bg-white dark:bg-neutral-800 rounded-xl p-4 border border-gray-200 dark:border-neutral-700">
+            <p className="text-sm text-gray-600 dark:text-neutral-300">Total Ventas</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(totals.total_sales)}</p>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-sm text-gray-600">Efectivo</p>
-            <p className="text-xl font-bold text-green-600">{formatCurrency(totals.cash_sales)}</p>
+          <div className="bg-white dark:bg-neutral-800 rounded-xl p-4 border border-gray-200 dark:border-neutral-700">
+            <p className="text-sm text-gray-600 dark:text-neutral-300">Efectivo</p>
+            <p className="text-xl font-bold text-green-600 dark:text-green-400">{formatCurrency(totals.cash_sales)}</p>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-sm text-gray-600">Transferencias</p>
-            <p className="text-xl font-bold text-blue-600">{formatCurrency(totals.transfer_sales)}</p>
+          <div className="bg-white dark:bg-neutral-800 rounded-xl p-4 border border-gray-200 dark:border-neutral-700">
+            <p className="text-sm text-gray-600 dark:text-neutral-300">Transferencias</p>
+            <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{formatCurrency(totals.transfer_sales)}</p>
           </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-sm text-gray-600">Transacciones</p>
-            <p className="text-xl font-bold text-gray-900">
+          <div className="bg-white dark:bg-neutral-800 rounded-xl p-4 border border-gray-200 dark:border-neutral-700">
+            <p className="text-sm text-gray-600 dark:text-neutral-300">Transacciones</p>
+            <p className="text-xl font-bold text-gray-900 dark:text-neutral-100">
               {totals.transactions}
               {totals.voided_count > 0 && (
                 <span className="text-sm text-red-500 ml-2">({totals.voided_count} anuladas)</span>
@@ -360,31 +360,31 @@ function SalesContent() {
       )}
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-4 mb-6 bg-white p-4 rounded-xl border border-gray-200">
+      <div className="flex flex-wrap gap-4 mb-6 bg-white dark:bg-neutral-800 p-4 rounded-xl border border-gray-200 dark:border-neutral-700">
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Desde</label>
+          <label className="block text-sm text-gray-600 dark:text-neutral-300 mb-1">Desde</label>
           <input
             type="date"
             value={filters.start_date}
             onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
+            className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg"
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Hasta</label>
+          <label className="block text-sm text-gray-600 dark:text-neutral-300 mb-1">Hasta</label>
           <input
             type="date"
             value={filters.end_date}
             onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
+            className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg"
           />
         </div>
         <div>
-          <label className="block text-sm text-gray-600 mb-1">Método de Pago</label>
+          <label className="block text-sm text-gray-600 dark:text-neutral-300 mb-1">Método de Pago</label>
           <select
             value={filters.payment_method}
             onChange={(e) => setFilters({ ...filters, payment_method: e.target.value })}
-            className="px-3 py-2 border border-gray-300 rounded-lg"
+            className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg"
           >
             <option value="">Todos</option>
             <option value="cash">Efectivo</option>
@@ -401,44 +401,44 @@ function SalesContent() {
           <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-700">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Fecha/Hora</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Mesa</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Empleado</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Productos</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">Pago</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Total</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">Acciones</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">Fecha/Hora</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">Mesa</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">Empleado</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">Productos</th>
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300">Pago</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-neutral-300">Total</th>
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-neutral-300">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {sales.map((sale) => (
-                  <tr key={sale.id} className={`hover:bg-gray-50 ${sale.voided ? 'bg-red-50 opacity-60' : ''}`}>
+                  <tr key={sale.id} className={`hover:bg-gray-50 dark:hover:bg-neutral-950 ${sale.voided ? 'bg-red-50 dark:bg-red-950 opacity-60' : ''}`}>
                     <td className="px-4 py-3">
                       <div className="text-sm">
-                        <p className="font-medium text-gray-900">{formatDate(sale.created_at)}</p>
-                        <p className="text-gray-500">{formatTime(sale.created_at)}</p>
+                        <p className="font-medium text-gray-900 dark:text-neutral-100">{formatDate(sale.created_at)}</p>
+                        <p className="text-gray-500 dark:text-neutral-400">{formatTime(sale.created_at)}</p>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-neutral-300">
                         {sale.table_number || '-'}
                       </span>
                       {sale.table_number === 'mostrador' && (
-                        <span className="ml-1 px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                        <span className="ml-1 px-1.5 py-0.5 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 text-xs rounded-full font-medium">
                           Pagado
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm text-gray-900">{sale.employees?.name}</span>
+                      <span className="text-sm text-gray-900 dark:text-neutral-100">{sale.employees?.name}</span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600 dark:text-neutral-300">
                         {sale.sale_items?.slice(0, 2).map((item) => (
                           <p key={item.id}>
                             {item.quantity}x {item.products?.name}
@@ -446,28 +446,28 @@ function SalesContent() {
                           </p>
                         ))}
                         {sale.sale_items?.length > 2 && (
-                          <p className="text-gray-500">+{sale.sale_items.length - 2} más</p>
+                          <p className="text-gray-500 dark:text-neutral-400">+{sale.sale_items.length - 2} más</p>
                         )}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         sale.payment_method === 'cash'
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400'
                           : sale.payment_method === 'transfer'
-                          ? 'bg-blue-100 text-blue-700'
+                          ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-400'
                           : sale.payment_method === 'fiado'
-                          ? 'bg-orange-100 text-orange-700'
-                          : 'bg-purple-100 text-purple-700'
+                          ? 'bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-400'
+                          : 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-400'
                       }`}>
                         {sale.payment_method === 'cash' ? 'Efectivo' : sale.payment_method === 'transfer' ? 'Transferencia' : sale.payment_method === 'fiado' ? 'Fiado' : 'Mixto'}
                       </span>
                       {sale.payment_method === 'fiado' && sale.fiado_customer_name && (
-                        <p className="text-xs text-orange-600 mt-1">{sale.fiado_customer_name}</p>
+                        <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">{sale.fiado_customer_name}</p>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`font-bold ${sale.voided ? 'line-through text-red-500' : 'text-gray-900'}`}>
+                      <span className={`font-bold ${sale.voided ? 'line-through text-red-500' : 'text-gray-900 dark:text-neutral-100'}`}>
                         {formatCurrency(sale.total)}
                       </span>
                       {sale.voided && (
@@ -477,7 +477,7 @@ function SalesContent() {
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => setSelectedSale(sale)}
-                        className="text-amber-600 hover:text-amber-800 text-sm font-medium mr-2"
+                        className="text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400 text-sm font-medium mr-2"
                       >
                         Ver
                       </button>
@@ -487,7 +487,7 @@ function SalesContent() {
                             setSelectedSale(sale);
                             setShowVoidModal(true);
                           }}
-                          className="text-red-600 hover:text-red-800 text-sm font-medium"
+                          className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-400 text-sm font-medium"
                         >
                           Anular
                         </button>
@@ -500,7 +500,7 @@ function SalesContent() {
           </div>
 
           {sales.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-neutral-400">
               No hay ventas cerradas en este periodo
             </div>
           )}
@@ -533,12 +533,12 @@ function SalesContent() {
         const hasAny = cigProducts.some(p => (cigCounts[p.id] || 0) > 0);
         return (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
 
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">🚬 Mostrador</h2>
-                <button onClick={() => setShowCounterSaleModal(false)} className="text-gray-500 hover:text-gray-600 text-3xl leading-none">×</button>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-neutral-100">🚬 Mostrador</h2>
+                <button onClick={() => setShowCounterSaleModal(false)} className="text-gray-500 dark:text-neutral-400 hover:text-gray-600 dark:hover:text-neutral-300 text-3xl leading-none">×</button>
               </div>
 
               {/* Botones grandes — cada toque suma 1 */}
@@ -553,7 +553,7 @@ function SalesContent() {
                     >
                       <span className="text-5xl font-black">{count > 0 ? count : '+'}</span>
                       <span className="text-lg font-semibold">{p.name}</span>
-                      <span className="text-gray-500 text-sm">{formatCurrency(p.sale_price)}</span>
+                      <span className="text-gray-500 dark:text-neutral-400 text-sm">{formatCurrency(p.sale_price)}</span>
                     </button>
                   );
                 })}
@@ -561,9 +561,9 @@ function SalesContent() {
 
               {/* Total */}
               {hasAny && (
-                <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 mb-4">
-                  <span className="text-gray-500 text-sm">Total</span>
-                  <span className="font-bold text-gray-900 text-xl">{formatCurrency(total)}</span>
+                <div className="flex justify-between items-center bg-gray-50 dark:bg-neutral-950 rounded-xl px-4 py-3 mb-4">
+                  <span className="text-gray-500 dark:text-neutral-400 text-sm">Total</span>
+                  <span className="font-bold text-gray-900 dark:text-neutral-100 text-xl">{formatCurrency(total)}</span>
                 </div>
               )}
 
@@ -571,7 +571,7 @@ function SalesContent() {
               {hasAny && (
                 <button
                   onClick={() => setCigCounts({})}
-                  className="w-full py-2 mb-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium"
+                  className="w-full py-2 mb-3 rounded-xl bg-gray-100 dark:bg-neutral-700 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-600 dark:text-neutral-300 text-sm font-medium"
                 >
                   Resetear cantidad
                 </button>
@@ -581,13 +581,13 @@ function SalesContent() {
               <div className="flex gap-2 mb-3">
                 <button
                   onClick={() => setCigPaymentMethod('cash')}
-                  className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${cigPaymentMethod === 'cash' ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${cigPaymentMethod === 'cash' ? 'bg-green-600 text-white border-green-600' : 'bg-white dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 border-gray-300 dark:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-950'}`}
                 >
                   💵 Efectivo
                 </button>
                 <button
                   onClick={() => setCigPaymentMethod('transfer')}
-                  className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${cigPaymentMethod === 'transfer' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${cigPaymentMethod === 'transfer' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 border-gray-300 dark:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-950'}`}
                 >
                   🔄 Transferencia
                 </button>
@@ -1547,7 +1547,7 @@ function SaleModal({
   if (isLoading) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-8">
+        <div className="bg-white dark:bg-neutral-800 rounded-2xl p-8">
           <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
         </div>
       </div>
@@ -1556,9 +1556,9 @@ function SaleModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-neutral-700">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">
@@ -1572,17 +1572,17 @@ function SaleModal({
                 }
               </h2>
               {existingTab && step !== 'shift' && (
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-neutral-400">
                   Total actual: {formatCurrency(existingTotal)}
                 </p>
               )}
               {step !== 'shift' && currentShift && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-neutral-400">
                   Turno: {employee?.name} - {currentShift.type === 'day' ? 'Día' : 'Noche'}
                 </p>
               )}
             </div>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-600">
+            <button onClick={onClose} className="text-gray-500 dark:text-neutral-400 hover:text-gray-600 dark:hover:text-neutral-300">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -1595,53 +1595,53 @@ function SaleModal({
           {step === 'takeover' ? (
             /* Paso de tomar relevo */
             <div className="space-y-6">
-              <div className="bg-amber-50 rounded-xl p-6 text-center">
+              <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-6 text-center">
                 <div className="text-4xl mb-3">🔄</div>
-                <h3 className="font-bold text-amber-800 text-lg mb-2">Cuenta de otro empleado</h3>
-                <p className="text-amber-700">
+                <h3 className="font-bold text-amber-800 dark:text-amber-400 text-lg mb-2">Cuenta de otro empleado</h3>
+                <p className="text-amber-700 dark:text-amber-400">
                   Esta cuenta fue abierta por <strong>{existingTab?.employee_name}</strong>
                 </p>
                 {existingTab?.opened_by_name && existingTab.opened_by_name !== existingTab.employee_name && (
-                  <p className="text-sm text-amber-600 mt-1">
+                  <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
                     (Originalmente de {existingTab.opened_by_name})
                   </p>
                 )}
               </div>
 
-              <div className="bg-white border border-gray-200 rounded-xl p-4">
-                <p className="text-sm text-gray-600 mb-2">Resumen de la cuenta:</p>
+              <div className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl p-4">
+                <p className="text-sm text-gray-600 dark:text-neutral-300 mb-2">Resumen de la cuenta:</p>
                 <div className="space-y-1">
                   {existingTab?.items?.slice(0, 5).map((item, idx) => (
                     <div key={idx} className="flex justify-between text-sm">
                       <span>
                         {item.quantity}x {item.product_name}
-                        {item.is_michelada && <span className="text-amber-600"> Michelada</span>}
-                        {item.combo_name && <span className="text-purple-600 text-xs"> (🎁 {item.combo_name})</span>}
+                        {item.is_michelada && <span className="text-amber-600 dark:text-amber-400"> Michelada</span>}
+                        {item.combo_name && <span className="text-purple-600 dark:text-purple-400 text-xs"> (🎁 {item.combo_name})</span>}
                       </span>
                       <span>{formatCurrency(item.subtotal)}</span>
                     </div>
                   ))}
                   {existingTab && existingTab.items?.length > 5 && (
-                    <p className="text-xs text-gray-500">+{existingTab.items.length - 5} productos más</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-400">+{existingTab.items.length - 5} productos más</p>
                   )}
                 </div>
-                <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between font-bold">
+                <div className="border-t border-gray-200 dark:border-neutral-700 mt-3 pt-3 flex justify-between font-bold">
                   <span>Total:</span>
                   <span>{formatCurrency(existingTab?.total || 0)}</span>
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-xl p-4">
-                <p className="text-sm text-gray-700 mb-2">
+              <div className="bg-gray-50 dark:bg-neutral-950 rounded-xl p-4">
+                <p className="text-sm text-gray-700 dark:text-neutral-300 mb-2">
                   Al tomar el relevo, esta cuenta pasará a tu turno actual:
                 </p>
-                <p className="font-medium text-gray-900">
+                <p className="font-medium text-gray-900 dark:text-neutral-100">
                   {employee?.name} - Turno {currentShift?.type === 'day' ? 'Día' : 'Noche'}
                 </p>
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg text-sm">
                   {error}
                 </div>
               )}
@@ -1662,27 +1662,27 @@ function SaleModal({
           ) : step === 'shift' ? (
             /* Paso de inicio de turno */
             <div className="space-y-6">
-              <div className="bg-amber-50 rounded-xl p-4 text-center">
-                <p className="text-amber-800 font-medium">No hay turno activo</p>
-                <p className="text-sm text-amber-600">Inicia un turno para poder registrar ventas</p>
+              <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-4 text-center">
+                <p className="text-amber-800 dark:text-amber-400 font-medium">No hay turno activo</p>
+                <p className="text-sm text-amber-600 dark:text-amber-400">Inicia un turno para poder registrar ventas</p>
               </div>
 
               {/* Empleado */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Empleado</label>
-                <div className="text-lg font-bold text-gray-900">{employee?.name || 'No identificado'}</div>
+              <div className="bg-gray-50 dark:bg-neutral-950 rounded-xl p-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Empleado</label>
+                <div className="text-lg font-bold text-gray-900 dark:text-neutral-100">{employee?.name || 'No identificado'}</div>
               </div>
 
               {/* Tipo de turno */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Turno</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Tipo de Turno</label>
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setShiftType('day')}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       shiftType === 'day'
-                        ? 'border-amber-500 bg-amber-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                        : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
                     }`}
                   >
                     <div className="text-2xl mb-1">☀️</div>
@@ -1692,8 +1692,8 @@ function SaleModal({
                     onClick={() => setShiftType('night')}
                     className={`p-4 rounded-xl border-2 transition-all ${
                       shiftType === 'night'
-                        ? 'border-amber-500 bg-amber-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                        : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
                     }`}
                   >
                     <div className="text-2xl mb-1">🌙</div>
@@ -1704,23 +1704,23 @@ function SaleModal({
 
               {/* Efectivo inicial */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
                   Efectivo inicial en caja
                 </label>
                 <input
                   type="number"
                   value={cashStart}
                   onChange={(e) => setCashStart(e.target.value)}
-                  className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-amber-500"
+                  className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500"
                   placeholder="0"
                 />
-                <p className="text-xs text-gray-500 mt-1 text-center">
+                <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1 text-center">
                   Cuenta el dinero en la caja antes de empezar
                 </p>
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg text-sm">
                   {error}
                 </div>
               )}
@@ -1739,7 +1739,7 @@ function SaleModal({
               {/* Número de mesa (solo para nuevas ventas) */}
               {!existingTab && (
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                     Número de Mesa (opcional)
                   </label>
                   <input
@@ -1747,14 +1747,14 @@ function SaleModal({
                     value={tableNumber}
                     onChange={(e) => setTableNumber(e.target.value)}
                     placeholder="Ej: 5, Barra, Terraza..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
                   />
                 </div>
               )}
 
               {/* Observaciones */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                   Observaciones
                 </label>
                 <textarea
@@ -1762,7 +1762,7 @@ function SaleModal({
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Sin hielo, alergia, pedido especial..."
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 resize-none"
                 />
               </div>
 
@@ -1785,12 +1785,12 @@ function SaleModal({
                 });
 
                 return (
-                  <div className="bg-gray-50 rounded-xl p-4 mb-4">
+                  <div className="bg-gray-50 dark:bg-neutral-950 rounded-xl p-4 mb-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-gray-700">Productos ya agregados</h3>
+                      <h3 className="font-medium text-gray-700 dark:text-neutral-300">Productos ya agregados</h3>
                       <button
                         onClick={() => setEditingExistingItem(editingExistingItem ? null : 'all')}
-                        className="text-xs text-amber-600 hover:text-amber-800"
+                        className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-400"
                       >
                         {editingExistingItem ? 'Cancelar edición' : '✏️ Editar'}
                       </button>
@@ -1802,12 +1802,12 @@ function SaleModal({
                         const addedByName = group.items[0]?.added_by_name;
 
                         return (
-                          <div key={comboId} className="bg-purple-50 rounded-lg p-2 border border-purple-200">
+                          <div key={comboId} className="bg-purple-50 dark:bg-purple-950 rounded-lg p-2 border border-purple-200 dark:border-purple-800">
                             <div className="flex items-center justify-between mb-1">
                               <div>
-                                <span className="font-medium text-purple-800">🎁 COMBO: {group.name}</span>
+                                <span className="font-medium text-purple-800 dark:text-purple-400">🎁 COMBO: {group.name}</span>
                                 {addedByName && (
-                                  <div className="text-xs text-purple-600">
+                                  <div className="text-xs text-purple-600 dark:text-purple-400">
                                     Agregado por: <span className="font-medium">{addedByName}</span>
                                   </div>
                                 )}
@@ -1818,15 +1818,15 @@ function SaleModal({
                                     // Eliminar todos los items del combo
                                     group.items.forEach(item => handleDeleteExistingItem(item.id));
                                   }}
-                                  className="text-red-500 hover:text-red-700 text-xs"
+                                  className="text-red-500 hover:text-red-700 dark:hover:text-red-400 text-xs"
                                 >
                                   🗑️ Quitar combo
                                 </button>
                               ) : (
-                                <span className="font-medium text-purple-700">{formatCurrency(group.total)}</span>
+                                <span className="font-medium text-purple-700 dark:text-purple-400">{formatCurrency(group.total)}</span>
                               )}
                             </div>
-                          <div className="text-xs text-gray-600 pl-4 space-y-1">
+                          <div className="text-xs text-gray-600 dark:text-neutral-300 pl-4 space-y-1">
                             {group.items.map((item) => {
                               const basePrice = item.is_michelada
                                 ? item.unit_price - MICHELADA_EXTRA
@@ -1836,7 +1836,7 @@ function SaleModal({
                                 <div key={item.id} className="flex items-center justify-between">
                                   <span>
                                     {item.quantity}x {item.product_name}
-                                    {item.is_michelada && <span className="text-amber-600"> Michelada</span>}
+                                    {item.is_michelada && <span className="text-amber-600 dark:text-amber-400"> Michelada</span>}
                                   </span>
                                   {editingExistingItem && (
                                     <div className="flex gap-1">
@@ -1849,13 +1849,13 @@ function SaleModal({
                                           is_michelada: item.is_michelada || false,
                                           original_price: basePrice,
                                         })}
-                                        className="text-blue-500 hover:text-blue-700 text-xs"
+                                        className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 text-xs"
                                       >
                                         ✏️
                                       </button>
                                       <button
                                         onClick={() => handleDeleteExistingItem(item.id)}
-                                        className="text-red-500 hover:text-red-700 text-xs"
+                                        className="text-red-500 hover:text-red-700 dark:hover:text-red-400 text-xs"
                                       >
                                         🗑️
                                       </button>
@@ -1879,12 +1879,12 @@ function SaleModal({
                         return (
                           <div key={item.id} className="flex items-center justify-between py-1">
                             <div className="flex-1">
-                              <div className="text-gray-900">
+                              <div className="text-gray-900 dark:text-neutral-100">
                                 {item.quantity}x {item.product_name}
-                                {item.is_michelada && <span className="text-amber-600"> Michelada</span>}
+                                {item.is_michelada && <span className="text-amber-600 dark:text-amber-400"> Michelada</span>}
                               </div>
                               {item.added_by_name && (
-                                <div className="text-xs text-gray-500">
+                                <div className="text-xs text-gray-500 dark:text-neutral-400">
                                   Agregado por: <span className="font-medium">{item.added_by_name}</span>
                                 </div>
                               )}
@@ -1900,19 +1900,19 @@ function SaleModal({
                                     is_michelada: item.is_michelada || false,
                                     original_price: basePrice,
                                   })}
-                                  className="text-blue-500 hover:text-blue-700 text-xs px-2"
+                                  className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-400 text-xs px-2"
                                 >
                                   ✏️ Editar
                                 </button>
                                 <button
                                   onClick={() => handleDeleteExistingItem(item.id)}
-                                  className="text-red-500 hover:text-red-700 text-xs px-2"
+                                  className="text-red-500 hover:text-red-700 dark:hover:text-red-400 text-xs px-2"
                                 >
                                   🗑️ Quitar
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-gray-600">{formatCurrency(item.subtotal)}</span>
+                              <span className="text-gray-600 dark:text-neutral-300">{formatCurrency(item.subtotal)}</span>
                             )}
                           </div>
                         );
@@ -1924,15 +1924,15 @@ function SaleModal({
 
               {/* Observaciones */}
               {existingTab && (
-                <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
-                  <h3 className="font-medium text-gray-700 mb-3">📝 Observaciones</h3>
+                <div className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl p-4 mb-4">
+                  <h3 className="font-medium text-gray-700 dark:text-neutral-300 mb-3">📝 Observaciones</h3>
                   {observations.length > 0 && (
                     <ul className="mb-3 space-y-1">
                       {observations.map((obs) => (
-                        <li key={obs.id} className="text-sm text-gray-600 flex items-start gap-2">
-                          <span className="text-gray-500 mt-0.5">•</span>
+                        <li key={obs.id} className="text-sm text-gray-600 dark:text-neutral-300 flex items-start gap-2">
+                          <span className="text-gray-500 dark:text-neutral-400 mt-0.5">•</span>
                           <span>{obs.text}</span>
-                          <span className="ml-auto text-xs text-gray-500 whitespace-nowrap">
+                          <span className="ml-auto text-xs text-gray-500 dark:text-neutral-400 whitespace-nowrap">
                             {new Date(obs.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </li>
@@ -1946,7 +1946,7 @@ function SaleModal({
                       onChange={(e) => setNewObservation(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleAddObservation()}
                       placeholder="Escribe una observación..."
-                      className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
                     />
                     <Button
                       onClick={handleAddObservation}
@@ -1960,13 +1960,13 @@ function SaleModal({
               )}
 
               {/* Agregar producto */}
-              <div className="bg-amber-50 rounded-xl p-4 mb-4">
-                <h3 className="font-medium text-amber-800 mb-3">Agregar Producto</h3>
+              <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-4 mb-4">
+                <h3 className="font-medium text-amber-800 dark:text-amber-400 mb-3">Agregar Producto</h3>
                 <div className="flex gap-3">
                   <select
                     value={selectedProduct}
                     onChange={(e) => setSelectedProduct(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
                   >
                     <option value="">Seleccionar producto...</option>
                     {(filterCategory ? products.filter(p => p.category === filterCategory) : products).map(product => {
@@ -1983,7 +1983,7 @@ function SaleModal({
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                     min="1"
-                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-center"
+                    className="w-20 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                   />
                   <Button onClick={handleAddToCart} disabled={!selectedProduct}>
                     Agregar
@@ -1992,8 +1992,8 @@ function SaleModal({
               </div>
 
               {/* Agregar combo */}
-              <div className="bg-purple-50 rounded-xl p-4 mb-6">
-                <h3 className="font-medium text-purple-800 mb-3">🎁 Agregar Combo</h3>
+              <div className="bg-purple-50 dark:bg-purple-950 rounded-xl p-4 mb-6">
+                <h3 className="font-medium text-purple-800 dark:text-purple-400 mb-3">🎁 Agregar Combo</h3>
                 {combos.length > 0 ? (
                   <div className="flex gap-3">
                     <select
@@ -2001,7 +2001,7 @@ function SaleModal({
                       onChange={(e) => {
                         if (e.target.value) handleComboSelect(e.target.value);
                       }}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-purple-500 focus:border-purple-500"
                     >
                       <option value="">Seleccionar combo...</option>
                       {combos.map(combo => (
@@ -2013,14 +2013,14 @@ function SaleModal({
                     </select>
                   </div>
                 ) : (
-                  <p className="text-sm text-purple-600">
+                  <p className="text-sm text-purple-600 dark:text-purple-400">
                     No hay combos creados. El administrador debe crear combos desde la página de Combos.
                   </p>
                 )}
               </div>
 
               {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg text-sm">
                   {error}
                 </div>
               )}
@@ -2028,7 +2028,7 @@ function SaleModal({
               {/* Lista de nuevos productos y combos */}
               <div className="space-y-3">
                 {cart.length === 0 && cartCombos.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-500 dark:text-neutral-400">
                     <p>No hay productos nuevos</p>
                     <p className="text-sm">Selecciona un producto o combo</p>
                   </div>
@@ -2036,31 +2036,31 @@ function SaleModal({
                   <>
                     {cart.length > 0 && (
                       <>
-                        <h3 className="font-medium text-gray-700">Productos</h3>
+                        <h3 className="font-medium text-gray-700 dark:text-neutral-300">Productos</h3>
                         {cart.map(item => {
                           const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0) + (item.isBomba ? getBombaExtra(item.product) : 0);
                           return (
-                            <div key={`${item.product.id}-${item.isMichelada}-${item.isBomba}`} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4">
+                            <div key={`${item.product.id}-${item.isMichelada}-${item.isBomba}`} className="flex items-center justify-between bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg p-4">
                               <div className="flex-1">
-                                <p className="font-medium text-gray-900">
+                                <p className="font-medium text-gray-900 dark:text-neutral-100">
                                   {item.product.name}
-                                  {item.isMichelada && <span className="text-amber-600 ml-1">🌶️</span>}
-                                  {item.isBomba && <span className="text-blue-600 ml-1">💣</span>}
+                                  {item.isMichelada && <span className="text-amber-600 dark:text-amber-400 ml-1">🌶️</span>}
+                                  {item.isBomba && <span className="text-blue-600 dark:text-blue-400 ml-1">💣</span>}
                                 </p>
-                                <p className="text-sm text-gray-500">{formatCurrency(unitPrice)} c/u</p>
+                                <p className="text-sm text-gray-500 dark:text-neutral-400">{formatCurrency(unitPrice)} c/u</p>
                               </div>
                               <div className="flex items-center gap-3">
                                 <div className="flex items-center gap-2">
                                   <button
                                     onClick={() => handleUpdateQuantity(item.product.id, item.quantity - 1, item.isMichelada, item.isBomba)}
-                                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200"
+                                    className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-neutral-700"
                                   >
                                     -
                                   </button>
                                   <span className="w-8 text-center font-medium">{item.quantity}</span>
                                   <button
                                     onClick={() => handleUpdateQuantity(item.product.id, item.quantity + 1, item.isMichelada, item.isBomba)}
-                                    className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 hover:bg-amber-200"
+                                    className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-700 dark:text-amber-400 hover:bg-amber-200"
                                   >
                                     +
                                   </button>
@@ -2070,7 +2070,7 @@ function SaleModal({
                                 </span>
                                 <button
                                   onClick={() => handleRemoveFromCart(item.product.id, item.isMichelada, item.isBomba)}
-                                  className="text-red-500 hover:text-red-700"
+                                  className="text-red-500 hover:text-red-700 dark:hover:text-red-400"
                                 >
                                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -2085,13 +2085,13 @@ function SaleModal({
 
                     {cartCombos.length > 0 && (
                       <>
-                        <h3 className="font-medium text-gray-700 mt-4">🎁 Combos</h3>
+                        <h3 className="font-medium text-gray-700 dark:text-neutral-300 mt-4">🎁 Combos</h3>
                         {cartCombos.map((cartCombo, index) => (
-                          <div key={`combo-${index}`} className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                          <div key={`combo-${index}`} className="bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
-                                <p className="font-medium text-purple-900">{cartCombo.combo.name}</p>
-                                <div className="text-xs text-gray-500 mt-1">
+                                <p className="font-medium text-purple-900 dark:text-purple-300">{cartCombo.combo.name}</p>
+                                <div className="text-xs text-gray-500 dark:text-neutral-400 mt-1">
                                   {cartCombo.items.map((item, i) => (
                                     <span key={i}>
                                       {item.quantity}x {item.product.name}
@@ -2102,12 +2102,12 @@ function SaleModal({
                                 </div>
                               </div>
                               <div className="flex items-center gap-3">
-                                <span className="font-bold text-purple-700">
+                                <span className="font-bold text-purple-700 dark:text-purple-400">
                                   {formatCurrency(cartCombo.finalPrice)}
                                 </span>
                                 <button
                                   onClick={() => handleRemoveCombo(index)}
-                                  className="text-red-500 hover:text-red-700"
+                                  className="text-red-500 hover:text-red-700 dark:hover:text-red-400"
                                 >
                                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -2127,18 +2127,18 @@ function SaleModal({
             /* Paso de pago */
             <div className="space-y-6">
               {/* Resumen */}
-              <div className="bg-amber-50 rounded-xl p-4 text-center">
-                <p className="text-gray-600 text-sm">
+              <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-4 text-center">
+                <p className="text-gray-600 dark:text-neutral-300 text-sm">
                   {totalPaid > 0 ? 'Restante a cobrar' : 'Total a cobrar'}
                 </p>
-                <p className="text-3xl font-bold text-amber-700">{formatCurrency(totalToPay)}</p>
+                <p className="text-3xl font-bold text-amber-700 dark:text-amber-400">{formatCurrency(totalToPay)}</p>
                 {totalPaid > 0 && (
-                  <p className="text-sm text-green-600 mt-1">
+                  <p className="text-sm text-green-600 dark:text-green-400 mt-1">
                     (Pagos parciales: {formatCurrency(totalPaid)} de {formatCurrency(total)})
                   </p>
                 )}
                 {totalPaid === 0 && (existingTab || combosTotal > 0) && (newItemsTotal > 0 || combosTotal > 0) && (
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
                     {existingTab && `Anterior: ${formatCurrency(existingTotal)} + `}
                     {newItemsTotal > 0 && `Productos: ${formatCurrency(newItemsTotal)}`}
                     {newItemsTotal > 0 && combosTotal > 0 && ' + '}
@@ -2155,8 +2155,8 @@ function SaleModal({
                     onClick={() => setPaymentMethod(method)}
                     className={`p-3 rounded-xl border-2 transition-all ${
                       paymentMethod === method
-                        ? 'border-amber-500 bg-amber-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                        : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
                     }`}
                   >
                     <div className="text-2xl mb-1">
@@ -2172,74 +2172,74 @@ function SaleModal({
               {/* Campos según método */}
               {paymentMethod === 'cash' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
                     Efectivo recibido
                   </label>
                   <input
                     type="number"
                     value={cashReceived}
                     onChange={(e) => setCashReceived(e.target.value)}
-                    className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-amber-500"
+                    className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500"
                     placeholder="0"
                     autoFocus
                   />
                   {parseFloat(cashReceived) > 0 && (
                     <div className="mt-3 text-center">
-                      <p className="text-gray-600 text-sm">Cambio a devolver</p>
-                      <p className="text-2xl font-bold text-green-600">{formatCurrency(getChange())}</p>
+                      <p className="text-gray-600 dark:text-neutral-300 text-sm">Cambio a devolver</p>
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-400">{formatCurrency(getChange())}</p>
                     </div>
                   )}
                 </div>
               )}
 
               {paymentMethod === 'transfer' && (
-                <div className="bg-blue-50 rounded-xl p-6 text-center">
-                  <p className="text-gray-700 mb-2">Solicita la transferencia por:</p>
-                  <p className="text-3xl font-bold text-blue-700 mb-2">{formatCurrency(totalToPay)}</p>
-                  <p className="text-sm text-gray-500">Verifica el comprobante antes de confirmar</p>
+                <div className="bg-blue-50 dark:bg-blue-950 rounded-xl p-6 text-center">
+                  <p className="text-gray-700 dark:text-neutral-300 mb-2">Solicita la transferencia por:</p>
+                  <p className="text-3xl font-bold text-blue-700 dark:text-blue-400 mb-2">{formatCurrency(totalToPay)}</p>
+                  <p className="text-sm text-gray-500 dark:text-neutral-400">Verifica el comprobante antes de confirmar</p>
                 </div>
               )}
 
               {paymentMethod === 'mixed' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
                       Monto en Transferencia
                     </label>
                     <input
                       type="number"
                       value={transferAmount}
                       onChange={(e) => setTransferAmount(e.target.value)}
-                      className="w-full px-4 py-3 text-lg font-bold text-center border-2 border-gray-200 rounded-xl focus:border-blue-500"
+                      className="w-full px-4 py-3 text-lg font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-blue-500"
                       placeholder="0"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
                       Efectivo recibido
                     </label>
                     <input
                       type="number"
                       value={cashAmountMixed}
                       onChange={(e) => setCashAmountMixed(e.target.value)}
-                      className="w-full px-4 py-3 text-lg font-bold text-center border-2 border-gray-200 rounded-xl focus:border-green-500"
+                      className="w-full px-4 py-3 text-lg font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-green-500"
                       placeholder="0"
                     />
                   </div>
                   {(parseFloat(transferAmount) > 0 || parseFloat(cashAmountMixed) > 0) && (
-                    <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="bg-gray-50 dark:bg-neutral-950 rounded-lg p-4">
                       <div className="flex justify-between text-sm mb-1">
                         <span>Transferencia:</span>
-                        <span className="text-blue-600 font-medium">{formatCurrency(parseFloat(transferAmount) || 0)}</span>
+                        <span className="text-blue-600 dark:text-blue-400 font-medium">{formatCurrency(parseFloat(transferAmount) || 0)}</span>
                       </div>
                       <div className="flex justify-between text-sm mb-1">
                         <span>Efectivo:</span>
-                        <span className="text-green-600 font-medium">{formatCurrency(parseFloat(cashAmountMixed) || 0)}</span>
+                        <span className="text-green-600 dark:text-green-400 font-medium">{formatCurrency(parseFloat(cashAmountMixed) || 0)}</span>
                       </div>
                       {getChange() > 0 && (
-                        <div className="flex justify-between text-sm pt-2 border-t border-gray-200 mt-2">
+                        <div className="flex justify-between text-sm pt-2 border-t border-gray-200 dark:border-neutral-700 mt-2">
                           <span>Cambio:</span>
-                          <span className="text-amber-600 font-bold">{formatCurrency(getChange())}</span>
+                          <span className="text-amber-600 dark:text-amber-400 font-bold">{formatCurrency(getChange())}</span>
                         </div>
                       )}
                     </div>
@@ -2249,35 +2249,35 @@ function SaleModal({
 
               {paymentMethod === 'fiado' && (
                 <div className="space-y-4">
-                  <div className="bg-orange-50 rounded-xl p-4 text-center">
-                    <p className="text-orange-700 text-sm font-medium">⚠️ Esta venta quedará como fiado</p>
+                  <div className="bg-orange-50 dark:bg-orange-950 rounded-xl p-4 text-center">
+                    <p className="text-orange-700 dark:text-orange-400 text-sm font-medium">⚠️ Esta venta quedará como fiado</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
                       Nombre del cliente *
                     </label>
                     <input
                       type="text"
                       value={fiadoCustomerName}
                       onChange={(e) => setFiadoCustomerName(e.target.value)}
-                      className="w-full px-4 py-3 text-lg border-2 border-gray-200 rounded-xl focus:border-orange-500"
+                      className="w-full px-4 py-3 text-lg border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-orange-500"
                       placeholder="¿A quién se le fía?"
                       autoFocus
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
                       Abono (opcional)
                     </label>
                     <input
                       type="number"
                       value={fiadoAbono}
                       onChange={(e) => setFiadoAbono(e.target.value)}
-                      className="w-full px-4 py-3 text-lg font-bold text-center border-2 border-gray-200 rounded-xl focus:border-green-500"
+                      className="w-full px-4 py-3 text-lg font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-green-500"
                       placeholder="0"
                     />
                   </div>
-                  <div className="bg-orange-100 rounded-lg p-4">
+                  <div className="bg-orange-100 dark:bg-orange-900 rounded-lg p-4">
                     <div className="flex justify-between text-sm mb-1">
                       <span>{totalPaid > 0 ? 'Restante:' : 'Total:'}</span>
                       <span className="font-medium">{formatCurrency(totalToPay)}</span>
@@ -2285,19 +2285,19 @@ function SaleModal({
                     {parseFloat(fiadoAbono) > 0 && (
                       <div className="flex justify-between text-sm mb-1">
                         <span>Abono:</span>
-                        <span className="text-green-600 font-medium">-{formatCurrency(parseFloat(fiadoAbono) || 0)}</span>
+                        <span className="text-green-600 dark:text-green-400 font-medium">-{formatCurrency(parseFloat(fiadoAbono) || 0)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-lg pt-2 border-t border-orange-200 mt-2">
+                    <div className="flex justify-between text-lg pt-2 border-t border-orange-200 dark:border-orange-800 mt-2">
                       <span className="font-medium">Queda debiendo:</span>
-                      <span className="text-orange-700 font-bold">{formatCurrency(getFiadoAmount())}</span>
+                      <span className="text-orange-700 dark:text-orange-400 font-bold">{formatCurrency(getFiadoAmount())}</span>
                     </div>
                   </div>
                 </div>
               )}
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+                <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg text-sm">
                   {error}
                 </div>
               )}
@@ -2306,20 +2306,20 @@ function SaleModal({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 bg-gray-50">
+        <div className="p-6 border-t border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-950">
           {step === 'products' ? (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Total</p>
-                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(total)}</p>
+                  <p className="text-gray-600 dark:text-neutral-300 text-sm">Total</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(total)}</p>
                   {existingTab && totalPaid > 0 && (
                     <div className="text-sm mt-1">
-                      <span className="text-green-600">Pagado: {formatCurrency(totalPaid)}</span>
-                      <span className="text-amber-600 ml-3">Resta: {formatCurrency(remaining)}</span>
+                      <span className="text-green-600 dark:text-green-400">Pagado: {formatCurrency(totalPaid)}</span>
+                      <span className="text-amber-600 dark:text-amber-400 ml-3">Resta: {formatCurrency(remaining)}</span>
                       <button
                         onClick={() => setShowPartialPaymentsHistory(true)}
-                        className="ml-3 text-blue-600 hover:underline"
+                        className="ml-3 text-blue-600 dark:text-blue-400 hover:underline"
                       >
                         Ver historial
                       </button>
@@ -2336,7 +2336,7 @@ function SaleModal({
                     variant="outline"
                     onClick={handleDiscardTab}
                     disabled={isProcessing}
-                    className="flex-1 min-w-[100px] border-red-300 text-red-600 hover:bg-red-50"
+                    className="flex-1 min-w-[100px] border-red-300 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950"
                   >
                     Descartar cuenta
                   </Button>
@@ -2346,7 +2346,7 @@ function SaleModal({
                     variant="outline"
                     onClick={() => setShowPartialPaymentModal(true)}
                     disabled={existingItems.length === 0}
-                    className="flex-1 min-w-[100px] border-green-500 text-green-700 hover:bg-green-50"
+                    className="flex-1 min-w-[100px] border-green-500 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950"
                   >
                     Pago Parcial
                   </Button>
@@ -2398,33 +2398,33 @@ function SaleModal({
       {/* Modal para michelada */}
       {showMicheladaModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6">
             <h2 className="text-xl font-bold mb-2 text-center">
               {showMicheladaModal.product.name}
             </h2>
-            <p className="text-center text-gray-600 mb-6">
+            <p className="text-center text-gray-600 dark:text-neutral-300 mb-6">
               ¿Cómo lo quiere el cliente?
             </p>
 
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => handleMicheladaChoice(false)}
-                className="p-4 rounded-xl border-2 border-gray-200 hover:border-amber-500 hover:bg-amber-50 transition-all"
+                className="p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all"
               >
                 <div className="text-3xl mb-2">🍺</div>
                 <p className="font-medium">Normal</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-neutral-400">
                   {formatCurrency(showMicheladaModal.product.sale_price)}
                 </p>
               </button>
 
               <button
                 onClick={() => handleMicheladaChoice(true)}
-                className="p-4 rounded-xl border-2 border-amber-500 bg-amber-50 hover:bg-amber-100 transition-all"
+                className="p-4 rounded-xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 transition-all"
               >
                 <div className="text-3xl mb-2">🌶️</div>
-                <p className="font-medium text-amber-700">Michelada</p>
-                <p className="text-sm text-amber-600">
+                <p className="font-medium text-amber-700 dark:text-amber-400">Michelada</p>
+                <p className="text-sm text-amber-600 dark:text-amber-400">
                   {formatCurrency(showMicheladaModal.product.sale_price + MICHELADA_EXTRA)}
                 </p>
               </button>
@@ -2432,7 +2432,7 @@ function SaleModal({
 
             <button
               onClick={() => setShowMicheladaModal(null)}
-              className="w-full mt-4 py-2 text-gray-500 hover:text-gray-700"
+              className="w-full mt-4 py-2 text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300"
             >
               Cancelar
             </button>
@@ -2443,44 +2443,44 @@ function SaleModal({
       {/* Modal para bomba */}
       {showBombaModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6">
             <h2 className="text-xl font-bold mb-2 text-center">
               {showBombaModal.product.name}
             </h2>
-            <p className="text-center text-gray-600 mb-6">
+            <p className="text-center text-gray-600 dark:text-neutral-300 mb-6">
               ¿Cómo lo quiere el cliente?
             </p>
 
             <div className="grid grid-cols-3 gap-3">
               <button
                 onClick={() => handleBombaChoice(false, false)}
-                className="p-4 rounded-xl border-2 border-gray-200 hover:border-gray-400 hover:bg-gray-50 transition-all"
+                className="p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-950 transition-all"
               >
                 <div className="text-3xl mb-2">💧</div>
                 <p className="font-medium">Normal</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-neutral-400">
                   {formatCurrency(showBombaModal.product.sale_price)}
                 </p>
               </button>
 
               <button
                 onClick={() => handleBombaChoice(true, false)}
-                className="p-4 rounded-xl border-2 border-amber-400 bg-amber-50 hover:bg-amber-100 transition-all"
+                className="p-4 rounded-xl border-2 border-amber-400 bg-amber-50 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 transition-all"
               >
                 <div className="text-3xl mb-2">🌶️</div>
-                <p className="font-medium text-amber-700">Michelada</p>
-                <p className="text-sm text-amber-600">
+                <p className="font-medium text-amber-700 dark:text-amber-400">Michelada</p>
+                <p className="text-sm text-amber-600 dark:text-amber-400">
                   {formatCurrency(showBombaModal.product.sale_price + MICHELADA_EXTRA)}
                 </p>
               </button>
 
               <button
                 onClick={() => handleBombaChoice(false, true)}
-                className="p-4 rounded-xl border-2 border-blue-500 bg-blue-50 hover:bg-blue-100 transition-all"
+                className="p-4 rounded-xl border-2 border-blue-500 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900 transition-all"
               >
                 <div className="text-3xl mb-2">💣</div>
-                <p className="font-medium text-blue-700">Con Bomba</p>
-                <p className="text-sm text-blue-600">
+                <p className="font-medium text-blue-700 dark:text-blue-400">Con Bomba</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">
                   {formatCurrency(showBombaModal.product.sale_price + getBombaExtra(showBombaModal.product))}
                 </p>
               </button>
@@ -2488,7 +2488,7 @@ function SaleModal({
 
             <button
               onClick={() => setShowBombaModal(null)}
-              className="w-full mt-4 py-2 text-gray-500 hover:text-gray-700"
+              className="w-full mt-4 py-2 text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300"
             >
               Cancelar
             </button>
@@ -2514,8 +2514,8 @@ function SaleModal({
       {/* Modal de Pago Parcial */}
       {showPartialPaymentModal && existingTab && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 dark:border-neutral-700">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">
                   Pago Parcial - {existingTab.table_number ? `Mesa ${existingTab.table_number}` : 'Sin mesa'}
@@ -2527,12 +2527,12 @@ function SaleModal({
                     setPartialPaymentMethod('cash');
                     setPartialCashReceived('');
                   }}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300"
                 >
                   ✕
                 </button>
               </div>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
                 Total cuenta: {formatCurrency(existingTab.total)} |
                 Pagado: {formatCurrency(totalPaid)} |
                 Restante: {formatCurrency(remaining)}
@@ -2541,16 +2541,16 @@ function SaleModal({
 
             <div className="flex-1 overflow-y-auto p-6">
               {/* Toggle modo de pago */}
-              <div className="flex gap-1 bg-gray-100 p-1 rounded-lg mb-5">
+              <div className="flex gap-1 bg-gray-100 dark:bg-neutral-700 p-1 rounded-lg mb-5">
                 <button
                   onClick={() => setPartialMode('by_product')}
-                  className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${partialMode === 'by_product' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+                  className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${partialMode === 'by_product' ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 shadow-sm' : 'text-gray-500 dark:text-neutral-400'}`}
                 >
                   Por producto
                 </button>
                 <button
                   onClick={() => { setPartialMode('direct'); setDirectAmount(remaining.toString()); if (partialPaymentMethod === 'cash') setPartialCashReceived(remaining.toString()); }}
-                  className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${partialMode === 'direct' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'}`}
+                  className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${partialMode === 'direct' ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 shadow-sm' : 'text-gray-500 dark:text-neutral-400'}`}
                 >
                   Monto directo
                 </button>
@@ -2560,7 +2560,7 @@ function SaleModal({
               {partialMode === 'direct' && (
                 <div className="mb-6 space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Monto a cobrar</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Monto a cobrar</label>
                     <input
                       type="number"
                       value={directAmount}
@@ -2568,14 +2568,14 @@ function SaleModal({
                         setDirectAmount(e.target.value);
                         if (partialPaymentMethod === 'cash') setPartialCashReceived(e.target.value);
                       }}
-                      className="w-full p-3 text-2xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-amber-500 outline-none"
+                      className="w-full p-3 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 outline-none"
                       placeholder="0"
                       autoFocus
                     />
                     <div className="flex gap-2 mt-2">
                       <button
                         onClick={() => { setDirectAmount(remaining.toString()); if (partialPaymentMethod === 'cash') setPartialCashReceived(remaining.toString()); }}
-                        className="flex-1 text-xs py-1.5 border border-amber-300 text-amber-700 rounded-lg hover:bg-amber-50"
+                        className="flex-1 text-xs py-1.5 border border-amber-300 text-amber-700 dark:text-amber-400 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-950"
                       >
                         Cobrar todo ({formatCurrency(remaining)})
                       </button>
@@ -2584,13 +2584,13 @@ function SaleModal({
 
                   {/* Método de pago directo */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Método de pago</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Método de pago</label>
                     <div className="grid grid-cols-3 gap-2">
                       {(['cash', 'transfer', 'mixed'] as const).map((method) => (
                         <button
                           key={method}
                           onClick={() => { setPartialPaymentMethod(method); if (method === 'cash') setPartialCashReceived(directAmount); }}
-                          className={`p-3 rounded-lg border-2 text-center transition-all ${partialPaymentMethod === method ? 'border-amber-500 bg-amber-50' : 'border-gray-200'}`}
+                          className={`p-3 rounded-lg border-2 text-center transition-all ${partialPaymentMethod === method ? 'border-amber-500 bg-amber-50 dark:bg-amber-950' : 'border-gray-200 dark:border-neutral-700'}`}
                         >
                           <div className="text-xl mb-1">{method === 'cash' ? '💵' : method === 'transfer' ? '📱' : '💳'}</div>
                           <div className="text-sm font-medium">{method === 'cash' ? 'Efectivo' : method === 'transfer' ? 'Transfer' : 'Mixto'}</div>
@@ -2601,16 +2601,16 @@ function SaleModal({
 
                   {partialPaymentMethod === 'cash' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Efectivo recibido</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Efectivo recibido</label>
                       <input
                         type="number"
                         value={partialCashReceived}
                         onChange={(e) => setPartialCashReceived(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                        className="w-full p-3 border border-gray-300 dark:border-neutral-600 rounded-lg text-lg"
                         placeholder={`Mínimo ${formatCurrency(parseFloat(directAmount) || 0)}`}
                       />
                       {(parseFloat(partialCashReceived) || 0) >= (parseFloat(directAmount) || 0) && (parseFloat(directAmount) || 0) > 0 && (
-                        <p className="text-green-600 mt-2 font-medium">
+                        <p className="text-green-600 dark:text-green-400 mt-2 font-medium">
                           Cambio: {formatCurrency(Math.max(0, (parseFloat(partialCashReceived) || 0) - (parseFloat(directAmount) || 0)))}
                         </p>
                       )}
@@ -2620,12 +2620,12 @@ function SaleModal({
                   {partialPaymentMethod === 'mixed' && (
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Transferencia</label>
-                        <input type="number" value={partialTransferAmount} onChange={(e) => setPartialTransferAmount(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg" placeholder="$0" />
+                        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Transferencia</label>
+                        <input type="number" value={partialTransferAmount} onChange={(e) => setPartialTransferAmount(e.target.value)} className="w-full p-3 border border-gray-300 dark:border-neutral-600 rounded-lg" placeholder="$0" />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Efectivo</label>
-                        <input type="number" value={partialCashAmount} onChange={(e) => setPartialCashAmount(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg" placeholder="$0" />
+                        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Efectivo</label>
+                        <input type="number" value={partialCashAmount} onChange={(e) => setPartialCashAmount(e.target.value)} className="w-full p-3 border border-gray-300 dark:border-neutral-600 rounded-lg" placeholder="$0" />
                       </div>
                     </div>
                   )}
@@ -2635,10 +2635,10 @@ function SaleModal({
               {/* Modo por producto */}
               {partialMode === 'by_product' && (<>
               <div className="mb-6">
-                <h3 className="font-medium text-gray-900 mb-3">Productos pendientes de pago:</h3>
-                <p className="text-sm text-gray-500 mb-4">Solo se muestran productos con saldo pendiente</p>
+                <h3 className="font-medium text-gray-900 dark:text-neutral-100 mb-3">Productos pendientes de pago:</h3>
+                <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">Solo se muestran productos con saldo pendiente</p>
                 {unpaidItems.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-gray-500 dark:text-neutral-400">
                     <p>Todos los productos han sido pagados</p>
                     <p className="text-sm mt-2">Puedes agregar más productos a la cuenta</p>
                   </div>
@@ -2652,8 +2652,8 @@ function SaleModal({
                           key={item.id}
                           className={`p-3 rounded-lg border-2 transition-all ${
                             hasAmount
-                              ? 'border-green-500 bg-green-50'
-                              : 'border-gray-200'
+                              ? 'border-green-500 bg-green-50 dark:bg-green-950'
+                              : 'border-gray-200 dark:border-neutral-700'
                           }`}
                         >
                           <div className="flex items-center justify-between mb-2">
@@ -2662,10 +2662,10 @@ function SaleModal({
                                 {item.quantity}x {item.product_name}
                                 {item.is_michelada && ' 🌶️'}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-gray-500 dark:text-neutral-400">
                                 Total: {formatCurrency(item.subtotal)}
                                 {item.paidAmount > 0 && (
-                                  <span className="text-green-600 ml-2">
+                                  <span className="text-green-600 dark:text-green-400 ml-2">
                                     (Pagado: {formatCurrency(item.paidAmount)})
                                   </span>
                                 )}
@@ -2673,13 +2673,13 @@ function SaleModal({
                             </div>
                             <button
                               onClick={() => updateItemPartialAmount(item, item.remainingAmount)}
-                              className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded hover:bg-blue-50"
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-400 px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-950"
                             >
                               Pagar restante
                             </button>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-500">$</span>
+                            <span className="text-gray-500 dark:text-neutral-400">$</span>
                             <input
                               type="number"
                               value={currentAmount || ''}
@@ -2688,11 +2688,11 @@ function SaleModal({
                                 updateItemPartialAmount(item, Math.min(value, item.remainingAmount));
                               }}
                               placeholder="0"
-                              className="flex-1 p-2 border border-gray-300 rounded-lg text-right"
+                              className="flex-1 p-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-right"
                               max={item.remainingAmount}
                               min={0}
                             />
-                            <span className="text-sm text-amber-600 w-28 text-right font-medium">
+                            <span className="text-sm text-amber-600 dark:text-amber-400 w-28 text-right font-medium">
                               / {formatCurrency(item.remainingAmount)}
                             </span>
                           </div>
@@ -2704,10 +2704,10 @@ function SaleModal({
               </div>
 
               {/* Total seleccionado */}
-              <div className="bg-gray-100 rounded-lg p-4 mb-6">
+              <div className="bg-gray-100 dark:bg-neutral-700 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium text-gray-700">Total seleccionado:</span>
-                  <span className="text-2xl font-bold text-green-600">
+                  <span className="font-medium text-gray-700 dark:text-neutral-300">Total seleccionado:</span>
+                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {formatCurrency(partialPaymentTotal)}
                   </span>
                 </div>
@@ -2716,7 +2716,7 @@ function SaleModal({
               {/* Método de pago */}
               {partialPaymentTotal > 0 && (
                 <div className="mb-6">
-                  <h3 className="font-medium text-gray-900 mb-3">Método de pago:</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-neutral-100 mb-3">Método de pago:</h3>
                   <div className="grid grid-cols-3 gap-2 mb-4">
                     {(['cash', 'transfer', 'mixed'] as const).map((method) => (
                       <button
@@ -2730,8 +2730,8 @@ function SaleModal({
                         }}
                         className={`p-3 rounded-lg border-2 text-center transition-all ${
                           partialPaymentMethod === method
-                            ? 'border-amber-500 bg-amber-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                            : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
                         }`}
                       >
                         <div className="text-xl mb-1">
@@ -2747,18 +2747,18 @@ function SaleModal({
                   {/* Campos según método */}
                   {partialPaymentMethod === 'cash' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                         Efectivo recibido
                       </label>
                       <input
                         type="number"
                         value={partialCashReceived}
                         onChange={(e) => setPartialCashReceived(e.target.value)}
-                        className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                        className="w-full p-3 border border-gray-300 dark:border-neutral-600 rounded-lg text-lg"
                         placeholder={`Mínimo ${formatCurrency(partialPaymentTotal)}`}
                       />
                       {parseFloat(partialCashReceived) >= partialPaymentTotal && (
-                        <p className="text-green-600 mt-2 text-lg font-medium">
+                        <p className="text-green-600 dark:text-green-400 mt-2 text-lg font-medium">
                           Cambio: {formatCurrency(getPartialChange())}
                         </p>
                       )}
@@ -2768,31 +2768,31 @@ function SaleModal({
                   {partialPaymentMethod === 'mixed' && (
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                           Transferencia
                         </label>
                         <input
                           type="number"
                           value={partialTransferAmount}
                           onChange={(e) => setPartialTransferAmount(e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg"
+                          className="w-full p-3 border border-gray-300 dark:border-neutral-600 rounded-lg"
                           placeholder="$0"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                           Efectivo
                         </label>
                         <input
                           type="number"
                           value={partialCashAmount}
                           onChange={(e) => setPartialCashAmount(e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg"
+                          className="w-full p-3 border border-gray-300 dark:border-neutral-600 rounded-lg"
                           placeholder="$0"
                         />
                       </div>
                       {(parseFloat(partialTransferAmount) || 0) + (parseFloat(partialCashAmount) || 0) >= partialPaymentTotal && (
-                        <p className="text-green-600 text-lg font-medium">
+                        <p className="text-green-600 dark:text-green-400 text-lg font-medium">
                           Cambio: {formatCurrency(getPartialChange())}
                         </p>
                       )}
@@ -2803,13 +2803,13 @@ function SaleModal({
               </>)}
 
               {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4">
+                <div className="bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 p-3 rounded-lg mb-4">
                   {error}
                 </div>
               )}
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="p-6 border-t border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-950">
               <div className="flex gap-3">
                 <Button
                   variant="outline"
@@ -2837,23 +2837,23 @@ function SaleModal({
       {/* Modal de Confirmación de Pago Parcial */}
       {showPartialConfirmation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70] p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">⚠️</span>
               </div>
               <h2 className="text-xl font-bold">Confirmar Pago Parcial</h2>
-              <p className="text-gray-600 mt-2">
-                ¿Registrar pago parcial de <span className="font-bold text-green-600">{formatCurrency(partialPaymentTotal)}</span>?
+              <p className="text-gray-600 dark:text-neutral-300 mt-2">
+                ¿Registrar pago parcial de <span className="font-bold text-green-600 dark:text-green-400">{formatCurrency(partialPaymentTotal)}</span>?
               </p>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <p className="text-sm text-gray-600 mb-2">
+            <div className="bg-gray-50 dark:bg-neutral-950 rounded-lg p-4 mb-6">
+              <p className="text-sm text-gray-600 dark:text-neutral-300 mb-2">
                 <strong>Método:</strong>{' '}
                 {partialPaymentMethod === 'cash' ? 'Efectivo' : partialPaymentMethod === 'transfer' ? 'Transferencia' : 'Mixto'}
               </p>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-neutral-300">
                 <strong>Productos:</strong>{' '}
                 {Object.keys(selectedItemsForPartial).length} item(s)
               </p>
@@ -2883,15 +2883,15 @@ function SaleModal({
       {/* Modal de Historial de Pagos Parciales */}
       {showPartialPaymentsHistory && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-gray-200">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-200 dark:border-neutral-700">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-bold">
                   Historial de Pagos - {existingTab?.table_number ? `Mesa ${existingTab.table_number}` : 'Sin mesa'}
                 </h2>
                 <button
                   onClick={() => setShowPartialPaymentsHistory(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300"
                 >
                   ✕
                 </button>
@@ -2900,27 +2900,27 @@ function SaleModal({
 
             <div className="flex-1 overflow-y-auto p-6">
               {partialPayments.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">
+                <p className="text-center text-gray-500 dark:text-neutral-400 py-8">
                   No hay pagos parciales registrados
                 </p>
               ) : (
                 <div className="space-y-4">
                   {partialPayments.map((payment, index) => (
-                    <div key={payment.id} className="border border-gray-200 rounded-lg p-4">
+                    <div key={payment.id} className="border border-gray-200 dark:border-neutral-700 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-gray-900 dark:text-neutral-100">
                           Pago #{index + 1}
                         </span>
-                        <span className="text-lg font-bold text-green-600">
+                        <span className="text-lg font-bold text-green-600 dark:text-green-400">
                           {formatCurrency(payment.amount)}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-500 mb-2">
+                      <div className="text-sm text-gray-500 dark:text-neutral-400 mb-2">
                         {formatTime(payment.created_at)} -
                         {payment.payment_method === 'cash' ? ' Efectivo' : payment.payment_method === 'transfer' ? ' Transferencia' : ' Mixto'} |
                         Por: {payment.employee_name}
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-gray-600 dark:text-neutral-300">
                         {payment.items?.map((item, idx) => (
                           <span key={item.id}>
                             {item.quantity}x {item.product_name} ({formatCurrency(item.amount)})
@@ -2934,14 +2934,14 @@ function SaleModal({
               )}
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="p-6 border-t border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-950">
               <div className="flex items-center justify-between mb-4">
-                <span className="font-medium text-gray-700">Total pagado:</span>
-                <span className="text-xl font-bold text-green-600">{formatCurrency(totalPaid)}</span>
+                <span className="font-medium text-gray-700 dark:text-neutral-300">Total pagado:</span>
+                <span className="text-xl font-bold text-green-600 dark:text-green-400">{formatCurrency(totalPaid)}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-700">Restante:</span>
-                <span className="text-xl font-bold text-amber-600">{formatCurrency(remaining)}</span>
+                <span className="font-medium text-gray-700 dark:text-neutral-300">Restante:</span>
+                <span className="text-xl font-bold text-amber-600 dark:text-amber-400">{formatCurrency(remaining)}</span>
               </div>
             </div>
           </div>
@@ -2980,25 +2980,25 @@ function EditExistingItemModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6">
         <h2 className="text-xl font-bold mb-4 text-center">
           Editar Item
         </h2>
 
-        <div className="bg-gray-50 rounded-lg p-3 mb-4">
-          <p className="font-medium text-gray-900">{item.product_name}</p>
-          <p className="text-sm text-gray-500">Precio base: {formatCurrency(item.original_price)}</p>
+        <div className="bg-gray-50 dark:bg-neutral-950 rounded-lg p-3 mb-4">
+          <p className="font-medium text-gray-900 dark:text-neutral-100">{item.product_name}</p>
+          <p className="text-sm text-gray-500 dark:text-neutral-400">Precio base: {formatCurrency(item.original_price)}</p>
         </div>
 
         {/* Cantidad */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
             Cantidad
           </label>
           <div className="flex items-center justify-center gap-4">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xl hover:bg-gray-300"
+              className="w-10 h-10 rounded-full bg-gray-200 dark:bg-neutral-700 flex items-center justify-center text-xl hover:bg-gray-300"
               disabled={quantity <= 1}
             >
               -
@@ -3006,7 +3006,7 @@ function EditExistingItemModal({
             <span className="text-2xl font-bold w-12 text-center">{quantity}</span>
             <button
               onClick={() => setQuantity(quantity + 1)}
-              className="w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl text-amber-700 hover:bg-amber-300"
+              className="w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center text-xl text-amber-700 dark:text-amber-400 hover:bg-amber-300"
             >
               +
             </button>
@@ -3015,7 +3015,7 @@ function EditExistingItemModal({
 
         {/* Michelada toggle */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
             Tipo de preparación
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -3023,38 +3023,38 @@ function EditExistingItemModal({
               onClick={() => setIsMichelada(false)}
               className={`p-3 rounded-xl border-2 transition-all ${
                 !isMichelada
-                  ? 'border-amber-500 bg-amber-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                  : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
               }`}
             >
               <div className="text-2xl mb-1">🍺</div>
               <p className="font-medium text-sm">Normal</p>
-              <p className="text-xs text-gray-500">{formatCurrency(item.original_price)}</p>
+              <p className="text-xs text-gray-500 dark:text-neutral-400">{formatCurrency(item.original_price)}</p>
             </button>
             <button
               onClick={() => setIsMichelada(true)}
               className={`p-3 rounded-xl border-2 transition-all ${
                 isMichelada
-                  ? 'border-amber-500 bg-amber-50'
-                  : 'border-gray-200 hover:border-gray-300'
+                  ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                  : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
               }`}
             >
               <div className="text-2xl mb-1">🌶️</div>
-              <p className="font-medium text-sm text-amber-700">Michelada</p>
-              <p className="text-xs text-amber-600">{formatCurrency(item.original_price + MICHELADA_EXTRA)}</p>
+              <p className="font-medium text-sm text-amber-700 dark:text-amber-400">Michelada</p>
+              <p className="text-xs text-amber-600 dark:text-amber-400">{formatCurrency(item.original_price + MICHELADA_EXTRA)}</p>
             </button>
           </div>
         </div>
 
         {/* Resumen */}
-        <div className="bg-amber-50 rounded-lg p-3 mb-4">
+        <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-3 mb-4">
           <div className="flex justify-between text-sm">
             <span>Precio unitario:</span>
             <span>{formatCurrency(newUnitPrice)}</span>
           </div>
           <div className="flex justify-between font-bold text-lg mt-1">
             <span>Subtotal:</span>
-            <span className="text-amber-700">{formatCurrency(newSubtotal)}</span>
+            <span className="text-amber-700 dark:text-amber-400">{formatCurrency(newSubtotal)}</span>
           </div>
         </div>
 
@@ -3170,28 +3170,28 @@ function EditableComboModalSales({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-2">{combo.name}</h2>
         {combo.description && (
-          <p className="text-sm text-gray-500 mb-4">{combo.description}</p>
+          <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">{combo.description}</p>
         )}
 
         {/* Precio editable */}
         {combo.is_price_editable && (
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Precio final
             </label>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500">$</span>
+              <span className="text-gray-500 dark:text-neutral-400">$</span>
               <input
                 type="number"
                 value={finalPrice}
                 onChange={(e) => setFinalPrice(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-lg font-bold"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-lg font-bold"
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">
               Precio base: {formatCurrency(combo.base_price)}
             </p>
           </div>
@@ -3200,15 +3200,15 @@ function EditableComboModalSales({
         {/* Productos fijos del combo */}
         {fixedItems.length > 0 && (
           <div className="space-y-2 mb-4">
-            <p className="text-sm font-medium text-gray-700">Productos fijos:</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-neutral-300">Productos fijos:</p>
             {fixedItems.map((item, index) => {
               const product = products.find(p => p.id === item.product_id);
               return (
-                <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-neutral-950 rounded-lg">
                   <span className="text-sm font-medium w-8 text-center">{item.quantity}x</span>
                   <span className="flex-1 text-sm">{product?.name}</span>
                   {item.is_michelada && (
-                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">Mich</span>
+                    <span className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded">Mich</span>
                   )}
                 </div>
               );
@@ -3220,13 +3220,13 @@ function EditableComboModalSales({
         {totalSwappableQty > 0 && (
           <div className="space-y-2 mb-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-700">
-                Cervezas a elegir: <span className="text-amber-600">{currentSwappableQty}/{totalSwappableQty}</span>
+              <p className="text-sm font-medium text-gray-700 dark:text-neutral-300">
+                Cervezas a elegir: <span className="text-amber-600 dark:text-amber-400">{currentSwappableQty}/{totalSwappableQty}</span>
               </p>
               {remainingQty > 0 && (
                 <button
                   onClick={handleAddSwappableProduct}
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-400"
                 >
                   + Agregar otra
                 </button>
@@ -3234,11 +3234,11 @@ function EditableComboModalSales({
             </div>
 
             {customSwappableItems.map((item, index) => (
-              <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
+              <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-950 rounded-lg">
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleSwappableQtyChange(index, item.quantity - 1)}
-                    className="w-6 h-6 rounded bg-gray-200 text-gray-700 text-sm hover:bg-gray-300"
+                    className="w-6 h-6 rounded bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-neutral-300 text-sm hover:bg-gray-300"
                     disabled={item.quantity <= 1}
                   >
                     -
@@ -3246,7 +3246,7 @@ function EditableComboModalSales({
                   <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
                   <button
                     onClick={() => handleSwappableQtyChange(index, item.quantity + 1)}
-                    className="w-6 h-6 rounded bg-amber-200 text-amber-700 text-sm hover:bg-amber-300"
+                    className="w-6 h-6 rounded bg-amber-200 text-amber-700 dark:text-amber-400 text-sm hover:bg-amber-300"
                     disabled={remainingQty <= 0}
                   >
                     +
@@ -3255,7 +3255,7 @@ function EditableComboModalSales({
                 <select
                   value={item.productId}
                   onChange={(e) => handleSwappableProductChange(index, e.target.value)}
-                  className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                  className="flex-1 px-2 py-1 border border-gray-300 dark:border-neutral-600 rounded text-sm"
                 >
                   {beerProducts.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -3264,7 +3264,7 @@ function EditableComboModalSales({
                 {customSwappableItems.length > 1 && (
                   <button
                     onClick={() => handleRemoveSwappableProduct(index)}
-                    className="text-red-500 hover:text-red-700 text-sm"
+                    className="text-red-500 hover:text-red-700 dark:hover:text-red-400 text-sm"
                   >
                     ✕
                   </button>
@@ -3273,7 +3273,7 @@ function EditableComboModalSales({
             ))}
 
             {remainingQty > 0 && (
-              <p className="text-xs text-amber-600">
+              <p className="text-xs text-amber-600 dark:text-amber-400">
                 Faltan {remainingQty} cerveza(s) por seleccionar
               </p>
             )}
@@ -3323,46 +3323,46 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">Detalle de Venta</h2>
 
         <div className="space-y-3 mb-4">
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Fecha:</span>
+            <span className="text-gray-600 dark:text-neutral-300">Fecha:</span>
             <span>{formatDate(sale.created_at)} {formatTime(sale.created_at)}</span>
           </div>
           {sale.table_number && (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Mesa:</span>
+              <span className="text-gray-600 dark:text-neutral-300">Mesa:</span>
               <span>{sale.table_number}</span>
             </div>
           )}
 
           {/* Empleados que intervinieron */}
-          <div className="bg-blue-50 rounded-lg p-3 mt-2">
-            <p className="text-xs font-medium text-blue-800 mb-2">Empleados que intervinieron:</p>
+          <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 mt-2">
+            <p className="text-xs font-medium text-blue-800 dark:text-blue-400 mb-2">Empleados que intervinieron:</p>
             <div className="space-y-1 text-sm">
               {sale.opened_by?.name && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Abrió la cuenta:</span>
+                  <span className="text-gray-600 dark:text-neutral-300">Abrió la cuenta:</span>
                   <span className="font-medium">{sale.opened_by.name}</span>
                 </div>
               )}
               {sale.taken_over_by?.name && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Retomó la cuenta:</span>
+                  <span className="text-gray-600 dark:text-neutral-300">Retomó la cuenta:</span>
                   <span className="font-medium">{sale.taken_over_by.name}</span>
                 </div>
               )}
               {sale.closed_by?.name && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Cerró la cuenta:</span>
+                  <span className="text-gray-600 dark:text-neutral-300">Cerró la cuenta:</span>
                   <span className="font-medium">{sale.closed_by.name}</span>
                 </div>
               )}
               {!sale.opened_by?.name && !sale.taken_over_by?.name && !sale.closed_by?.name && sale.employees?.name && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Empleado:</span>
+                  <span className="text-gray-600 dark:text-neutral-300">Empleado:</span>
                   <span className="font-medium">{sale.employees.name}</span>
                 </div>
               )}
@@ -3371,25 +3371,25 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
 
           {/* Observaciones */}
           {(sale.notes || sale.close_notes || sale.takeover_notes) && (
-            <div className="bg-yellow-50 rounded-lg p-3 mt-2 border border-yellow-200">
-              <p className="text-xs font-medium text-yellow-800 mb-2">Observaciones:</p>
+            <div className="bg-yellow-50 dark:bg-yellow-950 rounded-lg p-3 mt-2 border border-yellow-200 dark:border-yellow-800">
+              <p className="text-xs font-medium text-yellow-800 dark:text-yellow-400 mb-2">Observaciones:</p>
               <div className="space-y-2 text-sm">
                 {sale.notes && (
                   <div>
-                    <span className="text-yellow-700 font-medium">General: </span>
-                    <span className="text-yellow-900">{sale.notes}</span>
+                    <span className="text-yellow-700 dark:text-yellow-400 font-medium">General: </span>
+                    <span className="text-yellow-900 dark:text-yellow-300">{sale.notes}</span>
                   </div>
                 )}
                 {sale.takeover_notes && (
                   <div>
-                    <span className="text-yellow-700 font-medium">Al retomar: </span>
-                    <span className="text-yellow-900">{sale.takeover_notes}</span>
+                    <span className="text-yellow-700 dark:text-yellow-400 font-medium">Al retomar: </span>
+                    <span className="text-yellow-900 dark:text-yellow-300">{sale.takeover_notes}</span>
                   </div>
                 )}
                 {sale.close_notes && (
                   <div>
-                    <span className="text-yellow-700 font-medium">Al cerrar: </span>
-                    <span className="text-yellow-900">{sale.close_notes}</span>
+                    <span className="text-yellow-700 dark:text-yellow-400 font-medium">Al cerrar: </span>
+                    <span className="text-yellow-900 dark:text-yellow-300">{sale.close_notes}</span>
                   </div>
                 )}
               </div>
@@ -3397,7 +3397,7 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
           )}
 
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Método de pago:</span>
+            <span className="text-gray-600 dark:text-neutral-300">Método de pago:</span>
             <span>
               {sale.payment_method === 'cash' ? 'Efectivo' :
                sale.payment_method === 'transfer' ? 'Transferencia' :
@@ -3407,41 +3407,41 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
           {(sale.payment_method === 'cash' || sale.payment_method === 'mixed') && sale.cash_received && (
             <>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Efectivo recibido:</span>
+                <span className="text-gray-600 dark:text-neutral-300">Efectivo recibido:</span>
                 <span>{formatCurrency(sale.cash_received)}</span>
               </div>
               {sale.cash_change && sale.cash_change > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Cambio:</span>
+                  <span className="text-gray-600 dark:text-neutral-300">Cambio:</span>
                   <span>{formatCurrency(sale.cash_change)}</span>
                 </div>
               )}
             </>
           )}
           {sale.payment_method === 'fiado' && (
-            <div className="bg-orange-50 rounded-lg p-3 mt-2">
+            <div className="bg-orange-50 dark:bg-orange-950 rounded-lg p-3 mt-2">
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">Cliente:</span>
-                <span className="font-medium text-orange-700">{sale.fiado_customer_name}</span>
+                <span className="text-gray-600 dark:text-neutral-300">Cliente:</span>
+                <span className="font-medium text-orange-700 dark:text-orange-400">{sale.fiado_customer_name}</span>
               </div>
               {sale.fiado_abono && sale.fiado_abono > 0 && (
                 <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600">Abono:</span>
-                  <span className="text-green-600">{formatCurrency(sale.fiado_abono)}</span>
+                  <span className="text-gray-600 dark:text-neutral-300">Abono:</span>
+                  <span className="text-green-600 dark:text-green-400">{formatCurrency(sale.fiado_abono)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Queda debiendo:</span>
-                <span className="font-bold text-orange-700">{formatCurrency(sale.fiado_amount || 0)}</span>
+                <span className="text-gray-600 dark:text-neutral-300">Queda debiendo:</span>
+                <span className="font-bold text-orange-700 dark:text-orange-400">{formatCurrency(sale.fiado_amount || 0)}</span>
               </div>
               {sale.fiado_paid && (
-                <p className="text-xs text-green-600 mt-2">✅ Pagado</p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-2">✅ Pagado</p>
               )}
             </div>
           )}
         </div>
 
-        <div className="border-t border-gray-200 pt-4 mb-4">
+        <div className="border-t border-gray-200 dark:border-neutral-700 pt-4 mb-4">
           <h3 className="font-medium mb-2">Productos</h3>
           <div className="space-y-2">
             {/* Combos agrupados */}
@@ -3450,17 +3450,17 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
               const addedByName = group.items[0]?.added_by?.name;
 
               return (
-                <div key={comboId} className="bg-purple-50 rounded-lg p-3">
+                <div key={comboId} className="bg-purple-50 dark:bg-purple-950 rounded-lg p-3">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <span className="font-medium text-purple-800">🎁 {group.name}</span>
+                      <span className="font-medium text-purple-800 dark:text-purple-400">🎁 {group.name}</span>
                       {addedByName && (
-                        <p className="text-xs text-purple-600">Vendido por: {addedByName}</p>
+                        <p className="text-xs text-purple-600 dark:text-purple-400">Vendido por: {addedByName}</p>
                       )}
                     </div>
-                    <span className="font-medium text-purple-700">{formatCurrency(group.total)}</span>
+                    <span className="font-medium text-purple-700 dark:text-purple-400">{formatCurrency(group.total)}</span>
                   </div>
-                  <div className="space-y-1 text-xs text-gray-600">
+                  <div className="space-y-1 text-xs text-gray-600 dark:text-neutral-300">
                     {group.items.map((item) => (
                       <p key={item.id}>
                         {item.quantity}x {item.products?.name}
@@ -3502,12 +3502,12 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
                   <div className="flex justify-between">
                     <span>
                       {item.quantity}x {item.name}
-                      {item.is_michelada && <span className="text-amber-600 ml-1">🌶️ michelada</span>}
+                      {item.is_michelada && <span className="text-amber-600 dark:text-amber-400 ml-1">🌶️ michelada</span>}
                     </span>
                     <span className="font-medium">{formatCurrency(item.subtotal)}</span>
                   </div>
                   {item.added_by_name && (
-                    <p className="text-xs text-gray-500">Vendido por: {item.added_by_name}</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-400">Vendido por: {item.added_by_name}</p>
                   )}
                 </div>
               ));
@@ -3515,7 +3515,7 @@ function SaleDetailModal({ sale, onClose }: { sale: SaleWithDetails; onClose: ()
           </div>
         </div>
 
-        <div className="border-t border-gray-200 pt-4 mb-4">
+        <div className="border-t border-gray-200 dark:border-neutral-700 pt-4 mb-4">
           <div className="flex justify-between text-lg font-bold">
             <span>Total:</span>
             <span className={sale.voided ? 'line-through text-red-500' : ''}>
@@ -3550,22 +3550,22 @@ function VoidSaleModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
-        <h2 className="text-xl font-bold text-red-600 mb-4">Anular Venta</h2>
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
+        <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-4">Anular Venta</h2>
 
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-600 dark:text-neutral-300 mb-4">
           Esta acción devolverá los productos al inventario y marcará la venta como anulada.
         </p>
 
-        <div className="bg-gray-50 p-3 rounded-lg mb-4">
+        <div className="bg-gray-50 dark:bg-neutral-950 p-3 rounded-lg mb-4">
           <p className="font-medium">Venta: {formatCurrency(sale.total)}</p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-neutral-400">
             {formatDate(sale.created_at)} - {sale.employees?.name}
           </p>
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
             Razón de anulación *
           </label>
           <textarea
@@ -3573,7 +3573,7 @@ function VoidSaleModal({
             onChange={(e) => setReason(e.target.value)}
             rows={3}
             placeholder="Ej: Error en el cobro, producto devuelto..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-red-500 focus:border-red-500"
           />
         </div>
 

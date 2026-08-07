@@ -140,7 +140,7 @@ export function PaymentModal({
       <h2 className="text-xl font-bold text-center mb-4">La Cuenta</h2>
 
       {/* Lista de productos */}
-      <div className="bg-gray-50 rounded-xl p-4 mb-4 max-h-60 overflow-y-auto">
+      <div className="bg-gray-50 dark:bg-neutral-950 rounded-xl p-4 mb-4 max-h-60 overflow-y-auto">
         {/* Items individuales */}
         {items.map((item, index) => {
           const unitPrice = item.product.sale_price + (item.isMichelada ? MICHELADA_EXTRA : 0);
@@ -148,12 +148,12 @@ export function PaymentModal({
           const itemKey = `${item.product.id}-${item.isMichelada ? 'mich' : 'normal'}-${index}`;
 
           return (
-            <div key={itemKey} className="flex justify-between py-2 border-b border-gray-200 last:border-0">
+            <div key={itemKey} className="flex justify-between py-2 border-b border-gray-200 dark:border-neutral-700 last:border-0">
               <div>
                 <span className="font-medium">{item.quantity}x</span>{' '}
                 <span>{item.product.name}</span>
                 {item.isMichelada && (
-                  <span className="text-xs text-amber-600 ml-1">🌶️</span>
+                  <span className="text-xs text-amber-600 dark:text-amber-400 ml-1">🌶️</span>
                 )}
               </div>
               <span className="font-medium">
@@ -165,16 +165,16 @@ export function PaymentModal({
 
         {/* Combos */}
         {combos.map((cartCombo, index) => (
-          <div key={`combo-${index}`} className="py-2 border-b border-gray-200 last:border-0">
+          <div key={`combo-${index}`} className="py-2 border-b border-gray-200 dark:border-neutral-700 last:border-0">
             <div className="flex justify-between">
               <div>
                 <span className="font-medium">🎁 {cartCombo.combo.name}</span>
               </div>
-              <span className="font-medium text-amber-600">
+              <span className="font-medium text-amber-600 dark:text-amber-400">
                 {formatCurrency(cartCombo.finalPrice)}
               </span>
             </div>
-            <div className="text-xs text-gray-500 mt-1">
+            <div className="text-xs text-gray-500 dark:text-neutral-400 mt-1">
               {cartCombo.items.map(item =>
                 `${item.quantity}x ${item.product.name.substring(0, 15)}${item.isMichelada ? ' 🌶️' : ''}`
               ).join(', ')}
@@ -184,9 +184,9 @@ export function PaymentModal({
       </div>
 
       {/* Total grande */}
-      <div className="text-center py-6 bg-amber-50 rounded-xl mb-6">
-        <p className="text-gray-600 text-sm mb-1">Total a pagar</p>
-        <p className="text-4xl font-bold text-amber-700">
+      <div className="text-center py-6 bg-amber-50 dark:bg-amber-950 rounded-xl mb-6">
+        <p className="text-gray-600 dark:text-neutral-300 text-sm mb-1">Total a pagar</p>
+        <p className="text-4xl font-bold text-amber-700 dark:text-amber-400">
           {formatCurrency(total)}
         </p>
       </div>
@@ -206,8 +206,8 @@ export function PaymentModal({
   const renderMethodStep = () => (
     <>
       <h2 className="text-xl font-bold text-center mb-2">Metodo de Pago</h2>
-      <p className="text-center text-gray-500 mb-6">
-        Total: <span className="font-bold text-gray-900">{formatCurrency(total)}</span>
+      <p className="text-center text-gray-500 dark:text-neutral-400 mb-6">
+        Total: <span className="font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(total)}</span>
       </p>
 
       <div className="space-y-3 mb-6">
@@ -216,14 +216,14 @@ export function PaymentModal({
             setPaymentMethod('cash');
             setStep('payment');
           }}
-          className="w-full p-4 rounded-xl border-2 border-gray-200 hover:border-amber-500 hover:bg-amber-50 transition-all flex items-center gap-4"
+          className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all flex items-center gap-4"
         >
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl">
+          <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center text-2xl">
             💵
           </div>
           <div className="text-left">
-            <p className="font-bold text-gray-900">Efectivo</p>
-            <p className="text-sm text-gray-500">Pago en billetes o monedas</p>
+            <p className="font-bold text-gray-900 dark:text-neutral-100">Efectivo</p>
+            <p className="text-sm text-gray-500 dark:text-neutral-400">Pago en billetes o monedas</p>
           </div>
         </button>
 
@@ -232,14 +232,14 @@ export function PaymentModal({
             setPaymentMethod('transfer');
             setStep('payment');
           }}
-          className="w-full p-4 rounded-xl border-2 border-gray-200 hover:border-amber-500 hover:bg-amber-50 transition-all flex items-center gap-4"
+          className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all flex items-center gap-4"
         >
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl">
+          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center text-2xl">
             📱
           </div>
           <div className="text-left">
-            <p className="font-bold text-gray-900">Transferencia</p>
-            <p className="text-sm text-gray-500">Nequi, Daviplata, bancaria</p>
+            <p className="font-bold text-gray-900 dark:text-neutral-100">Transferencia</p>
+            <p className="text-sm text-gray-500 dark:text-neutral-400">Nequi, Daviplata, bancaria</p>
           </div>
         </button>
 
@@ -248,14 +248,14 @@ export function PaymentModal({
             setPaymentMethod('mixed');
             setStep('payment');
           }}
-          className="w-full p-4 rounded-xl border-2 border-gray-200 hover:border-amber-500 hover:bg-amber-50 transition-all flex items-center gap-4"
+          className="w-full p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all flex items-center gap-4"
         >
-          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">
+          <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center text-2xl">
             💳
           </div>
           <div className="text-left">
-            <p className="font-bold text-gray-900">Mixto</p>
-            <p className="text-sm text-gray-500">Parte efectivo, parte transferencia</p>
+            <p className="font-bold text-gray-900 dark:text-neutral-100">Mixto</p>
+            <p className="text-sm text-gray-500 dark:text-neutral-400">Parte efectivo, parte transferencia</p>
           </div>
         </button>
       </div>
@@ -283,12 +283,12 @@ export function PaymentModal({
   const renderCashPayment = () => (
     <>
       <h2 className="text-xl font-bold text-center mb-2">Pago en Efectivo</h2>
-      <p className="text-center text-gray-500 mb-6">
-        Total: <span className="font-bold text-gray-900">{formatCurrency(total)}</span>
+      <p className="text-center text-gray-500 dark:text-neutral-400 mb-6">
+        Total: <span className="font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(total)}</span>
       </p>
 
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
           Efectivo recibido
         </label>
         <input
@@ -296,20 +296,20 @@ export function PaymentModal({
           value={cashReceived}
           onChange={(e) => setCashReceived(e.target.value)}
           placeholder="0"
-          className="w-full px-4 py-4 text-2xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-amber-500 focus:ring-0"
+          className="w-full px-4 py-4 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
           autoFocus
         />
       </div>
 
       {cashReceivedNum > 0 && (
-        <div className="bg-gray-50 rounded-xl p-4 mb-4">
+        <div className="bg-gray-50 dark:bg-neutral-950 rounded-xl p-4 mb-4">
           <div className="flex justify-between mb-2">
-            <span className="text-gray-600">Recibido:</span>
+            <span className="text-gray-600 dark:text-neutral-300">Recibido:</span>
             <span className="font-bold">{formatCurrency(cashReceivedNum)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Devolver:</span>
-            <span className={`text-2xl font-bold ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <span className="text-gray-600 dark:text-neutral-300">Devolver:</span>
+            <span className={`text-2xl font-bold ${change >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
               {formatCurrency(change)}
             </span>
           </div>
@@ -318,14 +318,14 @@ export function PaymentModal({
 
       {/* Campo de observaciones */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
           Observaciones (opcional)
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
           rows={2}
         />
       </div>
@@ -348,33 +348,33 @@ export function PaymentModal({
   const renderTransferPayment = () => (
     <>
       <h2 className="text-xl font-bold text-center mb-2">Pago por Transferencia</h2>
-      <p className="text-center text-gray-500 mb-6">
-        Total: <span className="font-bold text-gray-900">{formatCurrency(total)}</span>
+      <p className="text-center text-gray-500 dark:text-neutral-400 mb-6">
+        Total: <span className="font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(total)}</span>
       </p>
 
-      <div className="bg-blue-50 rounded-xl p-6 mb-4 text-center">
+      <div className="bg-blue-50 dark:bg-blue-950 rounded-xl p-6 mb-4 text-center">
         <div className="text-4xl mb-3">📱</div>
-        <p className="text-gray-700 mb-2">
+        <p className="text-gray-700 dark:text-neutral-300 mb-2">
           Solicita al cliente que realice la transferencia por:
         </p>
-        <p className="text-3xl font-bold text-blue-700 mb-4">
+        <p className="text-3xl font-bold text-blue-700 dark:text-blue-400 mb-4">
           {formatCurrency(total)}
         </p>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-neutral-400">
           Verifica el comprobante antes de confirmar
         </p>
       </div>
 
       {/* Campo de observaciones */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
           Observaciones (opcional)
         </label>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
           rows={2}
         />
       </div>
@@ -401,13 +401,13 @@ export function PaymentModal({
     return (
       <>
         <h2 className="text-xl font-bold text-center mb-2">Pago Mixto</h2>
-        <p className="text-center text-gray-500 mb-6">
-          Total: <span className="font-bold text-gray-900">{formatCurrency(total)}</span>
+        <p className="text-center text-gray-500 dark:text-neutral-400 mb-6">
+          Total: <span className="font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(total)}</span>
         </p>
 
         <div className="space-y-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
               📱 Monto en Transferencia
             </label>
             <input
@@ -415,15 +415,15 @@ export function PaymentModal({
               value={transferAmount}
               onChange={(e) => setTransferAmount(e.target.value)}
               placeholder="0"
-              className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-0"
+              className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-blue-500 focus:ring-0"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
               💵 Efectivo recibido
               {transferAmountNum > 0 && (
-                <span className="text-amber-600 ml-2">
+                <span className="text-amber-600 dark:text-amber-400 ml-2">
                   (Faltan {formatCurrency(Math.max(0, remaining))})
                 </span>
               )}
@@ -433,31 +433,31 @@ export function PaymentModal({
               value={cashAmountMixed}
               onChange={(e) => setCashAmountMixed(e.target.value)}
               placeholder="0"
-              className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-green-500 focus:ring-0"
+              className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-green-500 focus:ring-0"
             />
           </div>
         </div>
 
         {(transferAmountNum > 0 || cashAmountMixedNum > 0) && (
-          <div className="bg-gray-50 rounded-xl p-4 mb-4">
+          <div className="bg-gray-50 dark:bg-neutral-950 rounded-xl p-4 mb-4">
             <div className="flex justify-between mb-1">
-              <span className="text-gray-600">Transferencia:</span>
-              <span className="font-medium text-blue-600">{formatCurrency(transferAmountNum)}</span>
+              <span className="text-gray-600 dark:text-neutral-300">Transferencia:</span>
+              <span className="font-medium text-blue-600 dark:text-blue-400">{formatCurrency(transferAmountNum)}</span>
             </div>
             <div className="flex justify-between mb-1">
-              <span className="text-gray-600">Efectivo:</span>
-              <span className="font-medium text-green-600">{formatCurrency(cashAmountMixedNum)}</span>
+              <span className="text-gray-600 dark:text-neutral-300">Efectivo:</span>
+              <span className="font-medium text-green-600 dark:text-green-400">{formatCurrency(cashAmountMixedNum)}</span>
             </div>
-            <div className="flex justify-between border-t border-gray-200 pt-2 mt-2">
-              <span className="text-gray-600">Total pagado:</span>
-              <span className={`font-bold ${totalPaid >= total ? 'text-green-600' : 'text-red-600'}`}>
+            <div className="flex justify-between border-t border-gray-200 dark:border-neutral-700 pt-2 mt-2">
+              <span className="text-gray-600 dark:text-neutral-300">Total pagado:</span>
+              <span className={`font-bold ${totalPaid >= total ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {formatCurrency(totalPaid)}
               </span>
             </div>
             {change > 0 && (
               <div className="flex justify-between mt-2">
-                <span className="text-gray-600">Devolver:</span>
-                <span className="text-xl font-bold text-amber-600">{formatCurrency(change)}</span>
+                <span className="text-gray-600 dark:text-neutral-300">Devolver:</span>
+                <span className="text-xl font-bold text-amber-600 dark:text-amber-400">{formatCurrency(change)}</span>
               </div>
             )}
           </div>
@@ -465,14 +465,14 @@ export function PaymentModal({
 
         {/* Campo de observaciones */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
             Observaciones (opcional)
           </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Ej: Se rompió una cerveza, compra de hielo, etc."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
             rows={2}
           />
         </div>
@@ -495,7 +495,7 @@ export function PaymentModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
         {renderStep()}
       </div>
     </div>

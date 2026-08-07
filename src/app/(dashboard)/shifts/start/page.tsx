@@ -98,31 +98,31 @@ export default function StartShiftPage() {
 
   return (
     <div className="max-w-md mx-auto">
-      <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 border border-gray-200 dark:border-neutral-700 shadow-sm">
         {/* Header con hora y tipo de turno */}
         <div className="text-center mb-8">
-          <p className="text-4xl font-bold text-gray-900 mb-2">{timeString}</p>
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 rounded-full">
+          <p className="text-4xl font-bold text-gray-900 dark:text-neutral-100 mb-2">{timeString}</p>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-950 rounded-full">
             <span className="text-2xl">{shiftType === 'day' ? '☀️' : '🌙'}</span>
-            <span className="font-medium text-amber-800">
+            <span className="font-medium text-amber-800 dark:text-amber-400">
               Turno de {getShiftTypeLabel(shiftType)}
             </span>
           </div>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-500 dark:text-neutral-400 mt-2">
             Detectado automáticamente
           </p>
         </div>
 
         {/* Saludo al empleado */}
-        <div className="text-center mb-6 pb-6 border-b border-gray-100">
-          <p className="text-gray-600">Bienvenido/a</p>
-          <p className="text-xl font-bold text-gray-900">{employee?.name}</p>
+        <div className="text-center mb-6 pb-6 border-b border-gray-100 dark:border-neutral-700">
+          <p className="text-gray-600 dark:text-neutral-300">Bienvenido/a</p>
+          <p className="text-xl font-bold text-gray-900 dark:text-neutral-100">{employee?.name}</p>
         </div>
 
         <form onSubmit={handleStartShift} className="space-y-6">
           {/* Selector de tipo de turno (por si necesita cambiarlo) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-3">
               Tipo de turno
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -131,8 +131,8 @@ export default function StartShiftPage() {
                 onClick={() => setShiftType('day')}
                 className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
                   shiftType === 'day'
-                    ? 'border-amber-500 bg-amber-50 text-amber-800'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-400'
+                    : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-gray-300 dark:hover:border-neutral-600'
                 }`}
               >
                 <span>☀️</span>
@@ -143,8 +143,8 @@ export default function StartShiftPage() {
                 onClick={() => setShiftType('night')}
                 className={`p-3 rounded-xl border-2 transition-all flex items-center justify-center gap-2 ${
                   shiftType === 'night'
-                    ? 'border-amber-500 bg-amber-50 text-amber-800'
-                    : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-400'
+                    : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-300 hover:border-gray-300 dark:hover:border-neutral-600'
                 }`}
               >
                 <span>🌙</span>
@@ -155,11 +155,11 @@ export default function StartShiftPage() {
 
           {/* Efectivo inicial */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
               Efectivo inicial en caja
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-neutral-400 font-medium">
                 $
               </span>
               <input
@@ -167,11 +167,11 @@ export default function StartShiftPage() {
                 value={cashStart}
                 onChange={(e) => setCashStart(e.target.value)}
                 placeholder="0"
-                className="w-full pl-8 pr-4 py-3 text-xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-amber-500 focus:ring-0"
+                className="w-full pl-8 pr-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
               />
             </div>
             {cashStart && (
-              <p className="text-sm text-gray-500 text-center mt-1">
+              <p className="text-sm text-gray-500 dark:text-neutral-400 text-center mt-1">
                 {formatCurrency(parseFloat(cashStart) || 0)}
               </p>
             )}
@@ -179,11 +179,11 @@ export default function StartShiftPage() {
 
           {/* Transferencias pendientes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
               Transferencias pendientes (opcional)
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-neutral-400 font-medium">
                 $
               </span>
               <input
@@ -191,25 +191,25 @@ export default function StartShiftPage() {
                 value={transferStart}
                 onChange={(e) => setTransferStart(e.target.value)}
                 placeholder="0"
-                className="w-full pl-8 pr-4 py-3 text-lg text-center border-2 border-gray-200 rounded-xl focus:border-amber-500 focus:ring-0"
+                className="w-full pl-8 pr-4 py-3 text-lg text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
               />
             </div>
-            <p className="text-xs text-gray-500 text-center mt-1">
+            <p className="text-xs text-gray-500 dark:text-neutral-400 text-center mt-1">
               Si hay transferencias del turno anterior
             </p>
           </div>
 
           {/* Resumen */}
           {(cashStart || transferStart) && (
-            <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-sm font-medium text-gray-700 mb-2">Resumen inicial:</p>
+            <div className="bg-gray-50 dark:bg-neutral-950 rounded-xl p-4">
+              <p className="text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Resumen inicial:</p>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Efectivo:</span>
+                  <span className="text-gray-600 dark:text-neutral-300">Efectivo:</span>
                   <span className="font-medium">{formatCurrency(parseFloat(cashStart) || 0)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Transferencias:</span>
+                  <span className="text-gray-600 dark:text-neutral-300">Transferencias:</span>
                   <span className="font-medium">{formatCurrency(parseFloat(transferStart) || 0)}</span>
                 </div>
               </div>

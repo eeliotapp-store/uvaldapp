@@ -184,13 +184,13 @@ export default function InventoryPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Inventario</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Inventario</h1>
         <div className="flex gap-2">
           {canResetStock && (
             <Button
               variant="outline"
               onClick={() => setShowResetModal(true)}
-              className="text-red-600 border-red-200 hover:bg-red-50"
+              className="text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-950"
             >
               Resetear Stock
             </Button>
@@ -201,21 +201,21 @@ export default function InventoryPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Productos</p>
-          <p className="text-2xl font-bold text-gray-900">{totalProducts}</p>
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 p-4">
+          <p className="text-sm text-gray-500 dark:text-neutral-400">Productos</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-neutral-100">{totalProducts}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Unidades Total</p>
-          <p className="text-2xl font-bold text-gray-900">{totalUnits}</p>
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 p-4">
+          <p className="text-sm text-gray-500 dark:text-neutral-400">Unidades Total</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-neutral-100">{totalUnits}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Valor Inventario</p>
-          <p className="text-2xl font-bold text-amber-600">{formatCurrency(totalValue)}</p>
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 p-4">
+          <p className="text-sm text-gray-500 dark:text-neutral-400">Valor Inventario</p>
+          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">{formatCurrency(totalValue)}</p>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Stock Bajo</p>
-          <p className={`text-2xl font-bold ${lowStockCount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 p-4">
+          <p className="text-sm text-gray-500 dark:text-neutral-400">Stock Bajo</p>
+          <p className={`text-2xl font-bold ${lowStockCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
             {lowStockCount}
           </p>
         </div>
@@ -228,7 +228,7 @@ export default function InventoryPage() {
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'stock'
               ? 'bg-amber-500 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
           }`}
         >
           Stock Actual
@@ -238,7 +238,7 @@ export default function InventoryPage() {
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             activeTab === 'history'
               ? 'bg-amber-500 text-white'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
           }`}
         >
           Historial de Compras
@@ -247,37 +247,37 @@ export default function InventoryPage() {
 
       {/* Stock Table */}
       {activeTab === 'stock' && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-700">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Producto
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Stock
                   </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Precio
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Estado
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Acción
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {stock.map((item) => (
-                  <tr key={item.product_id} className="hover:bg-gray-50">
+                  <tr key={item.product_id} className="hover:bg-gray-50 dark:hover:bg-neutral-950">
                     <td className="px-4 py-3">
                       <div>
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-gray-900 dark:text-neutral-100">
                           {item.product_name}
                         </span>
-                        <p className="text-xs text-gray-500 capitalize">
+                        <p className="text-xs text-gray-500 dark:text-neutral-400 capitalize">
                           {item.category.replace('_', ' ')}
                         </p>
                       </div>
@@ -297,8 +297,8 @@ export default function InventoryPage() {
                       ) : (
                         <span
                           onClick={() => startEditing(item.product_id, 'stock', item.current_stock)}
-                          className={`text-lg font-bold cursor-pointer hover:bg-amber-100 px-2 py-1 rounded ${
-                            item.is_low_stock ? 'text-red-600' : 'text-gray-900'
+                          className={`text-lg font-bold cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900 px-2 py-1 rounded ${
+                            item.is_low_stock ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-neutral-100'
                           }`}
                           title="Clic para editar"
                         >
@@ -322,7 +322,7 @@ export default function InventoryPage() {
                       ) : (
                         <span
                           onClick={() => startEditing(item.product_id, 'price', item.sale_price)}
-                          className="cursor-pointer hover:bg-amber-100 px-2 py-1 rounded text-gray-600"
+                          className="cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900 px-2 py-1 rounded text-gray-600 dark:text-neutral-300"
                           title="Clic para editar"
                         >
                           {formatCurrency(item.sale_price)}
@@ -331,11 +331,11 @@ export default function InventoryPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       {item.is_low_stock ? (
-                        <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                        <span className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-400 rounded-full text-xs font-medium">
                           Bajo
                         </span>
                       ) : (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                        <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
                           OK
                         </span>
                       )}
@@ -343,7 +343,7 @@ export default function InventoryPage() {
                     <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => handleCount(item)}
-                        className="px-3 py-1.5 text-xs bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 font-medium"
+                        className="px-3 py-1.5 text-xs bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 font-medium"
                       >
                         Contar
                       </button>
@@ -355,7 +355,7 @@ export default function InventoryPage() {
           </div>
 
           {stock.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-neutral-400">
               No hay productos en el inventario
             </div>
           )}
@@ -364,78 +364,78 @@ export default function InventoryPage() {
 
       {/* History Table */}
       {activeTab === 'history' && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-700">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Fecha
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Producto
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Proveedor
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Cant. Inicial
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Cant. Actual
                   </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Precio Compra
                   </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Total
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Acciones
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {history.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-gray-50">
+                  <tr key={entry.id} className="hover:bg-gray-50 dark:hover:bg-neutral-950">
                     <td className="px-4 py-3">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-neutral-100">
                           {formatDate(entry.batch_date)}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-neutral-400">
                           {new Date(entry.created_at).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-gray-900 dark:text-neutral-100">
                         {entry.products?.name || 'N/A'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-gray-600 dark:text-neutral-300">
                         {entry.suppliers?.name || 'N/A'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center text-gray-600">
+                    <td className="px-4 py-3 text-center text-gray-600 dark:text-neutral-300">
                       {entry.initial_quantity}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`font-bold ${entry.quantity === 0 ? 'text-gray-500' : 'text-gray-900'}`}>
+                      <span className={`font-bold ${entry.quantity === 0 ? 'text-gray-500 dark:text-neutral-400' : 'text-gray-900 dark:text-neutral-100'}`}>
                         {entry.quantity}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-900">
+                    <td className="px-4 py-3 text-right text-gray-900 dark:text-neutral-100">
                       {formatCurrency(entry.purchase_price)}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-gray-900">
+                    <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-neutral-100">
                       {formatCurrency(entry.purchase_price * entry.initial_quantity)}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <button
                         onClick={() => handleAdjust(entry)}
-                        className="px-2 py-1 text-xs bg-amber-50 text-amber-700 rounded hover:bg-amber-100"
+                        className="px-2 py-1 text-xs bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 rounded hover:bg-amber-100 dark:hover:bg-amber-900"
                       >
                         Editar
                       </button>
@@ -447,7 +447,7 @@ export default function InventoryPage() {
           </div>
 
           {history.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-neutral-400">
               No hay historial de compras
             </div>
           )}
@@ -593,12 +593,12 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-6">Agregar Stock</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Producto *
             </label>
             <select
@@ -607,7 +607,7 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                 setFormData({ ...formData, product_id: e.target.value })
               }
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             >
               <option value="">Seleccionar...</option>
               {products.map((p) => (
@@ -619,7 +619,7 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Proveedor *
             </label>
             <select
@@ -628,7 +628,7 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                 setFormData({ ...formData, supplier_id: e.target.value })
               }
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             >
               <option value="">Seleccionar...</option>
               {suppliers.map((s) => (
@@ -640,12 +640,12 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
           </div>
 
           {/* Sección de paquetes */}
-          <div className="bg-amber-50 rounded-lg p-4 space-y-3">
-            <p className="text-sm font-medium text-amber-800">Información del paquete</p>
+          <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-400">Información del paquete</p>
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">
                   Paquetes
                 </label>
                 <input
@@ -656,12 +656,12 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                   }
                   required
                   min="1"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">
                   Uds/Paquete
                 </label>
                 <input
@@ -673,12 +673,12 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                   required
                   min="1"
                   placeholder="24"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">
                   $/Paquete
                 </label>
                 <input
@@ -690,26 +690,26 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
                   required
                   min="0"
                   placeholder="68000"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500 text-center"
                 />
               </div>
             </div>
 
             {/* Resumen calculado */}
             {totalUnits > 0 && (
-              <div className="bg-white rounded-lg p-3 mt-3 border border-amber-200">
+              <div className="bg-white dark:bg-neutral-800 rounded-lg p-3 mt-3 border border-amber-200 dark:border-amber-800">
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <p className="text-xs text-gray-500">Total Unidades</p>
-                    <p className="text-lg font-bold text-gray-900">{totalUnits}</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-400">Total Unidades</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-neutral-100">{totalUnits}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Precio/Unidad</p>
-                    <p className="text-lg font-bold text-amber-600">{formatCurrency(unitPrice)}</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-400">Precio/Unidad</p>
+                    <p className="text-lg font-bold text-amber-600 dark:text-amber-400">{formatCurrency(unitPrice)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Total Compra</p>
-                    <p className="text-lg font-bold text-gray-900">{formatCurrency(totalCost)}</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-400">Total Compra</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(totalCost)}</p>
                   </div>
                 </div>
               </div>
@@ -717,7 +717,7 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Fecha de Compra
             </label>
             <input
@@ -726,12 +726,12 @@ function AddStockModal({ suppliers, onClose, onSuccess }: AddStockModalProps) {
               onChange={(e) =>
                 setFormData({ ...formData, batch_date: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-3 rounded-lg">{error}</div>
           )}
 
           <div className="flex gap-3 pt-4">
@@ -828,21 +828,21 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6 my-8">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6 my-8">
         <h2 className="text-xl font-bold mb-2">Editar Entrada de Inventario</h2>
-        <p className="text-gray-600 mb-4">{entry.products?.name}</p>
+        <p className="text-gray-600 dark:text-neutral-300 mb-4">{entry.products?.name}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Proveedor */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Proveedor *
             </label>
             <select
               value={formData.supplier_id}
               onChange={(e) => setFormData({ ...formData, supplier_id: e.target.value })}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             >
               <option value="">Seleccionar proveedor...</option>
               {availableSuppliers.map((s) => (
@@ -852,12 +852,12 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
           </div>
 
           {/* Cantidades */}
-          <div className="bg-amber-50 rounded-lg p-4 space-y-3">
-            <p className="text-sm font-medium text-amber-800">Cantidades</p>
+          <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-400">Cantidades</p>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">
                   Cantidad Inicial
                 </label>
                 <input
@@ -866,12 +866,12 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
                   onChange={(e) => setFormData({ ...formData, initial_quantity: e.target.value })}
                   required
                   min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                 />
-                <p className="text-xs text-gray-500 mt-1">Original: {entry.initial_quantity}</p>
+                <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">Original: {entry.initial_quantity}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
+                <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">
                   Cantidad Actual
                 </label>
                 <input
@@ -880,10 +880,10 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
                   onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                   required
                   min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                 />
                 {qtyDiff !== 0 && (
-                  <p className={`text-xs mt-1 text-center font-medium ${qtyDiff > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-xs mt-1 text-center font-medium ${qtyDiff > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     {qtyDiff > 0 ? '+' : ''}{qtyDiff} uds
                   </p>
                 )}
@@ -892,11 +892,11 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
           </div>
 
           {/* Precio */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-            <p className="text-sm font-medium text-gray-700">Precio de Compra</p>
+          <div className="bg-gray-50 dark:bg-neutral-950 rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium text-gray-700 dark:text-neutral-300">Precio de Compra</p>
 
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
+              <label className="block text-xs font-medium text-gray-600 dark:text-neutral-300 mb-1">
                 Precio por Unidad
               </label>
               <input
@@ -906,18 +906,18 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
                 required
                 min="0"
                 step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">
                 Original: {formatCurrency(entry.purchase_price)}
               </p>
             </div>
 
             {totalCost > 0 && (
-              <div className="bg-white rounded-lg p-3 border border-gray-200">
+              <div className="bg-white dark:bg-neutral-800 rounded-lg p-3 border border-gray-200 dark:border-neutral-700">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Total compra:</span>
-                  <span className="text-lg font-bold text-gray-900">{formatCurrency(totalCost)}</span>
+                  <span className="text-sm text-gray-600 dark:text-neutral-300">Total compra:</span>
+                  <span className="text-lg font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(totalCost)}</span>
                 </div>
               </div>
             )}
@@ -925,19 +925,19 @@ function EditInventoryModal({ entry, suppliers, onClose, onSuccess }: EditInvent
 
           {/* Fecha */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Fecha de Compra
             </label>
             <input
               type="date"
               value={formData.batch_date}
               onChange={(e) => setFormData({ ...formData, batch_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-3 rounded-lg">{error}</div>
           )}
 
           <div className="flex gap-3 pt-4">
@@ -1010,20 +1010,20 @@ function CountInventoryModal({ item, onClose, onSuccess }: CountInventoryModalPr
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-2">Registrar Conteo</h2>
-        <p className="text-gray-600 mb-4">{item.product_name}</p>
+        <p className="text-gray-600 dark:text-neutral-300 mb-4">{item.product_name}</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Comparación de stocks */}
-          <div className="bg-blue-50 rounded-lg p-4">
+          <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-4">
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Stock Sistema</p>
-                <p className="text-2xl font-bold text-gray-900">{systemStock}</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Stock Sistema</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-neutral-100">{systemStock}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Stock Real</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Stock Real</p>
                 <input
                   type="number"
                   value={realStock}
@@ -1034,14 +1034,14 @@ function CountInventoryModal({ item, onClose, onSuccess }: CountInventoryModalPr
                 />
               </div>
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-1">Diferencia</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-neutral-400 mb-1">Diferencia</p>
                 <p
                   className={`text-2xl font-bold ${
                     difference > 0
-                      ? 'text-green-600'
+                      ? 'text-green-600 dark:text-green-400'
                       : difference < 0
-                      ? 'text-red-600'
-                      : 'text-gray-600'
+                      ? 'text-red-600 dark:text-red-400'
+                      : 'text-gray-600 dark:text-neutral-300'
                   }`}
                 >
                   {difference > 0 ? '+' : ''}{difference}
@@ -1051,7 +1051,7 @@ function CountInventoryModal({ item, onClose, onSuccess }: CountInventoryModalPr
 
             {difference !== 0 && (
               <div className={`mt-3 p-2 rounded-lg text-sm text-center ${
-                difference > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                difference > 0 ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400' : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-400'
               }`}>
                 {difference > 0
                   ? `Hay ${difference} unidades de más (sobrante)`
@@ -1063,20 +1063,20 @@ function CountInventoryModal({ item, onClose, onSuccess }: CountInventoryModalPr
 
           {/* Notas */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Notas (opcional)
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ej: Encontré 2 rotas, se devolvieron al proveedor..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 resize-none"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 resize-none"
               rows={2}
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-3 rounded-lg">{error}</div>
           )}
 
           <div className="flex gap-3 pt-4">
@@ -1143,21 +1143,21 @@ function ResetStockModal({ onClose, onSuccess }: ResetStockModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
+            <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">Resetear Todo el Stock</h2>
-            <p className="text-sm text-gray-500">Esta acción es irreversible</p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-neutral-100">Resetear Todo el Stock</h2>
+            <p className="text-sm text-gray-500 dark:text-neutral-400">Esta acción es irreversible</p>
           </div>
         </div>
 
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-          <p className="text-sm text-red-700">
+        <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
+          <p className="text-sm text-red-700 dark:text-red-400">
             <strong>Advertencia:</strong> Esta acción pondrá todas las cantidades de inventario en 0.
             Use esto solo si está iniciando el sistema desde cero.
           </p>
@@ -1165,7 +1165,7 @@ function ResetStockModal({ onClose, onSuccess }: ResetStockModalProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Escribe <strong>RESETEAR</strong> para confirmar
             </label>
             <input
@@ -1173,12 +1173,12 @@ function ResetStockModal({ onClose, onSuccess }: ResetStockModalProps) {
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
               placeholder="RESETEAR"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-red-500 focus:border-red-500"
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-3 rounded-lg">{error}</div>
           )}
 
           <div className="flex gap-3 pt-4">

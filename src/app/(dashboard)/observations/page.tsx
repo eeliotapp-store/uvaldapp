@@ -125,7 +125,7 @@ function ObservationsContent() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Observaciones</h1>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 dark:text-neutral-400 text-sm">
             Registra notas y observaciones durante tu turno
           </p>
         </div>
@@ -133,14 +133,14 @@ function ObservationsContent() {
 
       {/* Formulario para agregar observación */}
       {currentShift ? (
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 mb-6">
           <h2 className="text-lg font-semibold mb-4">Nueva Observación</h2>
           <form onSubmit={handleSubmit}>
             <textarea
               value={newObservation}
               onChange={(e) => setNewObservation(e.target.value)}
               placeholder="Escribe tu observación aquí... (ej: Se rompió una cerveza Corona, Se compró hielo por $10,000)"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm resize-none focus:border-amber-500 focus:ring-0"
               rows={3}
             />
             {error && (
@@ -160,80 +160,80 @@ function ObservationsContent() {
           </form>
         </div>
       ) : (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-          <p className="text-yellow-800">
+        <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4 mb-6">
+          <p className="text-yellow-800 dark:text-yellow-400">
             <strong>Sin turno activo.</strong> Debes iniciar un turno para poder agregar observaciones.
           </p>
         </div>
       )}
 
       {/* Filtros */}
-      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-4 mb-6">
         <div className="flex flex-wrap gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Desde
             </label>
             <input
               type="date"
               value={filters.start_date}
               onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Hasta
             </label>
             <input
               type="date"
               value={filters.end_date}
               onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm"
             />
           </div>
         </div>
       </div>
 
       {/* Lista de observaciones */}
-      <div className="bg-white rounded-xl shadow-sm">
-        <div className="p-4 border-b border-gray-200">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm">
+        <div className="p-4 border-b border-gray-200 dark:border-neutral-700">
           <h2 className="text-lg font-semibold">Historial de Observaciones</h2>
         </div>
 
         {isLoading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto"></div>
-            <p className="text-gray-500 mt-2">Cargando...</p>
+            <p className="text-gray-500 dark:text-neutral-400 mt-2">Cargando...</p>
           </div>
         ) : observations.length === 0 ? (
           <div className="p-8 text-center">
             <NoteIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">No hay observaciones en este período</p>
+            <p className="text-gray-500 dark:text-neutral-400">No hay observaciones en este período</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
             {observations.map((obs) => (
-              <div key={obs.id} className="p-4 hover:bg-gray-50">
+              <div key={obs.id} className="p-4 hover:bg-gray-50 dark:hover:bg-neutral-950">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-gray-900 dark:text-neutral-100">
                         {obs.employees?.name || 'Empleado'}
                       </span>
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                      <span className="text-xs bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 px-2 py-0.5 rounded">
                         Turno {obs.shifts?.type === 'day' ? 'Día' : 'Noche'}
                       </span>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-wrap">{obs.content}</p>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-gray-700 dark:text-neutral-300 whitespace-pre-wrap">{obs.content}</p>
+                    <p className="text-xs text-gray-500 dark:text-neutral-400 mt-2">
                       {formatDate(obs.created_at)} a las {formatTime(obs.created_at)}
                     </p>
                   </div>
                   {isOwner(employee?.role) && (
                     <button
                       onClick={() => handleDelete(obs.id)}
-                      className="text-gray-500 hover:text-red-500 p-1"
+                      className="text-gray-500 dark:text-neutral-400 hover:text-red-500 p-1"
                       title="Eliminar"
                     >
                       <TrashIcon className="w-4 h-4" />

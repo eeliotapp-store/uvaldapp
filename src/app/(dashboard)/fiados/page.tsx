@@ -212,45 +212,45 @@ export default function FiadosPage() {
     <div className="max-w-2xl mx-auto space-y-5">
       {/* Encabezado */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Fiados</h1>
-        <p className="text-sm text-gray-500 mt-1">Registro de ventas a crédito</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Fiados</h1>
+        <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Registro de ventas a crédito</p>
       </div>
 
       {/* Resumen */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
-          <p className="text-xs text-orange-600 font-medium">Pendiente de cobrar</p>
-          <p className="text-2xl font-bold text-orange-700 mt-1">{formatCurrency(summary.total_pending)}</p>
+        <div className="bg-orange-50 dark:bg-orange-950 border border-orange-100 rounded-xl p-4">
+          <p className="text-xs text-orange-600 dark:text-orange-400 font-medium">Pendiente de cobrar</p>
+          <p className="text-2xl font-bold text-orange-700 dark:text-orange-400 mt-1">{formatCurrency(summary.total_pending)}</p>
           <p className="text-xs text-orange-500 mt-1">{summary.count_pending} fiado{summary.count_pending !== 1 ? 's' : ''}</p>
         </div>
-        <div className="bg-green-50 border border-green-100 rounded-xl p-4">
-          <p className="text-xs text-green-600 font-medium">Ya cobrado</p>
-          <p className="text-2xl font-bold text-green-700 mt-1">{formatCurrency(summary.total_paid)}</p>
+        <div className="bg-green-50 dark:bg-green-950 border border-green-100 rounded-xl p-4">
+          <p className="text-xs text-green-600 dark:text-green-400 font-medium">Ya cobrado</p>
+          <p className="text-2xl font-bold text-green-700 dark:text-green-400 mt-1">{formatCurrency(summary.total_paid)}</p>
           <p className="text-xs text-green-500 mt-1">{summary.count_paid} fiado{summary.count_paid !== 1 ? 's' : ''}</p>
         </div>
       </div>
 
       {/* Mensajes */}
       {successMessage && (
-        <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm">
+        <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-400 rounded-lg px-4 py-3 text-sm">
           {successMessage}
         </div>
       )}
       {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg px-4 py-3 text-sm">
+        <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-400 rounded-lg px-4 py-3 text-sm">
           {errorMessage}
         </div>
       )}
 
       {/* Filtros */}
       <div className="space-y-3">
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
+        <div className="flex gap-1 bg-gray-100 dark:bg-neutral-700 p-1 rounded-lg">
           {(['pending', 'paid', 'all'] as StatusFilter[]).map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
               className={`flex-1 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                statusFilter === s ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                statusFilter === s ? 'bg-white dark:bg-neutral-800 text-gray-900 dark:text-neutral-100 shadow-sm' : 'text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300'
               }`}
             >
               {s === 'pending' ? 'Pendientes' : s === 'paid' ? 'Pagados' : 'Todos'}
@@ -263,13 +263,13 @@ export default function FiadosPage() {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder="Buscar por nombre..."
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="flex-1 border border-gray-300 dark:border-neutral-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
           <button type="submit" className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors">
             Buscar
           </button>
           {customerSearch && (
-            <button type="button" onClick={clearSearch} className="px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+            <button type="button" onClick={clearSearch} className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-950 transition-colors">
               ✕
             </button>
           )}
@@ -278,9 +278,9 @@ export default function FiadosPage() {
 
       {/* Lista */}
       {isLoading ? (
-        <div className="text-center py-12 text-gray-500">Cargando...</div>
+        <div className="text-center py-12 text-gray-500 dark:text-neutral-400">Cargando...</div>
       ) : fiados.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12 text-gray-500 dark:text-neutral-400">
           {statusFilter === 'pending' ? 'No hay fiados pendientes' : 'No hay fiados en esta categoría'}
         </div>
       ) : (
@@ -293,56 +293,56 @@ export default function FiadosPage() {
             return (
               <div
                 key={fiado.id}
-                className={`bg-white rounded-xl border p-4 shadow-sm ${fiado.fiado_paid ? 'border-green-100' : 'border-orange-100'}`}
+                className={`bg-white dark:bg-neutral-800 rounded-xl border p-4 shadow-sm ${fiado.fiado_paid ? 'border-green-100' : 'border-orange-100'}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     {/* Nombre + badge */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-gray-900 truncate">
+                      <p className="font-semibold text-gray-900 dark:text-neutral-100 truncate">
                         {fiado.fiado_customer_name || 'Sin nombre'}
                       </p>
                       {fiado.fiado_paid ? (
-                        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-medium">Pagado</span>
+                        <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 rounded-full font-medium">Pagado</span>
                       ) : paid > 0 ? (
-                        <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">Parcial</span>
+                        <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-400 rounded-full font-medium">Parcial</span>
                       ) : (
-                        <span className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full font-medium">Pendiente</span>
+                        <span className="text-xs px-2 py-0.5 bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-400 rounded-full font-medium">Pendiente</span>
                       )}
                     </div>
 
                     {/* Montos */}
                     <div className="flex flex-wrap gap-3 mt-2">
                       <div>
-                        <span className="text-xs text-gray-500">Total venta</span>
-                        <p className="text-sm font-medium text-gray-700">{formatCurrency(fiado.total)}</p>
+                        <span className="text-xs text-gray-500 dark:text-neutral-400">Total venta</span>
+                        <p className="text-sm font-medium text-gray-700 dark:text-neutral-300">{formatCurrency(fiado.total)}</p>
                       </div>
                       {(fiado.fiado_abono || 0) > 0 && (
                         <div>
-                          <span className="text-xs text-gray-500">Abono inicial</span>
-                          <p className="text-sm font-medium text-green-600">{formatCurrency(fiado.fiado_abono || 0)}</p>
+                          <span className="text-xs text-gray-500 dark:text-neutral-400">Abono inicial</span>
+                          <p className="text-sm font-medium text-green-600 dark:text-green-400">{formatCurrency(fiado.fiado_abono || 0)}</p>
                         </div>
                       )}
                       <div>
-                        <span className="text-xs text-gray-500">Deuda original</span>
-                        <p className="text-sm font-bold text-gray-700">{formatCurrency(fiado.fiado_amount || 0)}</p>
+                        <span className="text-xs text-gray-500 dark:text-neutral-400">Deuda original</span>
+                        <p className="text-sm font-bold text-gray-700 dark:text-neutral-300">{formatCurrency(fiado.fiado_amount || 0)}</p>
                       </div>
                       {paid > 0 && (
                         <div>
-                          <span className="text-xs text-gray-500">Abonado</span>
-                          <p className="text-sm font-bold text-green-600">{formatCurrency(paid)}</p>
+                          <span className="text-xs text-gray-500 dark:text-neutral-400">Abonado</span>
+                          <p className="text-sm font-bold text-green-600 dark:text-green-400">{formatCurrency(paid)}</p>
                         </div>
                       )}
                       {!fiado.fiado_paid && (
                         <div>
-                          <span className="text-xs text-gray-500">Falta pagar</span>
-                          <p className="text-sm font-bold text-orange-600">{formatCurrency(remaining)}</p>
+                          <span className="text-xs text-gray-500 dark:text-neutral-400">Falta pagar</span>
+                          <p className="text-sm font-bold text-orange-600 dark:text-orange-400">{formatCurrency(remaining)}</p>
                         </div>
                       )}
                     </div>
 
                     {/* Meta info */}
-                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-gray-500">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-gray-500 dark:text-neutral-400">
                       <span>{formatDate(fiado.created_at)} {formatTime(fiado.created_at)}</span>
                       {fiado.employees?.name && <span>· {fiado.employees.name}</span>}
                       {fiado.table_number && <span>· Mesa {fiado.table_number}</span>}
@@ -351,20 +351,20 @@ export default function FiadosPage() {
                     {/* Historial de pagos */}
                     {payments.length > 0 && (
                       <div className="mt-3 space-y-1">
-                        <p className="text-xs font-medium text-gray-500">Pagos registrados:</p>
+                        <p className="text-xs font-medium text-gray-500 dark:text-neutral-400">Pagos registrados:</p>
                         {payments.map((p) => (
-                          <div key={p.id} className="flex justify-between text-xs text-gray-600 bg-gray-50 rounded px-2 py-1">
+                          <div key={p.id} className="flex justify-between text-xs text-gray-600 dark:text-neutral-300 bg-gray-50 dark:bg-neutral-950 rounded px-2 py-1">
                             <span>
                               {formatDate(p.created_at)} · {METHOD_LABEL[p.payment_method as PayMethod] || p.payment_method}
                             </span>
-                            <span className="font-medium text-green-700">{formatCurrency(p.amount)}</span>
+                            <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(p.amount)}</span>
                           </div>
                         ))}
                       </div>
                     )}
 
                     {fiado.fiado_paid && fiado.fiado_paid_at && (
-                      <p className="text-xs text-green-600 mt-2 font-medium">
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-2 font-medium">
                         ✓ Completado el {formatDate(fiado.fiado_paid_at)}
                       </p>
                     )}
@@ -380,14 +380,14 @@ export default function FiadosPage() {
                         Registrar pago
                       </button>
                     ) : (
-                      <span className="px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium text-center">
+                      <span className="px-3 py-2 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 rounded-lg text-sm font-medium text-center">
                         ✓ Cobrado
                       </span>
                     )}
                     {isOwner(employee?.role) && (
                       <button
                         onClick={() => openVoidModal(fiado)}
-                        className="px-3 py-2 border border-red-300 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                        className="px-3 py-2 border border-red-300 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
                       >
                         Anular
                       </button>
@@ -403,34 +403,34 @@ export default function FiadosPage() {
       {/* Modal de anulación */}
       {voidModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6 space-y-4">
             <div>
-              <h2 className="text-lg font-bold text-gray-900">Anular fiado</h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-neutral-100">Anular fiado</h2>
+              <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
                 {voidModal.fiado_customer_name || 'Sin nombre'} · {formatCurrency(voidModal.fiado_amount || 0)}
               </p>
             </div>
-            <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2 text-xs text-red-700">
+            <div className="bg-red-50 dark:bg-red-950 border border-red-100 rounded-lg px-3 py-2 text-xs text-red-700 dark:text-red-400">
               Esta acción devolverá el inventario, eliminará los pagos registrados y la venta desaparecerá de los reportes.
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Razón de anulación</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Razón de anulación</label>
               <input
                 type="text"
                 value={voidReason}
                 onChange={(e) => setVoidReason(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
                 placeholder="Ej: Venta de prueba, error en registro..."
                 autoFocus
               />
             </div>
             {voidError && (
-              <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{voidError}</p>
+              <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-3 py-2 rounded-lg">{voidError}</p>
             )}
             <div className="flex gap-3 pt-1">
               <button
                 onClick={closeVoidModal}
-                className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
+                className="flex-1 py-2.5 border border-gray-300 dark:border-neutral-600 rounded-xl text-sm font-medium text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-950"
               >
                 Cancelar
               </button>
@@ -449,18 +449,18 @@ export default function FiadosPage() {
       {/* Modal de pago */}
       {paymentModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6 space-y-4">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-neutral-100">
               Registrar pago — {paymentModal.fiado.fiado_customer_name}
             </h2>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-neutral-400">
               Deuda original: {formatCurrency(paymentModal.fiado.fiado_amount || 0)} ·
-              Falta: <span className="font-medium text-orange-600">{formatCurrency(paymentModal.remaining)}</span>
+              Falta: <span className="font-medium text-orange-600 dark:text-orange-400">{formatCurrency(paymentModal.remaining)}</span>
             </p>
 
             {/* Monto */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Monto a pagar</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Monto a pagar</label>
               <input
                 type="number"
                 value={payAmount}
@@ -468,14 +468,14 @@ export default function FiadosPage() {
                   setPayAmount(e.target.value);
                   if (payMethod === 'cash') setPayCash(e.target.value);
                 }}
-                className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-green-500 outline-none"
+                className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-green-500 outline-none"
                 placeholder="0"
                 autoFocus
               />
               <div className="flex gap-2 mt-2">
                 <button
                   onClick={() => { setPayAmount(paymentModal.remaining.toString()); if (payMethod === 'cash') setPayCash(paymentModal.remaining.toString()); }}
-                  className="flex-1 text-xs py-1.5 border border-green-300 text-green-700 rounded-lg hover:bg-green-50"
+                  className="flex-1 text-xs py-1.5 border border-green-300 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-950"
                 >
                   Pagar todo ({formatCurrency(paymentModal.remaining)})
                 </button>
@@ -484,7 +484,7 @@ export default function FiadosPage() {
 
             {/* Método de pago */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Método de pago</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Método de pago</label>
               <div className="grid grid-cols-3 gap-2">
                 {(['cash', 'transfer', 'mixed'] as PayMethod[]).map((m) => (
                   <button
@@ -495,7 +495,7 @@ export default function FiadosPage() {
                       if (m === 'transfer') setPayTransfer(payAmount);
                     }}
                     className={`py-2 rounded-lg border-2 text-sm font-medium transition-all ${
-                      payMethod === m ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600'
+                      payMethod === m ? 'border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400' : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-300'
                     }`}
                   >
                     {m === 'cash' ? '💵 Efectivo' : m === 'transfer' ? '📱 Transfer.' : '💳 Mixto'}
@@ -508,22 +508,22 @@ export default function FiadosPage() {
             {payMethod === 'mixed' && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Efectivo</label>
+                  <label className="block text-xs text-gray-600 dark:text-neutral-300 mb-1">Efectivo</label>
                   <input
                     type="number"
                     value={payCash}
                     onChange={(e) => setPayCash(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                     placeholder="0"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Transferencia</label>
+                  <label className="block text-xs text-gray-600 dark:text-neutral-300 mb-1">Transferencia</label>
                   <input
                     type="number"
                     value={payTransfer}
                     onChange={(e) => setPayTransfer(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
                     placeholder="0"
                   />
                 </div>
@@ -531,13 +531,13 @@ export default function FiadosPage() {
             )}
 
             {modalError && (
-              <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{modalError}</p>
+              <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 px-3 py-2 rounded-lg">{modalError}</p>
             )}
 
             <div className="flex gap-3 pt-1">
               <button
                 onClick={closePaymentModal}
-                className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50"
+                className="flex-1 py-2.5 border border-gray-300 dark:border-neutral-600 rounded-xl text-sm font-medium text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-950"
               >
                 Cancelar
               </button>

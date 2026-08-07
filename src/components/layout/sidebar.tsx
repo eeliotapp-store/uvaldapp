@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore, isOwner, isSuperAdmin } from '@/stores/auth-store';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from './theme-toggle';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, ownerOnly: true, superAdminOnly: false },
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Empleados', href: '/employees', icon: UsersIcon, ownerOnly: true, superAdminOnly: false },
   { name: 'Historial', href: '/audit', icon: AuditIcon, ownerOnly: true, superAdminOnly: false },
   { name: 'Admin', href: '/admin', icon: SettingsIcon, ownerOnly: true, superAdminOnly: false },
+  { name: 'Ayuda', href: '/help', icon: HelpIcon, ownerOnly: false, superAdminOnly: false },
 ];
 
 export function Sidebar() {
@@ -45,9 +47,9 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-gray-900">
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-neutral-900">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-800">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-neutral-800">
         <div className="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center">
           <svg
             className="w-6 h-6 text-white"
@@ -65,7 +67,7 @@ export function Sidebar() {
         </div>
         <div>
           <h1 className="text-white font-bold">Cervecería</h1>
-          <p className="text-gray-400 text-sm">Inventario</p>
+          <p className="text-neutral-400 text-sm">Inventario</p>
         </div>
       </div>
 
@@ -81,7 +83,7 @@ export function Sidebar() {
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                 isActive
                   ? 'bg-amber-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'
               )}
             >
               <item.icon className="w-5 h-5" />
@@ -92,7 +94,7 @@ export function Sidebar() {
       </nav>
 
       {/* User */}
-      <div className="px-4 py-4 border-t border-gray-800">
+      <div className="px-4 py-4 border-t border-neutral-800">
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="w-8 h-8 bg-amber-600 rounded-full flex items-center justify-center">
             <span className="text-white text-sm font-medium">
@@ -103,14 +105,15 @@ export function Sidebar() {
             <p className="text-white text-sm font-medium truncate">
               {employee?.name || 'Usuario'}
             </p>
-            <p className="text-gray-400 text-xs capitalize">
+            <p className="text-neutral-400 text-xs capitalize">
               {employee?.role === 'superadmin' ? 'Super Admin' : employee?.role === 'owner' ? 'Dueña' : 'Empleado'}
             </p>
           </div>
         </div>
+        <ThemeToggle className="mt-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-300 hover:bg-neutral-800 hover:text-white transition-colors" />
         <button
           onClick={handleLogout}
-          className="mt-2 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+          className="mt-1 w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-300 hover:bg-neutral-800 hover:text-white transition-colors"
         >
           <LogoutIcon className="w-5 h-5" />
           Cerrar Sesión
@@ -265,6 +268,14 @@ function NoteIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    </svg>
+  );
+}
+
+function HelpIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
 }

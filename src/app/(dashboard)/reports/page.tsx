@@ -375,7 +375,7 @@ export default function ReportsPage() {
   if (!canView) {
     return (
       <div className="p-4 text-center">
-        <p className="text-gray-500">No tienes permisos para ver reportes</p>
+        <p className="text-gray-500 dark:text-neutral-400">No tienes permisos para ver reportes</p>
       </div>
     );
   }
@@ -715,7 +715,7 @@ export default function ReportsPage() {
       <div className="mb-4 print:hidden">
         <Link
           href="/reports/cash-audit"
-          className="inline-flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 bg-red-50 dark:bg-red-950 hover:bg-red-100 dark:hover:bg-red-900 text-red-700 dark:text-red-400 px-4 py-2 rounded-lg transition-colors"
         >
           <CashIcon className="w-5 h-5" />
           <span>Auditoría de Caja</span>
@@ -769,10 +769,10 @@ export default function ReportsPage() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-xl shadow-sm p-4 mb-6 print:hidden">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-4 mb-6 print:hidden">
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Tipo de Reporte
             </label>
             <select
@@ -786,7 +786,7 @@ export default function ReportsPage() {
                 setInventoryReport(null);
                 setEmployeeReport(null);
               }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="daily">Reporte del Día</option>
               <option value="shift">Reporte por Turno</option>
@@ -799,21 +799,21 @@ export default function ReportsPage() {
 
           {(reportType === 'daily' || reportType === 'shift') && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                 Fecha
               </label>
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           )}
 
           {reportType === 'shift' && dailyReport && dailyReport.shifts.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                 Turno
               </label>
               <select
@@ -823,7 +823,7 @@ export default function ReportsPage() {
                     fetchShiftReport(e.target.value);
                   }
                 }}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Seleccionar turno...</option>
                 {dailyReport.shifts.map((shift) => (
@@ -838,25 +838,25 @@ export default function ReportsPage() {
           {reportType === 'range' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                   Fecha Inicio
                 </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                   Fecha Fin
                 </label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <Button onClick={() => fetchRangeReport(startDate, endDate)}>
@@ -867,13 +867,13 @@ export default function ReportsPage() {
 
           {reportType === 'ranking' && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                 Período
               </label>
               <select
                 value={rankingPeriod}
                 onChange={(e) => setRankingPeriod(e.target.value as typeof rankingPeriod)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="day">Hoy</option>
                 <option value="week">Última Semana</option>
@@ -887,25 +887,25 @@ export default function ReportsPage() {
           {reportType === 'inventory' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                   Fecha Inicio
                 </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                   Fecha Fin
                 </label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <Button onClick={() => fetchInventoryReport(startDate, endDate)}>
@@ -917,25 +917,25 @@ export default function ReportsPage() {
           {reportType === 'employee' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                   Fecha Inicio
                 </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
                   Fecha Fin
                 </label>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
               <Button onClick={() => fetchEmployeeReport(startDate, endDate)}>
@@ -947,7 +947,7 @@ export default function ReportsPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-4">
+        <div className="bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 p-4 rounded-xl mb-4">
           {error}
         </div>
       )}
@@ -955,7 +955,7 @@ export default function ReportsPage() {
       {isLoading ? (
         <div className="text-center py-8">
           <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-2 text-gray-500">Cargando reporte...</p>
+          <p className="mt-2 text-gray-500 dark:text-neutral-400">Cargando reporte...</p>
         </div>
       ) : (
         <>
@@ -970,14 +970,14 @@ export default function ReportsPage() {
           )}
 
           {reportType === 'shift' && !shiftReport && dailyReport && dailyReport.shifts.length === 0 && (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <p className="text-gray-500">No hay turnos registrados para esta fecha</p>
+            <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-8 text-center">
+              <p className="text-gray-500 dark:text-neutral-400">No hay turnos registrados para esta fecha</p>
             </div>
           )}
 
           {reportType === 'shift' && !shiftReport && dailyReport && dailyReport.shifts.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <p className="text-gray-500">Selecciona un turno para ver el reporte</p>
+            <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-8 text-center">
+              <p className="text-gray-500 dark:text-neutral-400">Selecciona un turno para ver el reporte</p>
             </div>
           )}
 
@@ -987,8 +987,8 @@ export default function ReportsPage() {
           )}
 
           {reportType === 'range' && !rangeReport && (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <p className="text-gray-500">Selecciona un rango de fechas y haz clic en &quot;Generar Reporte&quot;</p>
+            <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-8 text-center">
+              <p className="text-gray-500 dark:text-neutral-400">Selecciona un rango de fechas y haz clic en &quot;Generar Reporte&quot;</p>
             </div>
           )}
 
@@ -1003,8 +1003,8 @@ export default function ReportsPage() {
           )}
 
           {reportType === 'inventory' && !inventoryReport && (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <p className="text-gray-500">Selecciona un rango de fechas y haz clic en &quot;Generar Reporte&quot;</p>
+            <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-8 text-center">
+              <p className="text-gray-500 dark:text-neutral-400">Selecciona un rango de fechas y haz clic en &quot;Generar Reporte&quot;</p>
             </div>
           )}
 
@@ -1014,8 +1014,8 @@ export default function ReportsPage() {
           )}
 
           {reportType === 'employee' && !employeeReport && (
-            <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-              <p className="text-gray-500">Selecciona un rango de fechas y haz clic en &quot;Generar Reporte&quot;</p>
+            <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-8 text-center">
+              <p className="text-gray-500 dark:text-neutral-400">Selecciona un rango de fechas y haz clic en &quot;Generar Reporte&quot;</p>
             </div>
           )}
         </>
@@ -1027,8 +1027,8 @@ export default function ReportsPage() {
 function EmployeeReportView({ report }: { report: EmployeeReport }) {
   if (report.employees.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-8 text-center">
-        <p className="text-gray-500">No hay turnos registrados en este período</p>
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-8 text-center">
+        <p className="text-gray-500 dark:text-neutral-400">No hay turnos registrados en este período</p>
       </div>
     );
   }
@@ -1036,49 +1036,49 @@ function EmployeeReportView({ report }: { report: EmployeeReport }) {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h2 className="text-xl font-bold mb-1">Reporte por Empleada</h2>
-        <p className="text-gray-500 text-sm">
+        <p className="text-gray-500 dark:text-neutral-400 text-sm">
           {formatDate(report.start_date + 'T12:00:00')} — {formatDate(report.end_date + 'T12:00:00')}
           {' · '}{report.employees.length} empleada{report.employees.length !== 1 ? 's' : ''}
         </p>
       </div>
 
       {/* Resumen general */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
-        <h3 className="font-semibold text-gray-700 mb-3">Resumen comparativo</h3>
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <h3 className="font-semibold text-gray-700 dark:text-neutral-300 mb-3">Resumen comparativo</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2 font-medium text-gray-600">Empleada</th>
-                <th className="text-right py-2 font-medium text-gray-600">Turnos</th>
-                <th className="text-right py-2 font-medium text-gray-600">Transacciones</th>
-                <th className="text-right py-2 font-medium text-gray-600">Efectivo</th>
-                <th className="text-right py-2 font-medium text-gray-600">Transferencias</th>
-                <th className="text-right py-2 font-medium text-gray-600">Total</th>
+              <tr className="border-b border-gray-200 dark:border-neutral-700">
+                <th className="text-left py-2 font-medium text-gray-600 dark:text-neutral-300">Empleada</th>
+                <th className="text-right py-2 font-medium text-gray-600 dark:text-neutral-300">Turnos</th>
+                <th className="text-right py-2 font-medium text-gray-600 dark:text-neutral-300">Transacciones</th>
+                <th className="text-right py-2 font-medium text-gray-600 dark:text-neutral-300">Efectivo</th>
+                <th className="text-right py-2 font-medium text-gray-600 dark:text-neutral-300">Transferencias</th>
+                <th className="text-right py-2 font-medium text-gray-600 dark:text-neutral-300">Total</th>
               </tr>
             </thead>
             <tbody>
               {report.employees.map((emp) => (
-                <tr key={emp.employee_id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-2 font-medium text-gray-900">{emp.employee_name}</td>
-                  <td className="py-2 text-right text-gray-600">{emp.shifts_count}</td>
-                  <td className="py-2 text-right text-gray-600">{emp.transactions_count}</td>
-                  <td className="py-2 text-right text-gray-600">{formatCurrency(emp.cash_sales)}</td>
-                  <td className="py-2 text-right text-gray-600">{formatCurrency(emp.transfer_sales)}</td>
-                  <td className="py-2 text-right font-bold text-gray-900">{formatCurrency(emp.total_sales)}</td>
+                <tr key={emp.employee_id} className="border-b border-gray-100 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-950">
+                  <td className="py-2 font-medium text-gray-900 dark:text-neutral-100">{emp.employee_name}</td>
+                  <td className="py-2 text-right text-gray-600 dark:text-neutral-300">{emp.shifts_count}</td>
+                  <td className="py-2 text-right text-gray-600 dark:text-neutral-300">{emp.transactions_count}</td>
+                  <td className="py-2 text-right text-gray-600 dark:text-neutral-300">{formatCurrency(emp.cash_sales)}</td>
+                  <td className="py-2 text-right text-gray-600 dark:text-neutral-300">{formatCurrency(emp.transfer_sales)}</td>
+                  <td className="py-2 text-right font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(emp.total_sales)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="bg-gray-50">
-                <td className="py-2 font-bold text-gray-900">TOTAL</td>
+              <tr className="bg-gray-50 dark:bg-neutral-950">
+                <td className="py-2 font-bold text-gray-900 dark:text-neutral-100">TOTAL</td>
                 <td className="py-2 text-right font-bold">{report.employees.reduce((s, e) => s + e.shifts_count, 0)}</td>
                 <td className="py-2 text-right font-bold">{report.employees.reduce((s, e) => s + e.transactions_count, 0)}</td>
                 <td className="py-2 text-right font-bold">{formatCurrency(report.employees.reduce((s, e) => s + e.cash_sales, 0))}</td>
                 <td className="py-2 text-right font-bold">{formatCurrency(report.employees.reduce((s, e) => s + e.transfer_sales, 0))}</td>
-                <td className="py-2 text-right font-bold text-green-700">{formatCurrency(report.employees.reduce((s, e) => s + e.total_sales, 0))}</td>
+                <td className="py-2 text-right font-bold text-green-700 dark:text-green-400">{formatCurrency(report.employees.reduce((s, e) => s + e.total_sales, 0))}</td>
               </tr>
             </tfoot>
           </table>
@@ -1087,46 +1087,46 @@ function EmployeeReportView({ report }: { report: EmployeeReport }) {
 
       {/* Detalle por empleada */}
       {report.employees.map((emp) => (
-        <div key={emp.employee_id} className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border space-y-4">
+        <div key={emp.employee_id} className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900">{emp.employee_name}</h3>
-            <span className="text-xl font-bold text-green-700">{formatCurrency(emp.total_sales)}</span>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-neutral-100">{emp.employee_name}</h3>
+            <span className="text-xl font-bold text-green-700 dark:text-green-400">{formatCurrency(emp.total_sales)}</span>
           </div>
 
           {/* Métricas rápidas */}
           <div className="grid grid-cols-4 gap-3">
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <p className="text-xs text-gray-500">Turnos</p>
-              <p className="text-lg font-bold text-gray-800">{emp.shifts_count}</p>
+            <div className="bg-gray-50 dark:bg-neutral-950 rounded-lg p-3 text-center">
+              <p className="text-xs text-gray-500 dark:text-neutral-400">Turnos</p>
+              <p className="text-lg font-bold text-gray-800 dark:text-neutral-100">{emp.shifts_count}</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <p className="text-xs text-gray-500">Transacciones</p>
-              <p className="text-lg font-bold text-gray-800">{emp.transactions_count}</p>
+            <div className="bg-gray-50 dark:bg-neutral-950 rounded-lg p-3 text-center">
+              <p className="text-xs text-gray-500 dark:text-neutral-400">Transacciones</p>
+              <p className="text-lg font-bold text-gray-800 dark:text-neutral-100">{emp.transactions_count}</p>
             </div>
-            <div className="bg-green-50 rounded-lg p-3 text-center">
-              <p className="text-xs text-green-600">Efectivo</p>
-              <p className="text-lg font-bold text-green-700">{formatCurrency(emp.cash_sales)}</p>
+            <div className="bg-green-50 dark:bg-green-950 rounded-lg p-3 text-center">
+              <p className="text-xs text-green-600 dark:text-green-400">Efectivo</p>
+              <p className="text-lg font-bold text-green-700 dark:text-green-400">{formatCurrency(emp.cash_sales)}</p>
             </div>
-            <div className="bg-purple-50 rounded-lg p-3 text-center">
-              <p className="text-xs text-purple-600">Transferencias</p>
-              <p className="text-lg font-bold text-purple-700">{formatCurrency(emp.transfer_sales)}</p>
+            <div className="bg-purple-50 dark:bg-purple-950 rounded-lg p-3 text-center">
+              <p className="text-xs text-purple-600 dark:text-purple-400">Transferencias</p>
+              <p className="text-lg font-bold text-purple-700 dark:text-purple-400">{formatCurrency(emp.transfer_sales)}</p>
             </div>
           </div>
 
           {/* Turnos trabajados */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-600 mb-2">Turnos trabajados</h4>
+            <h4 className="text-sm font-semibold text-gray-600 dark:text-neutral-300 mb-2">Turnos trabajados</h4>
             <div className="space-y-1">
               {emp.shifts.map((s) => (
-                <div key={s.shift_id} className="flex items-center justify-between text-sm py-1.5 px-3 bg-gray-50 rounded-lg">
+                <div key={s.shift_id} className="flex items-center justify-between text-sm py-1.5 px-3 bg-gray-50 dark:bg-neutral-950 rounded-lg">
                   <div className="flex items-center gap-3">
-                    <span className="text-gray-500">{formatDate(s.date + 'T12:00:00')}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.type === 'day' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                    <span className="text-gray-500 dark:text-neutral-400">{formatDate(s.date + 'T12:00:00')}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.type === 'day' ? 'bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400' : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-400'}`}>
                       {s.type === 'day' ? 'Día' : 'Noche'}
                     </span>
-                    <span className="text-gray-500">{s.transactions} ventas</span>
+                    <span className="text-gray-500 dark:text-neutral-400">{s.transactions} ventas</span>
                   </div>
-                  <span className="font-medium text-gray-800">{formatCurrency(s.total)}</span>
+                  <span className="font-medium text-gray-800 dark:text-neutral-100">{formatCurrency(s.total)}</span>
                 </div>
               ))}
             </div>
@@ -1135,26 +1135,26 @@ function EmployeeReportView({ report }: { report: EmployeeReport }) {
           {/* Top productos */}
           {emp.products.length > 0 && (
             <div>
-              <h4 className="text-sm font-semibold text-gray-600 mb-2">Productos vendidos</h4>
+              <h4 className="text-sm font-semibold text-gray-600 dark:text-neutral-300 mb-2">Productos vendidos</h4>
               <div className="space-y-1">
                 {emp.products.slice(0, 10).map((p) => (
                   <div key={p.product_name}>
-                    <div className="flex items-center justify-between text-sm py-1 px-3 bg-gray-50 rounded-lg">
-                      <span className="text-gray-700">
-                        {p.is_combo ? '🎁 ' : ''}{p.product_name} <span className="text-gray-500">× {p.quantity}</span>
+                    <div className="flex items-center justify-between text-sm py-1 px-3 bg-gray-50 dark:bg-neutral-950 rounded-lg">
+                      <span className="text-gray-700 dark:text-neutral-300">
+                        {p.is_combo ? '🎁 ' : ''}{p.product_name} <span className="text-gray-500 dark:text-neutral-400">× {p.quantity}</span>
                       </span>
-                      <span className="font-medium text-gray-800">{p.total > 0 ? formatCurrency(p.total) : '—'}</span>
+                      <span className="font-medium text-gray-800 dark:text-neutral-100">{p.total > 0 ? formatCurrency(p.total) : '—'}</span>
                     </div>
                     {p.combo_items?.map((sub, si) => (
-                      <div key={si} className="flex items-center justify-between text-xs py-0.5 px-3 pl-8 bg-purple-50/50 text-gray-500">
+                      <div key={si} className="flex items-center justify-between text-xs py-0.5 px-3 pl-8 bg-purple-50 dark:bg-purple-950/50 text-gray-500 dark:text-neutral-400">
                         <span>└ {sub.product_name} × {sub.quantity}</span>
-                        <span className="text-gray-500">—</span>
+                        <span className="text-gray-500 dark:text-neutral-400">—</span>
                       </div>
                     ))}
                   </div>
                 ))}
                 {emp.products.length > 10 && (
-                  <p className="text-xs text-gray-500 text-center pt-1">y {emp.products.length - 10} productos más...</p>
+                  <p className="text-xs text-gray-500 dark:text-neutral-400 text-center pt-1">y {emp.products.length - 10} productos más...</p>
                 )}
               </div>
             </div>
@@ -1168,18 +1168,18 @@ function EmployeeReportView({ report }: { report: EmployeeReport }) {
 function ProductRow({ product }: { product: ProductSummary }) {
   return (
     <>
-      <tr className="border-b border-gray-100">
+      <tr className="border-b border-gray-100 dark:border-neutral-700">
         <td className="py-1 px-2">
-          {product.is_combo ? <span className="text-purple-700">🎁 {product.product_name}</span> : product.product_name}
+          {product.is_combo ? <span className="text-purple-700 dark:text-purple-400">🎁 {product.product_name}</span> : product.product_name}
         </td>
         <td className="text-center py-1 px-2 font-medium">{product.quantity}</td>
         <td className="text-right py-1 px-2">{product.total > 0 ? formatCurrency(product.total) : '—'}</td>
       </tr>
       {product.combo_items?.map((sub, si) => (
-        <tr key={si} className="border-b border-purple-50 bg-purple-50/40">
-          <td className="py-0.5 px-2 pl-7 text-gray-500 text-xs">└ {sub.product_name}</td>
-          <td className="text-center py-0.5 px-2 text-xs text-gray-500">{sub.quantity}</td>
-          <td className="text-right py-0.5 px-2 text-xs text-gray-500">—</td>
+        <tr key={si} className="border-b border-purple-50 bg-purple-50 dark:bg-purple-950/40">
+          <td className="py-0.5 px-2 pl-7 text-gray-500 dark:text-neutral-400 text-xs">└ {sub.product_name}</td>
+          <td className="text-center py-0.5 px-2 text-xs text-gray-500 dark:text-neutral-400">{sub.quantity}</td>
+          <td className="text-right py-0.5 px-2 text-xs text-gray-500 dark:text-neutral-400">—</td>
         </tr>
       ))}
     </>
@@ -1196,40 +1196,40 @@ function DailyReportView({
   return (
     <div className="space-y-6">
       {/* Encabezado del reporte */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h2 className="text-xl font-bold mb-2">
           Reporte del Día - {formatDate(report.date + 'T12:00:00')}
         </h2>
-        <p className="text-gray-500 text-sm">
+        <p className="text-gray-500 dark:text-neutral-400 text-sm">
           {report.shifts.length} turno(s) registrado(s)
         </p>
       </div>
 
       {/* Resumen del día */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h3 className="text-lg font-semibold mb-4">Resumen del Día</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-blue-600">Total Ventas</p>
-            <p className="text-2xl font-bold text-blue-700">
+          <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+            <p className="text-sm text-blue-600 dark:text-blue-400">Total Ventas</p>
+            <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
               {formatCurrency(report.day_totals.total_sales)}
             </p>
           </div>
-          <div className="bg-green-50 p-4 rounded-lg">
-            <p className="text-sm text-green-600">Efectivo</p>
-            <p className="text-2xl font-bold text-green-700">
+          <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg">
+            <p className="text-sm text-green-600 dark:text-green-400">Efectivo</p>
+            <p className="text-2xl font-bold text-green-700 dark:text-green-400">
               {formatCurrency(report.day_totals.cash_sales)}
             </p>
           </div>
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <p className="text-sm text-purple-600">Transferencias</p>
-            <p className="text-2xl font-bold text-purple-700">
+          <div className="bg-purple-50 dark:bg-purple-950 p-4 rounded-lg">
+            <p className="text-sm text-purple-600 dark:text-purple-400">Transferencias</p>
+            <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">
               {formatCurrency(report.day_totals.transfer_sales)}
             </p>
           </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600">Transacciones</p>
-            <p className="text-2xl font-bold text-gray-700">
+          <div className="bg-gray-50 dark:bg-neutral-950 p-4 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-neutral-300">Transacciones</p>
+            <p className="text-2xl font-bold text-gray-700 dark:text-neutral-300">
               {report.day_totals.transactions}
             </p>
           </div>
@@ -1237,11 +1237,11 @@ function DailyReportView({
 
         {/* Info adicional */}
         {(report.day_totals.fiado_total > 0 || report.day_totals.voided_count > 0) && (
-          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 gap-4">
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700 grid grid-cols-2 gap-4">
             {report.day_totals.fiado_total > 0 && (
-              <div className="bg-orange-50 p-3 rounded-lg">
-                <p className="text-sm text-orange-600">Fiados</p>
-                <p className="text-lg font-bold text-orange-700">
+              <div className="bg-orange-50 dark:bg-orange-950 p-3 rounded-lg">
+                <p className="text-sm text-orange-600 dark:text-orange-400">Fiados</p>
+                <p className="text-lg font-bold text-orange-700 dark:text-orange-400">
                   {formatCurrency(report.day_totals.fiado_total)}
                 </p>
                 {report.day_totals.fiado_abonos > 0 && (
@@ -1252,9 +1252,9 @@ function DailyReportView({
               </div>
             )}
             {report.day_totals.voided_count > 0 && (
-              <div className="bg-red-50 p-3 rounded-lg">
-                <p className="text-sm text-red-600">Ventas Anuladas</p>
-                <p className="text-lg font-bold text-red-700">
+              <div className="bg-red-50 dark:bg-red-950 p-3 rounded-lg">
+                <p className="text-sm text-red-600 dark:text-red-400">Ventas Anuladas</p>
+                <p className="text-lg font-bold text-red-700 dark:text-red-400">
                   {report.day_totals.voided_count}
                 </p>
               </div>
@@ -1264,13 +1264,13 @@ function DailyReportView({
       </div>
 
       {/* Turnos del día */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h3 className="text-lg font-semibold mb-4">Turnos</h3>
         <div className="space-y-4">
           {report.shifts.map((shift) => (
             <div
               key={shift.id}
-              className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer print:cursor-default"
+              className="border border-gray-200 dark:border-neutral-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-neutral-950 cursor-pointer print:cursor-default"
               onClick={() => onSelectShift(shift.id)}
             >
               <div className="flex justify-between items-start">
@@ -1278,55 +1278,55 @@ function DailyReportView({
                   <div className="flex items-center gap-2">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${
                       shift.type === 'day'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-indigo-100 text-indigo-800'
+                        ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-400'
+                        : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-400'
                     }`}>
                       {shift.type === 'day' ? 'Día' : 'Noche'}
                     </span>
                     <span className="font-medium">{shift.employee_name}</span>
                     {shift.is_active && (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                      <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-400 rounded text-xs">
                         Activo
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
                     {formatTime(shift.start_time)}
                     {shift.end_time && ` - ${formatTime(shift.end_time)}`}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-bold">{formatCurrency(shift.total)}</p>
-                  <p className="text-sm text-gray-500">{shift.sales_count} ventas</p>
+                  <p className="text-sm text-gray-500 dark:text-neutral-400">{shift.sales_count} ventas</p>
                 </div>
               </div>
 
               {/* Observaciones */}
               {shift.notes && (
-                <div className="mt-3 bg-yellow-50 p-3 rounded-lg">
-                  <p className="text-sm font-medium text-yellow-800">Observaciones:</p>
-                  <p className="text-sm text-yellow-700">{shift.notes}</p>
+                <div className="mt-3 bg-yellow-50 dark:bg-yellow-950 p-3 rounded-lg">
+                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">Observaciones:</p>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">{shift.notes}</p>
                 </div>
               )}
 
               {/* Detalles de caja */}
               <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
                 <div>
-                  <span className="text-gray-500">Caja inicial:</span>
+                  <span className="text-gray-500 dark:text-neutral-400">Caja inicial:</span>
                   <span className="ml-2 font-medium">{formatCurrency(shift.cash_start)}</span>
                 </div>
                 {shift.cash_end !== null && (
                   <>
                     <div>
-                      <span className="text-gray-500">Caja final:</span>
+                      <span className="text-gray-500 dark:text-neutral-400">Caja final:</span>
                       <span className="ml-2 font-medium">{formatCurrency(shift.cash_end)}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Diferencia:</span>
+                      <span className="text-gray-500 dark:text-neutral-400">Diferencia:</span>
                       <span className={`ml-2 font-medium ${
                         (shift.cash_end - shift.cash_start - (shift.summary?.cash_sales || 0)) >= 0
-                          ? 'text-green-600'
-                          : 'text-red-600'
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
                       }`}>
                         {formatCurrency(shift.cash_end - shift.cash_start - (shift.summary?.cash_sales || 0))}
                       </span>
@@ -1338,7 +1338,7 @@ function DailyReportView({
           ))}
 
           {report.shifts.length === 0 && (
-            <p className="text-center text-gray-500 py-4">
+            <p className="text-center text-gray-500 dark:text-neutral-400 py-4">
               No hay turnos registrados para este día
             </p>
           )}
@@ -1347,12 +1347,12 @@ function DailyReportView({
 
       {/* Ventas por Turno de Día */}
       {report.by_shift_type?.day && report.by_shift_type.day.employees.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-2xl">☀️</span>
             <div>
               <h3 className="text-lg font-semibold">Turno Día</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-neutral-400">
                 Total: {formatCurrency(report.by_shift_type.day.total)}
               </p>
             </div>
@@ -1360,14 +1360,14 @@ function DailyReportView({
 
           <div className="space-y-6">
             {report.by_shift_type.day.employees.map((emp) => (
-              <div key={emp.employee_id} className="border border-yellow-200 rounded-lg p-4 bg-yellow-50/50">
+              <div key={emp.employee_id} className="border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 bg-yellow-50 dark:bg-yellow-950/50">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-yellow-800">{emp.employee_name}</h4>
-                  <span className="font-bold text-yellow-700">{formatCurrency(emp.total)}</span>
+                  <h4 className="font-semibold text-yellow-800 dark:text-yellow-400">{emp.employee_name}</h4>
+                  <span className="font-bold text-yellow-700 dark:text-yellow-400">{formatCurrency(emp.total)}</span>
                 </div>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-yellow-200">
+                    <tr className="border-b border-yellow-200 dark:border-yellow-800">
                       <th className="text-left py-1 px-2">Producto</th>
                       <th className="text-center py-1 px-2">Unidades</th>
                       <th className="text-right py-1 px-2">Total</th>
@@ -1384,11 +1384,11 @@ function DailyReportView({
           </div>
 
           {/* Total del turno de día */}
-          <div className="mt-4 pt-4 border-t border-yellow-200">
+          <div className="mt-4 pt-4 border-t border-yellow-200 dark:border-yellow-800">
             <h4 className="font-semibold mb-2">Resumen Turno Día</h4>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 bg-yellow-100">
+                <tr className="border-b border-gray-200 dark:border-neutral-700 bg-yellow-100 dark:bg-yellow-900">
                   <th className="text-left py-2 px-2">Producto</th>
                   <th className="text-center py-2 px-2">Unidades</th>
                   <th className="text-right py-2 px-2">Total</th>
@@ -1400,7 +1400,7 @@ function DailyReportView({
                 ))}
               </tbody>
               <tfoot>
-                <tr className="font-bold bg-yellow-100">
+                <tr className="font-bold bg-yellow-100 dark:bg-yellow-900">
                   <td className="py-2 px-2">TOTAL TURNO DÍA</td>
                   <td className="text-center py-2 px-2">
                     {report.by_shift_type.day.products.reduce((sum, p) => sum + p.quantity, 0)}
@@ -1417,12 +1417,12 @@ function DailyReportView({
 
       {/* Ventas por Turno de Noche */}
       {report.by_shift_type?.night && report.by_shift_type.night.employees.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-2xl">🌙</span>
             <div>
               <h3 className="text-lg font-semibold">Turno Noche</h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-neutral-400">
                 Total: {formatCurrency(report.by_shift_type.night.total)}
               </p>
             </div>
@@ -1430,14 +1430,14 @@ function DailyReportView({
 
           <div className="space-y-6">
             {report.by_shift_type.night.employees.map((emp) => (
-              <div key={emp.employee_id} className="border border-indigo-200 rounded-lg p-4 bg-indigo-50/50">
+              <div key={emp.employee_id} className="border border-indigo-200 dark:border-indigo-800 rounded-lg p-4 bg-indigo-50 dark:bg-indigo-950/50">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-semibold text-indigo-800">{emp.employee_name}</h4>
-                  <span className="font-bold text-indigo-700">{formatCurrency(emp.total)}</span>
+                  <h4 className="font-semibold text-indigo-800 dark:text-indigo-400">{emp.employee_name}</h4>
+                  <span className="font-bold text-indigo-700 dark:text-indigo-400">{formatCurrency(emp.total)}</span>
                 </div>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-indigo-200">
+                    <tr className="border-b border-indigo-200 dark:border-indigo-800">
                       <th className="text-left py-1 px-2">Producto</th>
                       <th className="text-center py-1 px-2">Unidades</th>
                       <th className="text-right py-1 px-2">Total</th>
@@ -1454,11 +1454,11 @@ function DailyReportView({
           </div>
 
           {/* Total del turno de noche */}
-          <div className="mt-4 pt-4 border-t border-indigo-200">
+          <div className="mt-4 pt-4 border-t border-indigo-200 dark:border-indigo-800">
             <h4 className="font-semibold mb-2">Resumen Turno Noche</h4>
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 bg-indigo-100">
+                <tr className="border-b border-gray-200 dark:border-neutral-700 bg-indigo-100 dark:bg-indigo-900">
                   <th className="text-left py-2 px-2">Producto</th>
                   <th className="text-center py-2 px-2">Unidades</th>
                   <th className="text-right py-2 px-2">Total</th>
@@ -1470,7 +1470,7 @@ function DailyReportView({
                 ))}
               </tbody>
               <tfoot>
-                <tr className="font-bold bg-indigo-100">
+                <tr className="font-bold bg-indigo-100 dark:bg-indigo-900">
                   <td className="py-2 px-2">TOTAL TURNO NOCHE</td>
                   <td className="text-center py-2 px-2">
                     {report.by_shift_type.night.products.reduce((sum, p) => sum + p.quantity, 0)}
@@ -1486,13 +1486,13 @@ function DailyReportView({
       )}
 
       {/* Resumen Total del Día (todos los productos) */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h3 className="text-lg font-semibold mb-4">Resumen Total del Día</h3>
         {report.products.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
+                <tr className="border-b border-gray-200 dark:border-neutral-700">
                   <th className="text-left py-2 px-2">Producto</th>
                   <th className="text-center py-2 px-2">Unidades</th>
                   <th className="text-right py-2 px-2">Total</th>
@@ -1504,7 +1504,7 @@ function DailyReportView({
                 ))}
               </tbody>
               <tfoot>
-                <tr className="font-bold bg-blue-50">
+                <tr className="font-bold bg-blue-50 dark:bg-blue-950">
                   <td className="py-2 px-2">TOTAL DEL DÍA</td>
                   <td className="text-center py-2 px-2">
                     {report.products.reduce((sum, p) => sum + p.quantity, 0)}
@@ -1517,34 +1517,34 @@ function DailyReportView({
             </table>
           </div>
         ) : (
-          <p className="text-center text-gray-500 py-4">No hay productos vendidos</p>
+          <p className="text-center text-gray-500 dark:text-neutral-400 py-4">No hay productos vendidos</p>
         )}
       </div>
 
       {/* Observaciones del día */}
       {report.observations && report.observations.length > 0 && (
-        <div className="bg-amber-50 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200">
-          <h3 className="text-lg font-semibold mb-4 text-amber-800 flex items-center gap-2">
+        <div className="bg-amber-50 dark:bg-amber-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200 dark:border-amber-800">
+          <h3 className="text-lg font-semibold mb-4 text-amber-800 dark:text-amber-400 flex items-center gap-2">
             <NoteIcon className="w-5 h-5" />
             Observaciones del Día ({report.observations.length})
           </h3>
           <div className="space-y-3">
             {report.observations.map((obs) => (
-              <div key={obs.id} className="bg-white p-3 rounded-lg border border-amber-100">
+              <div key={obs.id} className="bg-white dark:bg-neutral-800 p-3 rounded-lg border border-amber-100">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-amber-900">{obs.employee_name}</span>
+                  <span className="font-medium text-amber-900 dark:text-amber-300">{obs.employee_name}</span>
                   <span className={`text-xs px-2 py-0.5 rounded ${
                     obs.shift_type === 'day'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-indigo-100 text-indigo-800'
+                      ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-400'
+                      : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-400'
                   }`}>
                     {obs.shift_type === 'day' ? 'Día' : 'Noche'}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-neutral-400">
                     {formatTime(obs.created_at)}
                   </span>
                 </div>
-                <p className="text-gray-700">{obs.content}</p>
+                <p className="text-gray-700 dark:text-neutral-300">{obs.content}</p>
               </div>
             ))}
           </div>
@@ -1568,22 +1568,22 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
   return (
     <div className="space-y-6">
       {/* Encabezado del turno */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <div className="flex justify-between items-start">
           <div>
             <h2 className="text-xl font-bold mb-1">
               Reporte de Turno - {shift.type === 'day' ? 'Día' : 'Noche'}
             </h2>
-            <p className="text-gray-600">{shift.employee_name}</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-gray-600 dark:text-neutral-300">{shift.employee_name}</p>
+            <p className="text-sm text-gray-500 dark:text-neutral-400">
               {formatDate(shift.start_time)} | {formatTime(shift.start_time)}
               {shift.end_time && ` - ${formatTime(shift.end_time)}`}
             </p>
           </div>
           <div className={`px-3 py-1 rounded-full text-sm font-medium ${
             shift.is_active
-              ? 'bg-green-100 text-green-800'
-              : 'bg-gray-100 text-gray-800'
+              ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-400'
+              : 'bg-gray-100 dark:bg-neutral-700 text-gray-800 dark:text-neutral-100'
           }`}>
             {shift.is_active ? 'Activo' : 'Cerrado'}
           </div>
@@ -1591,30 +1591,30 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
       </div>
 
       {/* Resumen de ventas */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h3 className="text-lg font-semibold mb-4">Resumen de Ventas</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <p className="text-sm text-blue-600">Total Ventas</p>
-            <p className="text-2xl font-bold text-blue-700">
+          <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
+            <p className="text-sm text-blue-600 dark:text-blue-400">Total Ventas</p>
+            <p className="text-2xl font-bold text-blue-700 dark:text-blue-400">
               {formatCurrency(summary.total_sales)}
             </p>
           </div>
-          <div className="bg-green-50 p-4 rounded-lg">
-            <p className="text-sm text-green-600">Efectivo</p>
-            <p className="text-2xl font-bold text-green-700">
+          <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg">
+            <p className="text-sm text-green-600 dark:text-green-400">Efectivo</p>
+            <p className="text-2xl font-bold text-green-700 dark:text-green-400">
               {formatCurrency(summary.cash_sales)}
             </p>
           </div>
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <p className="text-sm text-purple-600">Transferencias</p>
-            <p className="text-2xl font-bold text-purple-700">
+          <div className="bg-purple-50 dark:bg-purple-950 p-4 rounded-lg">
+            <p className="text-sm text-purple-600 dark:text-purple-400">Transferencias</p>
+            <p className="text-2xl font-bold text-purple-700 dark:text-purple-400">
               {formatCurrency(summary.transfer_sales)}
             </p>
           </div>
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm text-gray-600">Transacciones</p>
-            <p className="text-2xl font-bold text-gray-700">
+          <div className="bg-gray-50 dark:bg-neutral-950 p-4 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-neutral-300">Transacciones</p>
+            <p className="text-2xl font-bold text-gray-700 dark:text-neutral-300">
               {summary.transactions_count}
             </p>
           </div>
@@ -1622,13 +1622,13 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
 
         {/* Detalles de pago */}
         {(payment_totals.fiado > 0 || payment_totals.mixed_cash > 0) && (
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Detalle por Método de Pago</h4>
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-neutral-700">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Detalle por Método de Pago</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
               {payment_totals.fiado > 0 && (
-                <div className="bg-orange-50 p-2 rounded">
-                  <span className="text-orange-600">Fiados:</span>
-                  <span className="ml-2 font-medium text-orange-700">
+                <div className="bg-orange-50 dark:bg-orange-950 p-2 rounded">
+                  <span className="text-orange-600 dark:text-orange-400">Fiados:</span>
+                  <span className="ml-2 font-medium text-orange-700 dark:text-orange-400">
                     {formatCurrency(payment_totals.fiado)}
                   </span>
                 </div>
@@ -1639,33 +1639,33 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
       </div>
 
       {/* Caja */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h3 className="text-lg font-semibold mb-4">Estado de Caja</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Caja Inicial</p>
+            <p className="text-sm text-gray-500 dark:text-neutral-400">Caja Inicial</p>
             <p className="text-xl font-bold">{formatCurrency(shift.cash_start)}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Ventas Efectivo</p>
-            <p className="text-xl font-bold text-green-600">
+            <p className="text-sm text-gray-500 dark:text-neutral-400">Ventas Efectivo</p>
+            <p className="text-xl font-bold text-green-600 dark:text-green-400">
               +{formatCurrency(summary.cash_sales)}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Esperado</p>
+            <p className="text-sm text-gray-500 dark:text-neutral-400">Esperado</p>
             <p className="text-xl font-bold">
               {formatCurrency(shift.cash_start + summary.cash_sales)}
             </p>
           </div>
           {shift.cash_end !== null && (
             <div>
-              <p className="text-sm text-gray-500">Caja Final</p>
+              <p className="text-sm text-gray-500 dark:text-neutral-400">Caja Final</p>
               <p className="text-xl font-bold">{formatCurrency(shift.cash_end)}</p>
               <p className={`text-sm ${
                 (shift.cash_end - shift.cash_start - summary.cash_sales) >= 0
-                  ? 'text-green-600'
-                  : 'text-red-600'
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-600 dark:text-red-400'
               }`}>
                 Diferencia: {formatCurrency(shift.cash_end - shift.cash_start - summary.cash_sales)}
               </p>
@@ -1676,20 +1676,20 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
 
       {/* Observaciones */}
       {shift.notes && (
-        <div className="bg-yellow-50 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-yellow-200">
-          <h3 className="text-lg font-semibold mb-2 text-yellow-800">Observaciones</h3>
-          <p className="text-yellow-700 whitespace-pre-wrap">{shift.notes}</p>
+        <div className="bg-yellow-50 dark:bg-yellow-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-yellow-200 dark:border-yellow-800">
+          <h3 className="text-lg font-semibold mb-2 text-yellow-800 dark:text-yellow-400">Observaciones</h3>
+          <p className="text-yellow-700 dark:text-yellow-400 whitespace-pre-wrap">{shift.notes}</p>
         </div>
       )}
 
       {/* Productos vendidos */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h3 className="text-lg font-semibold mb-4">Productos Vendidos</h3>
         {products.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
+                <tr className="border-b border-gray-200 dark:border-neutral-700">
                   <th className="text-left py-2 px-2">Producto</th>
                   <th className="text-center py-2 px-2">Unidades</th>
                   <th className="text-right py-2 px-2">Total</th>
@@ -1701,7 +1701,7 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
                 ))}
               </tbody>
               <tfoot>
-                <tr className="font-bold bg-gray-50">
+                <tr className="font-bold bg-gray-50 dark:bg-neutral-950">
                   <td className="py-2 px-2">TOTAL</td>
                   <td className="text-center py-2 px-2">
                     {products.reduce((sum, p) => sum + p.quantity, 0)}
@@ -1714,27 +1714,27 @@ function ShiftReportView({ report }: { report: SingleShiftReport }) {
             </table>
           </div>
         ) : (
-          <p className="text-center text-gray-500 py-4">No hay productos vendidos en este turno</p>
+          <p className="text-center text-gray-500 dark:text-neutral-400 py-4">No hay productos vendidos en este turno</p>
         )}
       </div>
 
       {/* Observaciones del turno */}
       {observations && observations.length > 0 && (
-        <div className="bg-amber-50 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200">
-          <h3 className="text-lg font-semibold mb-4 text-amber-800 flex items-center gap-2">
+        <div className="bg-amber-50 dark:bg-amber-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200 dark:border-amber-800">
+          <h3 className="text-lg font-semibold mb-4 text-amber-800 dark:text-amber-400 flex items-center gap-2">
             <NoteIcon className="w-5 h-5" />
             Observaciones del Turno ({observations.length})
           </h3>
           <div className="space-y-3">
             {observations.map((obs) => (
-              <div key={obs.id} className="bg-white p-3 rounded-lg border border-amber-100">
+              <div key={obs.id} className="bg-white dark:bg-neutral-800 p-3 rounded-lg border border-amber-100">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-amber-900">{obs.employee_name}</span>
-                  <span className="text-xs text-gray-500">
+                  <span className="font-medium text-amber-900 dark:text-amber-300">{obs.employee_name}</span>
+                  <span className="text-xs text-gray-500 dark:text-neutral-400">
                     {formatTime(obs.created_at)}
                   </span>
                 </div>
-                <p className="text-gray-700">{obs.content}</p>
+                <p className="text-gray-700 dark:text-neutral-300">{obs.content}</p>
               </div>
             ))}
           </div>
@@ -1749,54 +1749,54 @@ function RangeReportView({ report }: { report: RangeReport }) {
   return (
     <div className="space-y-6">
       {/* Encabezado */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h2 className="text-xl font-bold mb-2">
           Reporte de Ventas
         </h2>
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-neutral-400">
           {formatDate(report.start_date + 'T12:00:00')} - {formatDate(report.end_date + 'T12:00:00')}
         </p>
       </div>
 
       {/* Resumen del período */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-lg font-semibold">Resumen del Período</h3>
-          <span className="text-xs text-gray-500">{report.totals.shifts_count} turnos · {report.totals.transactions} transacciones</span>
+          <span className="text-xs text-gray-500 dark:text-neutral-400">{report.totals.shifts_count} turnos · {report.totals.transactions} transacciones</span>
         </div>
 
         {/* Desglose principal — siempre cuadra */}
         <div className="space-y-2 text-sm">
-          <div className="flex justify-between text-gray-700">
+          <div className="flex justify-between text-gray-700 dark:text-neutral-300">
             <span>Efectivo recibido</span>
-            <span className="font-medium text-green-700">{formatCurrency(report.totals.cash_sales)}</span>
+            <span className="font-medium text-green-700 dark:text-green-400">{formatCurrency(report.totals.cash_sales)}</span>
           </div>
-          <div className="flex justify-between text-gray-700">
+          <div className="flex justify-between text-gray-700 dark:text-neutral-300">
             <span>Transferencias recibidas</span>
-            <span className="font-medium text-purple-700">{formatCurrency(report.totals.transfer_sales)}</span>
+            <span className="font-medium text-purple-700 dark:text-purple-400">{formatCurrency(report.totals.transfer_sales)}</span>
           </div>
           {report.totals.fiado_total > 0 && (
-            <div className="flex justify-between text-yellow-700">
+            <div className="flex justify-between text-yellow-700 dark:text-yellow-400">
               <span>Fiados (pendiente de cobro)</span>
               <span className="font-medium">{formatCurrency(report.totals.fiado_total)}</span>
             </div>
           )}
-          <div className="flex justify-between pt-3 border-t-2 border-gray-300 text-base font-bold">
-            <span className="text-gray-900">Total Ventas</span>
-            <span className="text-blue-700">{formatCurrency(report.totals.total_sales)}</span>
+          <div className="flex justify-between pt-3 border-t-2 border-gray-300 dark:border-neutral-600 text-base font-bold">
+            <span className="text-gray-900 dark:text-neutral-100">Total Ventas</span>
+            <span className="text-blue-700 dark:text-blue-400">{formatCurrency(report.totals.total_sales)}</span>
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-neutral-400">
             Efectivo + Transferencias + Fiados = Total Ventas
           </p>
         </div>
 
         {/* Cartera recuperada — informativo, no es venta nueva */}
         {(report.totals.fiado_collections || 0) > 0 && (
-          <div className="mt-5 pt-4 border-t border-dashed border-gray-200">
+          <div className="mt-5 pt-4 border-t border-dashed border-gray-200 dark:border-neutral-700">
             <div className="flex justify-between text-sm text-sky-700">
               <div>
                 <span className="font-medium">Cartera recuperada</span>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">
                   Cobros de fiados creados en períodos anteriores. Ya fueron contabilizados como venta en su momento, no se suman aquí.
                 </p>
               </div>
@@ -1808,12 +1808,12 @@ function RangeReportView({ report }: { report: RangeReport }) {
 
       {/* Desglose por día */}
       {report.daily_breakdown.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
           <h3 className="text-lg font-semibold mb-4">Ventas por Día</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
+                <tr className="border-b border-gray-200 dark:border-neutral-700">
                   <th className="text-left py-2 px-2">Fecha</th>
                   <th className="text-right py-2 px-2">Total</th>
                   <th className="text-right py-2 px-2">Efectivo</th>
@@ -1823,21 +1823,21 @@ function RangeReportView({ report }: { report: RangeReport }) {
               </thead>
               <tbody>
                 {report.daily_breakdown.map((day, idx) => (
-                  <tr key={idx} className="border-b border-gray-100">
+                  <tr key={idx} className="border-b border-gray-100 dark:border-neutral-700">
                     <td className="py-2 px-2">{formatDate(day.date + 'T12:00:00')}</td>
                     <td className="text-right py-2 px-2 font-medium">{formatCurrency(day.total)}</td>
-                    <td className="text-right py-2 px-2 text-green-600">{formatCurrency(day.cash)}</td>
-                    <td className="text-right py-2 px-2 text-purple-600">{formatCurrency(day.transfer)}</td>
+                    <td className="text-right py-2 px-2 text-green-600 dark:text-green-400">{formatCurrency(day.cash)}</td>
+                    <td className="text-right py-2 px-2 text-purple-600 dark:text-purple-400">{formatCurrency(day.transfer)}</td>
                     <td className="text-center py-2 px-2">{day.transactions}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr className="font-bold bg-blue-50">
+                <tr className="font-bold bg-blue-50 dark:bg-blue-950">
                   <td className="py-2 px-2">TOTAL</td>
                   <td className="text-right py-2 px-2">{formatCurrency(report.totals.total_sales)}</td>
-                  <td className="text-right py-2 px-2 text-green-600">{formatCurrency(report.totals.cash_sales)}</td>
-                  <td className="text-right py-2 px-2 text-purple-600">{formatCurrency(report.totals.transfer_sales)}</td>
+                  <td className="text-right py-2 px-2 text-green-600 dark:text-green-400">{formatCurrency(report.totals.cash_sales)}</td>
+                  <td className="text-right py-2 px-2 text-purple-600 dark:text-purple-400">{formatCurrency(report.totals.transfer_sales)}</td>
                   <td className="text-center py-2 px-2">{report.totals.transactions}</td>
                 </tr>
               </tfoot>
@@ -1848,18 +1848,18 @@ function RangeReportView({ report }: { report: RangeReport }) {
 
       {/* Ventas por empleada */}
       {report.by_employee.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
           <h3 className="text-lg font-semibold mb-4">Ventas por Empleada</h3>
           <div className="space-y-4">
             {report.by_employee.map((emp) => (
-              <div key={emp.employee_id} className="border border-gray-200 rounded-lg p-4">
+              <div key={emp.employee_id} className="border border-gray-200 dark:border-neutral-700 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-3">
                   <h4 className="font-semibold">{emp.employee_name}</h4>
-                  <span className="font-bold text-blue-600">{formatCurrency(emp.total)}</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">{formatCurrency(emp.total)}</span>
                 </div>
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200">
+                    <tr className="border-b border-gray-200 dark:border-neutral-700">
                       <th className="text-left py-1 px-2">Producto</th>
                       <th className="text-center py-1 px-2">Unidades</th>
                       <th className="text-right py-1 px-2">Total</th>
@@ -1878,13 +1878,13 @@ function RangeReportView({ report }: { report: RangeReport }) {
       )}
 
       {/* Productos vendidos */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h3 className="text-lg font-semibold mb-4">Resumen de Productos</h3>
         {report.products.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
+                <tr className="border-b border-gray-200 dark:border-neutral-700">
                   <th className="text-left py-2 px-2">Producto</th>
                   <th className="text-center py-2 px-2">Unidades</th>
                   <th className="text-right py-2 px-2">Total</th>
@@ -1896,7 +1896,7 @@ function RangeReportView({ report }: { report: RangeReport }) {
                 ))}
               </tbody>
               <tfoot>
-                <tr className="font-bold bg-blue-50">
+                <tr className="font-bold bg-blue-50 dark:bg-blue-950">
                   <td className="py-2 px-2">TOTAL</td>
                   <td className="text-center py-2 px-2">
                     {report.products.reduce((sum, p) => sum + p.quantity, 0)}
@@ -1909,34 +1909,34 @@ function RangeReportView({ report }: { report: RangeReport }) {
             </table>
           </div>
         ) : (
-          <p className="text-center text-gray-500 py-4">No hay productos vendidos en este período</p>
+          <p className="text-center text-gray-500 dark:text-neutral-400 py-4">No hay productos vendidos en este período</p>
         )}
       </div>
 
       {/* Observaciones del período */}
       {report.observations && report.observations.length > 0 && (
-        <div className="bg-amber-50 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200">
-          <h3 className="text-lg font-semibold mb-4 text-amber-800 flex items-center gap-2">
+        <div className="bg-amber-50 dark:bg-amber-950 rounded-xl shadow-sm p-6 print:shadow-none print:border border border-amber-200 dark:border-amber-800">
+          <h3 className="text-lg font-semibold mb-4 text-amber-800 dark:text-amber-400 flex items-center gap-2">
             <NoteIcon className="w-5 h-5" />
             Observaciones del Período ({report.observations.length})
           </h3>
           <div className="space-y-3">
             {report.observations.map((obs) => (
-              <div key={obs.id} className="bg-white p-3 rounded-lg border border-amber-100">
+              <div key={obs.id} className="bg-white dark:bg-neutral-800 p-3 rounded-lg border border-amber-100">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-amber-900">{obs.employee_name}</span>
+                  <span className="font-medium text-amber-900 dark:text-amber-300">{obs.employee_name}</span>
                   <span className={`text-xs px-2 py-0.5 rounded ${
                     obs.shift_type === 'day'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-indigo-100 text-indigo-800'
+                      ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-400'
+                      : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-400'
                   }`}>
                     {obs.shift_type === 'day' ? 'Día' : 'Noche'}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-neutral-400">
                     {formatDate(obs.created_at)} {formatTime(obs.created_at)}
                   </span>
                 </div>
-                <p className="text-gray-700">{obs.content}</p>
+                <p className="text-gray-700 dark:text-neutral-300">{obs.content}</p>
               </div>
             ))}
           </div>
@@ -1971,24 +1971,24 @@ function RankingReportView({ report }: { report: RankingReport }) {
       </div>
 
       {/* Resumen */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h3 className="text-lg font-semibold mb-4">Resumen</h3>
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-amber-50 p-4 rounded-lg text-center">
-            <p className="text-sm text-amber-600">Productos Diferentes</p>
-            <p className="text-2xl font-bold text-amber-700">
+          <div className="bg-amber-50 dark:bg-amber-950 p-4 rounded-lg text-center">
+            <p className="text-sm text-amber-600 dark:text-amber-400">Productos Diferentes</p>
+            <p className="text-2xl font-bold text-amber-700 dark:text-amber-400">
               {report.summary.total_products}
             </p>
           </div>
-          <div className="bg-orange-50 p-4 rounded-lg text-center">
-            <p className="text-sm text-orange-600">Unidades Vendidas</p>
-            <p className="text-2xl font-bold text-orange-700">
+          <div className="bg-orange-50 dark:bg-orange-950 p-4 rounded-lg text-center">
+            <p className="text-sm text-orange-600 dark:text-orange-400">Unidades Vendidas</p>
+            <p className="text-2xl font-bold text-orange-700 dark:text-orange-400">
               {report.summary.total_quantity}
             </p>
           </div>
-          <div className="bg-green-50 p-4 rounded-lg text-center">
-            <p className="text-sm text-green-600">Total Ingresos</p>
-            <p className="text-2xl font-bold text-green-700">
+          <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg text-center">
+            <p className="text-sm text-green-600 dark:text-green-400">Total Ingresos</p>
+            <p className="text-2xl font-bold text-green-700 dark:text-green-400">
               {formatCurrency(report.summary.total_revenue)}
             </p>
           </div>
@@ -1997,16 +1997,16 @@ function RankingReportView({ report }: { report: RankingReport }) {
 
       {/* Top 3 Podio */}
       {report.ranking.length >= 3 && (
-        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
           <h3 className="text-lg font-semibold mb-4 text-center">Top 3</h3>
           <div className="flex justify-center items-end gap-4">
             {/* 2do lugar */}
             <div className="flex flex-col items-center">
-              <div className="bg-gray-200 w-20 h-20 rounded-full flex items-center justify-center mb-2">
-                <span className="text-2xl font-bold text-gray-600">2</span>
+              <div className="bg-gray-200 dark:bg-neutral-700 w-20 h-20 rounded-full flex items-center justify-center mb-2">
+                <span className="text-2xl font-bold text-gray-600 dark:text-neutral-300">2</span>
               </div>
               <p className="text-sm font-medium text-center max-w-24 truncate">{report.ranking[1]?.product_name}</p>
-              <p className="text-lg font-bold text-gray-600">{report.ranking[1]?.quantity}</p>
+              <p className="text-lg font-bold text-gray-600 dark:text-neutral-300">{report.ranking[1]?.quantity}</p>
             </div>
             {/* 1er lugar */}
             <div className="flex flex-col items-center -mt-4">
@@ -2014,27 +2014,27 @@ function RankingReportView({ report }: { report: RankingReport }) {
                 <span className="text-3xl font-bold text-white">1</span>
               </div>
               <p className="text-sm font-medium text-center max-w-28 truncate">{report.ranking[0]?.product_name}</p>
-              <p className="text-xl font-bold text-amber-600">{report.ranking[0]?.quantity}</p>
+              <p className="text-xl font-bold text-amber-600 dark:text-amber-400">{report.ranking[0]?.quantity}</p>
             </div>
             {/* 3er lugar */}
             <div className="flex flex-col items-center">
               <div className="bg-orange-300 w-16 h-16 rounded-full flex items-center justify-center mb-2">
-                <span className="text-xl font-bold text-orange-800">3</span>
+                <span className="text-xl font-bold text-orange-800 dark:text-orange-400">3</span>
               </div>
               <p className="text-sm font-medium text-center max-w-20 truncate">{report.ranking[2]?.product_name}</p>
-              <p className="text-lg font-bold text-orange-600">{report.ranking[2]?.quantity}</p>
+              <p className="text-lg font-bold text-orange-600 dark:text-orange-400">{report.ranking[2]?.quantity}</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Tabla completa de ranking */}
-      <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
         <h3 className="text-lg font-semibold mb-4">Ranking Completo</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200">
+              <tr className="border-b border-gray-200 dark:border-neutral-700">
                 <th className="text-center py-2 px-2 w-16">#</th>
                 <th className="text-left py-2 px-2">Producto</th>
                 <th className="text-left py-2 px-2">Categoría</th>
@@ -2044,7 +2044,7 @@ function RankingReportView({ report }: { report: RankingReport }) {
             </thead>
             <tbody>
               {report.ranking.map((product) => (
-                <tr key={`${product.product_id}-${product.rank}`} className={`border-b border-gray-100 ${product.rank <= 3 ? 'bg-amber-50' : ''}`}>
+                <tr key={`${product.product_id}-${product.rank}`} className={`border-b border-gray-100 dark:border-neutral-700 ${product.rank <= 3 ? 'bg-amber-50 dark:bg-amber-950' : ''}`}>
                   <td className="text-center py-2 px-2">
                     {product.rank <= 3 ? (
                       <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-bold ${
@@ -2053,13 +2053,13 @@ function RankingReportView({ report }: { report: RankingReport }) {
                         {product.rank}
                       </span>
                     ) : (
-                      <span className="text-gray-500">{product.rank}</span>
+                      <span className="text-gray-500 dark:text-neutral-400">{product.rank}</span>
                     )}
                   </td>
                   <td className="py-2 px-2 font-medium">{product.product_name}</td>
-                  <td className="py-2 px-2 text-gray-500">{product.category || 'Sin categoría'}</td>
+                  <td className="py-2 px-2 text-gray-500 dark:text-neutral-400">{product.category || 'Sin categoría'}</td>
                   <td className="text-center py-2 px-2 font-bold">{product.quantity}</td>
-                  <td className="text-right py-2 px-2 font-medium text-green-600">
+                  <td className="text-right py-2 px-2 font-medium text-green-600 dark:text-green-400">
                     {formatCurrency(product.total)}
                   </td>
                 </tr>
@@ -2071,7 +2071,7 @@ function RankingReportView({ report }: { report: RankingReport }) {
 
       {/* Ventas por categoría */}
       {report.by_category.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-6 print:shadow-none print:border">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6 print:shadow-none print:border">
           <h3 className="text-lg font-semibold mb-4">Ventas por Categoría</h3>
           <div className="space-y-3">
             {report.by_category.map((cat, idx) => {
@@ -2082,7 +2082,7 @@ function RankingReportView({ report }: { report: RankingReport }) {
                 <div key={idx} className="flex items-center gap-4">
                   <div className="w-32 text-sm font-medium truncate">{cat.category}</div>
                   <div className="flex-1">
-                    <div className="bg-gray-200 rounded-full h-6 relative">
+                    <div className="bg-gray-200 dark:bg-neutral-700 rounded-full h-6 relative">
                       <div
                         className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-full h-6 flex items-center justify-end pr-2"
                         style={{ width: `${Math.max(percentage, 5)}%` }}
@@ -2092,7 +2092,7 @@ function RankingReportView({ report }: { report: RankingReport }) {
                     </div>
                   </div>
                   <div className="w-20 text-right text-sm font-bold">{cat.quantity} uds</div>
-                  <div className="w-24 text-right text-sm font-medium text-green-600">
+                  <div className="w-24 text-right text-sm font-medium text-green-600 dark:text-green-400">
                     {formatCurrency(cat.total)}
                   </div>
                 </div>
@@ -2110,46 +2110,46 @@ function InventoryCountReportView({ report }: { report: InventoryCountReport }) 
   return (
     <div className="space-y-4">
       {/* Encabezado simple */}
-      <div className="bg-white rounded-xl shadow-sm p-4 print:shadow-none print:border flex justify-between items-center">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-4 print:shadow-none print:border flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Historial de Conteos</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-neutral-100">Historial de Conteos</h2>
           {report.start_date && report.end_date && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-neutral-400">
               {formatDate(report.start_date + 'T12:00:00')} - {formatDate(report.end_date + 'T12:00:00')}
             </p>
           )}
         </div>
         <div className="flex gap-4 text-sm">
           <div className="text-center">
-            <p className="text-gray-500">Total</p>
+            <p className="text-gray-500 dark:text-neutral-400">Total</p>
             <p className="font-bold text-lg">{report.summary.total_counts}</p>
           </div>
           <div className="text-center">
-            <p className="text-green-600">Sobrantes</p>
-            <p className="font-bold text-lg text-green-600">+{report.summary.total_positive_diff}</p>
+            <p className="text-green-600 dark:text-green-400">Sobrantes</p>
+            <p className="font-bold text-lg text-green-600 dark:text-green-400">+{report.summary.total_positive_diff}</p>
           </div>
           <div className="text-center">
-            <p className="text-red-600">Faltantes</p>
-            <p className="font-bold text-lg text-red-600">-{report.summary.total_negative_diff}</p>
+            <p className="text-red-600 dark:text-red-400">Faltantes</p>
+            <p className="font-bold text-lg text-red-600 dark:text-red-400">-{report.summary.total_negative_diff}</p>
           </div>
         </div>
       </div>
 
       {/* Tabla de conteos */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden print:shadow-none print:border">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm overflow-hidden print:shadow-none print:border">
         {report.counts.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Fecha</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Hora</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Producto</th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">Empleada</th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-600">Turno</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-600">Sistema</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-600">Real</th>
-                  <th className="text-right py-3 px-4 font-medium text-gray-600">Dif.</th>
+              <thead className="bg-gray-50 dark:bg-neutral-950">
+                <tr className="border-b border-gray-200 dark:border-neutral-700">
+                  <th className="text-left py-3 px-4 font-medium text-gray-600 dark:text-neutral-300">Fecha</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600 dark:text-neutral-300">Hora</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600 dark:text-neutral-300">Producto</th>
+                  <th className="text-left py-3 px-4 font-medium text-gray-600 dark:text-neutral-300">Empleada</th>
+                  <th className="text-center py-3 px-4 font-medium text-gray-600 dark:text-neutral-300">Turno</th>
+                  <th className="text-right py-3 px-4 font-medium text-gray-600 dark:text-neutral-300">Sistema</th>
+                  <th className="text-right py-3 px-4 font-medium text-gray-600 dark:text-neutral-300">Real</th>
+                  <th className="text-right py-3 px-4 font-medium text-gray-600 dark:text-neutral-300">Dif.</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -2159,21 +2159,21 @@ function InventoryCountReportView({ report }: { report: InventoryCountReport }) 
                     className={
                       count.difference !== 0
                         ? count.difference > 0
-                          ? 'bg-green-50'
-                          : 'bg-red-50'
-                        : 'hover:bg-gray-50'
+                          ? 'bg-green-50 dark:bg-green-950'
+                          : 'bg-red-50 dark:bg-red-950'
+                        : 'hover:bg-gray-50 dark:hover:bg-neutral-950'
                     }
                   >
                     <td className="py-3 px-4">{formatDate(count.created_at)}</td>
-                    <td className="py-3 px-4 text-gray-500">{formatTime(count.created_at)}</td>
+                    <td className="py-3 px-4 text-gray-500 dark:text-neutral-400">{formatTime(count.created_at)}</td>
                     <td className="py-3 px-4 font-medium">{count.products?.name || '-'}</td>
                     <td className="py-3 px-4">{count.employees?.name || '-'}</td>
                     <td className="text-center py-3 px-4">
                       {count.shifts ? (
                         <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                           count.shifts.type === 'day'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-indigo-100 text-indigo-800'
+                            ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-400'
+                            : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-400'
                         }`}>
                           {count.shifts.type === 'day' ? 'Día' : 'Noche'}
                         </span>
@@ -2185,10 +2185,10 @@ function InventoryCountReportView({ report }: { report: InventoryCountReport }) 
                     <td className="text-right py-3 px-4">{count.real_stock}</td>
                     <td className={`text-right py-3 px-4 font-bold ${
                       count.difference > 0
-                        ? 'text-green-600'
+                        ? 'text-green-600 dark:text-green-400'
                         : count.difference < 0
-                          ? 'text-red-600'
-                          : 'text-gray-500'
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-gray-500 dark:text-neutral-400'
                     }`}>
                       {count.difference > 0 ? '+' : ''}{count.difference}
                     </td>
@@ -2198,7 +2198,7 @@ function InventoryCountReportView({ report }: { report: InventoryCountReport }) 
             </table>
           </div>
         ) : (
-          <p className="text-center text-gray-500 py-8">
+          <p className="text-center text-gray-500 dark:text-neutral-400 py-8">
             No hay conteos de inventario en este período
           </p>
         )}

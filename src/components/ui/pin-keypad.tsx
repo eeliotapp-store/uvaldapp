@@ -47,8 +47,8 @@ export function PinKeypad({ onComplete, isLoading, error }: PinKeypadProps) {
             className={cn(
               'w-14 h-14 rounded-xl border-2 flex items-center justify-center text-2xl font-bold transition-all',
               index < pin.length
-                ? 'bg-amber-100 border-amber-500 text-amber-700'
-                : 'bg-gray-50 border-gray-300'
+                ? 'bg-amber-100 dark:bg-amber-900 border-amber-500 text-amber-700 dark:text-amber-400'
+                : 'bg-gray-50 dark:bg-neutral-950 border-gray-300 dark:border-neutral-600'
             )}
           >
             {index < pin.length ? '●' : ''}
@@ -75,10 +75,10 @@ export function PinKeypad({ onComplete, isLoading, error }: PinKeypadProps) {
               'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               key === 'C'
-                ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-neutral-300 hover:bg-gray-300'
                 : key === 'backspace'
-                ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                : 'bg-white border-2 border-gray-200 text-gray-900 hover:bg-gray-50 hover:border-amber-400'
+                ? 'bg-gray-200 dark:bg-neutral-700 text-gray-700 dark:text-neutral-300 hover:bg-gray-300'
+                : 'bg-white dark:bg-neutral-800 border-2 border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-neutral-100 hover:bg-gray-50 dark:hover:bg-neutral-950 hover:border-amber-400'
             )}
           >
             {key === 'backspace' ? (

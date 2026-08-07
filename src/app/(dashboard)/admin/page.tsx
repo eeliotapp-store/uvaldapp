@@ -181,14 +181,14 @@ export default function AdminPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Panel de Administración</h1>
-      <p className="text-gray-600 mb-6">Herramientas para gestionar y reiniciar el sistema</p>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100 mb-2">Panel de Administración</h1>
+      <p className="text-gray-600 dark:text-neutral-300 mb-6">Herramientas para gestionar y reiniciar el sistema</p>
 
       {/* Resultado de la acción */}
       {result && (
         <div
           className={`mb-6 p-4 rounded-lg ${
-            result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            result.success ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-400' : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-400'
           }`}
         >
           {result.message}
@@ -196,24 +196,24 @@ export default function AdminPage() {
       )}
 
       {!canExecute && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-800">
+        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg text-yellow-800 dark:text-yellow-400">
           Solo owner o superadmin pueden ejecutar estas acciones. Tu rol actual: <strong>{employee?.role}</strong>
         </div>
       )}
 
       {/* Opciones individuales */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Vaciar por sección</h2>
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-gray-200 dark:border-neutral-700 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100 mb-4">Vaciar por sección</h2>
         <div className="space-y-3">
           {clearOptions.filter(o => !o.danger).map((option) => {
             const Icon = option.icon;
             return (
-              <div key={option.type} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div key={option.type} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-neutral-950 rounded-lg">
                 <div className="flex items-center gap-3">
-                  <Icon className="w-5 h-5 text-gray-600" />
+                  <Icon className="w-5 h-5 text-gray-600 dark:text-neutral-300" />
                   <div>
-                    <p className="font-medium text-gray-900">{option.label}</p>
-                    <p className="text-sm text-gray-500">{option.description}</p>
+                    <p className="font-medium text-gray-900 dark:text-neutral-100">{option.label}</p>
+                    <p className="text-sm text-gray-500 dark:text-neutral-400">{option.description}</p>
                   </div>
                 </div>
                 <button
@@ -231,24 +231,24 @@ export default function AdminPage() {
       </div>
 
       {/* Opción nuclear */}
-      <div className="bg-red-50 rounded-xl shadow-sm border-2 border-red-200 p-6">
+      <div className="bg-red-50 dark:bg-red-950 rounded-xl shadow-sm border-2 border-red-200 dark:border-red-800 p-6">
         <div className="flex items-center gap-3 mb-4">
-          <AlertTriangleIcon className="w-8 h-8 text-red-600" />
+          <AlertTriangleIcon className="w-8 h-8 text-red-600 dark:text-red-400" />
           <div>
-            <h2 className="text-lg font-semibold text-red-900">Zona de Peligro Extremo</h2>
-            <p className="text-sm text-red-700">Esta acción eliminará TODOS los datos del sistema</p>
+            <h2 className="text-lg font-semibold text-red-900 dark:text-red-300">Zona de Peligro Extremo</h2>
+            <p className="text-sm text-red-700 dark:text-red-400">Esta acción eliminará TODOS los datos del sistema</p>
           </div>
         </div>
 
         {clearOptions.filter(o => o.danger).map((option) => {
           const Icon = option.icon;
           return (
-            <div key={option.type} className="flex items-center justify-between p-4 bg-white rounded-lg border border-red-200">
+            <div key={option.type} className="flex items-center justify-between p-4 bg-white dark:bg-neutral-800 rounded-lg border border-red-200 dark:border-red-800">
               <div className="flex items-center gap-3">
-                <Icon className="w-6 h-6 text-red-600" />
+                <Icon className="w-6 h-6 text-red-600 dark:text-red-400" />
                 <div>
-                  <p className="font-semibold text-red-900">{option.label}</p>
-                  <p className="text-sm text-red-700">{option.description}</p>
+                  <p className="font-semibold text-red-900 dark:text-red-300">{option.label}</p>
+                  <p className="text-sm text-red-700 dark:text-red-400">{option.description}</p>
                 </div>
               </div>
               <button
@@ -267,20 +267,20 @@ export default function AdminPage() {
       {/* Modal de confirmación */}
       {confirmDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+          <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 max-w-md w-full">
             <div className="flex items-center gap-3 mb-4">
-              <div className={`p-3 rounded-full ${confirmDialog.danger ? 'bg-red-100' : 'bg-orange-100'}`}>
-                <AlertTriangleIcon className={`w-6 h-6 ${confirmDialog.danger ? 'text-red-600' : 'text-orange-600'}`} />
+              <div className={`p-3 rounded-full ${confirmDialog.danger ? 'bg-red-100 dark:bg-red-900' : 'bg-orange-100 dark:bg-orange-900'}`}>
+                <AlertTriangleIcon className={`w-6 h-6 ${confirmDialog.danger ? 'text-red-600 dark:text-red-400' : 'text-orange-600 dark:text-orange-400'}`} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">Confirmar: {confirmDialog.label}</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">Confirmar: {confirmDialog.label}</h3>
             </div>
-            <p className="text-gray-600 mb-2">
+            <p className="text-gray-600 dark:text-neutral-300 mb-2">
               {confirmDialog.danger
                 ? '¿Estás ABSOLUTAMENTE seguro? Esta acción eliminará TODOS los datos del sistema:'
                 : '¿Estás seguro de que quieres continuar?'}
             </p>
             {confirmDialog.danger && (
-              <ul className="text-sm text-gray-500 mb-4 list-disc list-inside">
+              <ul className="text-sm text-gray-500 dark:text-neutral-400 mb-4 list-disc list-inside">
                 <li>Todas las ventas y sus items</li>
                 <li>Todo el inventario</li>
                 <li>Todos los turnos</li>
@@ -288,12 +288,12 @@ export default function AdminPage() {
                 <li>Todos los proveedores</li>
               </ul>
             )}
-            <p className="text-red-600 font-medium mb-6">Esta acción NO se puede deshacer.</p>
+            <p className="text-red-600 dark:text-red-400 font-medium mb-6">Esta acción NO se puede deshacer.</p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setConfirmDialog(null)}
                 disabled={loading !== null}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                className="px-4 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-950 disabled:opacity-50"
               >
                 Cancelar
               </button>

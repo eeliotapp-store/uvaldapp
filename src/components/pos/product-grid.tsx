@@ -46,14 +46,14 @@ export function ProductGrid({ products, stockMap }: ProductGridProps) {
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-        <div className="text-gray-500 mb-4">
+      <div className="text-center py-12 bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700">
+        <div className="text-gray-500 dark:text-neutral-400 mb-4">
           <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
         </div>
-        <p className="text-lg font-medium text-gray-600">No hay productos</p>
-        <p className="text-sm text-gray-500 mt-1">Ve a Productos para crear los productos primero</p>
+        <p className="text-lg font-medium text-gray-600 dark:text-neutral-300">No hay productos</p>
+        <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Ve a Productos para crear los productos primero</p>
       </div>
     );
   }
@@ -74,25 +74,25 @@ export function ProductGrid({ products, stockMap }: ProductGridProps) {
               className={`
                 relative p-4 rounded-xl border-2 text-left transition-all
                 ${isOutOfStock
-                  ? 'bg-gray-100 border-gray-200 opacity-50 cursor-not-allowed'
-                  : 'bg-white border-gray-200 hover:border-amber-400 hover:shadow-md active:scale-95'
+                  ? 'bg-gray-100 dark:bg-neutral-700 border-gray-200 dark:border-neutral-700 opacity-50 cursor-not-allowed'
+                  : 'bg-white dark:bg-neutral-800 border-gray-200 dark:border-neutral-700 hover:border-amber-400 hover:shadow-md active:scale-95'
                 }
               `}
             >
               {/* Stock Badge */}
               <span
                 className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-medium
-                  ${stock <= 5 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}
+                  ${stock <= 5 ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-400' : 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400'}
                 `}
               >
                 {stock}
               </span>
 
               {/* Product Image Placeholder */}
-              <div className={`w-12 h-12 ${isBeer ? 'bg-amber-100' : 'bg-gray-100'} rounded-lg flex items-center justify-center mb-3`}>
+              <div className={`w-12 h-12 ${isBeer ? 'bg-amber-100 dark:bg-amber-900' : 'bg-gray-100 dark:bg-neutral-700'} rounded-lg flex items-center justify-center mb-3`}>
                 {isBeer ? (
                   <svg
-                    className="w-6 h-6 text-amber-600"
+                    className="w-6 h-6 text-amber-600 dark:text-amber-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -106,7 +106,7 @@ export function ProductGrid({ products, stockMap }: ProductGridProps) {
                   </svg>
                 ) : (
                   <svg
-                    className="w-6 h-6 text-gray-500"
+                    className="w-6 h-6 text-gray-500 dark:text-neutral-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -117,10 +117,10 @@ export function ProductGrid({ products, stockMap }: ProductGridProps) {
               </div>
 
               {/* Product Info */}
-              <h3 className="font-medium text-gray-900 text-sm line-clamp-2">
+              <h3 className="font-medium text-gray-900 dark:text-neutral-100 text-sm line-clamp-2">
                 {product.name}
               </h3>
-              <p className="text-amber-600 font-bold mt-1">
+              <p className="text-amber-600 dark:text-amber-400 font-bold mt-1">
                 {formatCurrency(product.sale_price)}
               </p>
 
@@ -133,8 +133,8 @@ export function ProductGrid({ products, stockMap }: ProductGridProps) {
 
               {/* Out of Stock Overlay */}
               {isOutOfStock && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-xl">
-                  <span className="text-red-600 font-medium text-sm">Agotado</span>
+                <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-neutral-800/80 rounded-xl">
+                  <span className="text-red-600 dark:text-red-400 font-medium text-sm">Agotado</span>
                 </div>
               )}
             </button>
@@ -173,39 +173,39 @@ function BombaModal({ product, onClose, onSelect }: BombaModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6">
         <div className="text-center mb-4">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-3xl">💧</span>
           </div>
-          <h2 className="text-xl font-bold text-gray-900">{product.name}</h2>
-          <p className="text-sm text-gray-500 mt-1">¿Cómo la quieres?</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-neutral-100">{product.name}</h2>
+          <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">¿Cómo la quieres?</p>
         </div>
 
         <div className="space-y-3">
           <button
             onClick={() => onSelect(false)}
-            className="w-full p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center justify-between"
+            className="w-full p-4 border-2 border-gray-200 dark:border-neutral-700 rounded-xl hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">💧</span>
               <span className="font-medium">Normal</span>
             </div>
-            <span className="text-lg font-bold text-gray-900">{formatCurrency(normalPrice)}</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(normalPrice)}</span>
           </button>
 
           <button
             onClick={() => onSelect(true)}
-            className="w-full p-4 border-2 border-blue-400 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors flex items-center justify-between"
+            className="w-full p-4 border-2 border-blue-400 bg-blue-50 dark:bg-blue-950 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">💣</span>
               <div className="text-left">
                 <span className="font-medium">Con Bomba</span>
-                <p className="text-xs text-blue-600">+{formatCurrency(product.bomba_extra || 0)}</p>
+                <p className="text-xs text-blue-600 dark:text-blue-400">+{formatCurrency(product.bomba_extra || 0)}</p>
               </div>
             </div>
-            <span className="text-lg font-bold text-blue-600">{formatCurrency(bombaPrice)}</span>
+            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{formatCurrency(bombaPrice)}</span>
           </button>
         </div>
 
@@ -234,39 +234,39 @@ function MicheladaModal({ product, onClose, onSelect }: MicheladaModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6">
         <div className="text-center mb-4">
-          <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
+          <div className="w-16 h-16 bg-amber-100 dark:bg-amber-900 rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-3xl">🍺</span>
           </div>
-          <h2 className="text-xl font-bold text-gray-900">{product.name}</h2>
-          <p className="text-sm text-gray-500 mt-1">¿Cómo la quieres?</p>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-neutral-100">{product.name}</h2>
+          <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">¿Cómo la quieres?</p>
         </div>
 
         <div className="space-y-3">
           <button
             onClick={() => onSelect(false)}
-            className="w-full p-4 border-2 border-gray-200 rounded-xl hover:border-amber-400 hover:bg-amber-50 transition-colors flex items-center justify-between"
+            className="w-full p-4 border-2 border-gray-200 dark:border-neutral-700 rounded-xl hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950 transition-colors flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">🍺</span>
               <span className="font-medium">Normal</span>
             </div>
-            <span className="text-lg font-bold text-gray-900">{formatCurrency(normalPrice)}</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-neutral-100">{formatCurrency(normalPrice)}</span>
           </button>
 
           <button
             onClick={() => onSelect(true)}
-            className="w-full p-4 border-2 border-amber-400 bg-amber-50 rounded-xl hover:bg-amber-100 transition-colors flex items-center justify-between"
+            className="w-full p-4 border-2 border-amber-400 bg-amber-50 dark:bg-amber-950 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900 transition-colors flex items-center justify-between"
           >
             <div className="flex items-center gap-3">
               <span className="text-2xl">🌶️</span>
               <div className="text-left">
                 <span className="font-medium">Michelada</span>
-                <p className="text-xs text-amber-600">+{formatCurrency(MICHELADA_EXTRA)}</p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">+{formatCurrency(MICHELADA_EXTRA)}</p>
               </div>
             </div>
-            <span className="text-lg font-bold text-amber-600">{formatCurrency(micheladaPrice)}</span>
+            <span className="text-lg font-bold text-amber-600 dark:text-amber-400">{formatCurrency(micheladaPrice)}</span>
           </button>
         </div>
 

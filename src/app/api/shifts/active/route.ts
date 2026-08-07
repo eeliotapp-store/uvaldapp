@@ -26,7 +26,12 @@ export async function GET(request: NextRequest) {
       query = query.eq('id', shiftId);
     }
 
-    const { data: shift } = await query.single();
+    // Tomar el turno activo más reciente. Usamos limit(1).maybeSingle() en vez de single()
+    // para no lanzar 406 cuando hay 0 filas (caso normal: sin turno) ni error si hubiera más de una.
+    const { data: shift } = await query
+      .order('start_time', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     return NextResponse.json({ shift: shift || null });
   } catch {

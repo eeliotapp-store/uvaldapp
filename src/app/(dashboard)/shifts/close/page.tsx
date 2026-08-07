@@ -130,7 +130,7 @@ export default function CloseShiftPage() {
   if (!currentShift || !summary) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">No hay turno activo</p>
+        <p className="text-gray-500 dark:text-neutral-400">No hay turno activo</p>
         <Button onClick={() => setShowStartModal(true)} className="mt-4">
           Iniciar Turno
         </Button>
@@ -149,95 +149,95 @@ export default function CloseShiftPage() {
 
   return (
     <div className="max-w-lg mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Cierre de Turno</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100 mb-6">Cierre de Turno</h1>
 
-      <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 border border-gray-200 dark:border-neutral-700 mb-6">
         <div className="text-center mb-6">
-          <p className="text-sm text-gray-600">Empleado</p>
+          <p className="text-sm text-gray-600 dark:text-neutral-300">Empleado</p>
           <p className="text-lg font-bold">{summary.employee_name}</p>
           <div className="inline-flex items-center gap-1 mt-1">
             <span>{summary.type === 'day' ? '☀️' : '🌙'}</span>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-neutral-400">
               Turno {getShiftTypeLabel(summary.type)}
             </span>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">
             Inicio: {formatDateTime(summary.start_time)}
           </p>
         </div>
 
         {/* Resumen de caja */}
-        <div className="space-y-3 border-t border-gray-100 pt-4">
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Efectivo</p>
+        <div className="space-y-3 border-t border-gray-100 dark:border-neutral-700 pt-4">
+          <p className="text-sm font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Efectivo</p>
           <div className="flex justify-between">
-            <span className="text-gray-600">Caja inicial</span>
+            <span className="text-gray-600 dark:text-neutral-300">Caja inicial</span>
             <span className="font-medium">{formatCurrency(summary.cash_start)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Ventas en efectivo</span>
-            <span className="font-medium text-green-600">
+            <span className="text-gray-600 dark:text-neutral-300">Ventas en efectivo</span>
+            <span className="font-medium text-green-600 dark:text-green-400">
               +{formatCurrency(summary.cash_sales + summary.mixed_cash)}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Cambios entregados</span>
-            <span className="font-medium text-red-600">
+            <span className="text-gray-600 dark:text-neutral-300">Cambios entregados</span>
+            <span className="font-medium text-red-600 dark:text-red-400">
               -{formatCurrency(summary.total_change)}
             </span>
           </div>
-          <div className="flex justify-between border-t border-gray-200 pt-3">
+          <div className="flex justify-between border-t border-gray-200 dark:border-neutral-700 pt-3">
             <span className="font-bold">Efectivo esperado</span>
             <span className="font-bold text-lg">{formatCurrency(expectedCash)}</span>
           </div>
         </div>
 
         {/* Resumen de transferencias */}
-        <div className="space-y-3 border-t border-gray-100 pt-4 mt-4">
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Transferencias</p>
+        <div className="space-y-3 border-t border-gray-100 dark:border-neutral-700 pt-4 mt-4">
+          <p className="text-sm font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Transferencias</p>
           <div className="flex justify-between">
-            <span className="text-gray-600">Inicial</span>
+            <span className="text-gray-600 dark:text-neutral-300">Inicial</span>
             <span className="font-medium">{formatCurrency(summary.transfer_start)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Ventas por transferencia</span>
-            <span className="font-medium text-green-600">
+            <span className="text-gray-600 dark:text-neutral-300">Ventas por transferencia</span>
+            <span className="font-medium text-green-600 dark:text-green-400">
               +{formatCurrency(totalTransfers)}
             </span>
           </div>
-          <div className="flex justify-between border-t border-gray-200 pt-3">
+          <div className="flex justify-between border-t border-gray-200 dark:border-neutral-700 pt-3">
             <span className="font-bold">Total transferencias</span>
             <span className="font-bold text-lg">{formatCurrency(summary.transfer_start + totalTransfers)}</span>
           </div>
         </div>
 
         {/* Resumen general */}
-        <div className="space-y-3 border-t border-gray-100 pt-4 mt-4">
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Resumen</p>
+        <div className="space-y-3 border-t border-gray-100 dark:border-neutral-700 pt-4 mt-4">
+          <p className="text-sm font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Resumen</p>
           <div className="flex justify-between">
-            <span className="text-gray-600">Transacciones cerradas</span>
+            <span className="text-gray-600 dark:text-neutral-300">Transacciones cerradas</span>
             <span className="font-medium">{summary.transactions_count}</span>
           </div>
           {summary.open_tabs_count > 0 && (
             <div className="flex justify-between">
-              <span className="text-gray-600">Cuentas abiertas</span>
-              <span className="font-medium text-amber-600">{summary.open_tabs_count}</span>
+              <span className="text-gray-600 dark:text-neutral-300">Cuentas abiertas</span>
+              <span className="font-medium text-amber-600 dark:text-amber-400">{summary.open_tabs_count}</span>
             </div>
           )}
-          <div className="flex justify-between border-t border-gray-200 pt-3">
+          <div className="flex justify-between border-t border-gray-200 dark:border-neutral-700 pt-3">
             <span className="font-bold">Total ventas del turno</span>
-            <span className="font-bold text-xl text-green-600">{formatCurrency(summary.total_sales)}</span>
+            <span className="font-bold text-xl text-green-600 dark:text-green-400">{formatCurrency(summary.total_sales)}</span>
           </div>
         </div>
       </div>
 
       {/* Productos vendidos en el turno */}
       {products.length > 0 && (
-        <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
-          <p className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 border border-gray-200 dark:border-neutral-700 mb-6">
+          <p className="text-sm font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wider mb-3">
             Productos vendidos
           </p>
           <div className="space-y-2">
-            <div className="flex justify-between text-xs text-gray-500 pb-1 border-b border-gray-100">
+            <div className="flex justify-between text-xs text-gray-500 dark:text-neutral-400 pb-1 border-b border-gray-100 dark:border-neutral-700">
               <span>Producto</span>
               <div className="flex gap-6">
                 <span>Unidades</span>
@@ -246,9 +246,9 @@ export default function CloseShiftPage() {
             </div>
             {products.map((p) => (
               <div key={p.product_name} className="flex justify-between text-sm">
-                <span className="text-gray-700">{p.product_name}</span>
+                <span className="text-gray-700 dark:text-neutral-300">{p.product_name}</span>
                 <div className="flex gap-6">
-                  <span className="text-gray-500 text-right w-16">{p.quantity}</span>
+                  <span className="text-gray-500 dark:text-neutral-400 text-right w-16">{p.quantity}</span>
                   <span className="font-medium w-24 text-right">{formatCurrency(p.total)}</span>
                 </div>
               </div>
@@ -257,8 +257,8 @@ export default function CloseShiftPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl p-6 border border-gray-200 mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 border border-gray-200 dark:border-neutral-700 mb-6">
+        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
           Dinero en caja (contado)
         </label>
         <input
@@ -266,19 +266,19 @@ export default function CloseShiftPage() {
           value={cashEnd}
           onChange={(e) => setCashEnd(e.target.value)}
           placeholder="0"
-          className="w-full px-4 py-3 text-2xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-amber-500 focus:ring-0"
+          className="w-full px-4 py-3 text-2xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
         />
 
         {cashEnd && (
           <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">Diferencia</p>
+            <p className="text-sm text-gray-600 dark:text-neutral-300">Diferencia</p>
             <p
               className={`text-2xl font-bold ${
                 difference === 0
-                  ? 'text-green-600'
+                  ? 'text-green-600 dark:text-green-400'
                   : difference > 0
-                  ? 'text-blue-600'
-                  : 'text-red-600'
+                  ? 'text-blue-600 dark:text-blue-400'
+                  : 'text-red-600 dark:text-red-400'
               }`}
             >
               {difference >= 0 ? '+' : ''}
@@ -294,14 +294,14 @@ export default function CloseShiftPage() {
         )}
 
         <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
             Notas (opcional)
           </label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             placeholder="Observaciones del turno..."
           />
         </div>
@@ -336,15 +336,15 @@ function StartShiftModal({
 
   return (
     <div className="max-w-md mx-auto">
-      <div className="bg-white rounded-xl p-6 border border-gray-200">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 border border-gray-200 dark:border-neutral-700">
         <h2 className="text-xl font-bold text-center mb-2">Iniciar Turno</h2>
-        <p className="text-center text-gray-500 text-sm mb-6">
+        <p className="text-center text-gray-500 dark:text-neutral-400 text-sm mb-6">
           Turno detectado: {getShiftTypeLabel(shiftType)}
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-3">
               Tipo de Turno
             </label>
             <div className="grid grid-cols-2 gap-4">
@@ -353,8 +353,8 @@ function StartShiftModal({
                 onClick={() => setShiftType('day')}
                 className={`p-4 rounded-xl border-2 transition-all ${
                   shiftType === 'day'
-                    ? 'border-amber-500 bg-amber-50'
-                    : 'border-gray-200'
+                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                    : 'border-gray-200 dark:border-neutral-700'
                 }`}
               >
                 <div className="text-2xl mb-1">☀️</div>
@@ -365,8 +365,8 @@ function StartShiftModal({
                 onClick={() => setShiftType('night')}
                 className={`p-4 rounded-xl border-2 transition-all ${
                   shiftType === 'night'
-                    ? 'border-amber-500 bg-amber-50'
-                    : 'border-gray-200'
+                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950'
+                    : 'border-gray-200 dark:border-neutral-700'
                 }`}
               >
                 <div className="text-2xl mb-1">🌙</div>
@@ -376,7 +376,7 @@ function StartShiftModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">
               Efectivo inicial en caja
             </label>
             <input
@@ -384,7 +384,7 @@ function StartShiftModal({
               value={cashStart}
               onChange={(e) => setCashStart(e.target.value)}
               placeholder="0"
-              className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 rounded-xl focus:border-amber-500 focus:ring-0"
+              className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500 focus:ring-0"
             />
           </div>
 

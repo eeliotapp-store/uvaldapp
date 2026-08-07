@@ -95,7 +95,7 @@ export default function CashAuditPage() {
   if (!canView) {
     return (
       <div className="p-4 text-center">
-        <p className="text-gray-500">No tienes permisos para ver esta página</p>
+        <p className="text-gray-500 dark:text-neutral-400">No tienes permisos para ver esta página</p>
       </div>
     );
   }
@@ -151,11 +151,11 @@ export default function CashAuditPage() {
     <div className="p-4 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <Link href="/reports" className="text-blue-600 hover:underline text-sm mb-1 block">
+          <Link href="/reports" className="text-blue-600 dark:text-blue-400 hover:underline text-sm mb-1 block">
             ← Volver a Reportes
           </Link>
           <h1 className="text-2xl font-bold">Auditoría de Caja</h1>
-          <p className="text-gray-500 text-sm">Control de flujo de efectivo entre turnos</p>
+          <p className="text-gray-500 dark:text-neutral-400 text-sm">Control de flujo de efectivo entre turnos</p>
         </div>
         {report && (
           <Button onClick={exportCSV} variant="outline" className="flex items-center gap-1">
@@ -166,38 +166,38 @@ export default function CashAuditPage() {
       </div>
 
       {/* Filtros */}
-      <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-4 mb-6">
         <div className="flex flex-wrap gap-4 items-end">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Desde
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg"
+              className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Hasta
             </label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg"
+              className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Vista
             </label>
             <select
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value as 'timeline' | 'by_employee')}
-              className="px-3 py-2 border border-gray-300 rounded-lg"
+              className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg"
             >
               <option value="timeline">Línea de tiempo</option>
               <option value="by_employee">Por empleada</option>
@@ -207,7 +207,7 @@ export default function CashAuditPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-4">
+        <div className="bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 p-4 rounded-xl mb-4">
           {error}
         </div>
       )}
@@ -215,22 +215,22 @@ export default function CashAuditPage() {
       {isLoading ? (
         <div className="text-center py-8">
           <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-2 text-gray-500">Cargando auditoría...</p>
+          <p className="mt-2 text-gray-500 dark:text-neutral-400">Cargando auditoría...</p>
         </div>
       ) : report ? (
         <>
           {/* Resumen de alertas */}
           {report.stats.shifts_with_discrepancy > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-              <h3 className="text-red-800 font-semibold flex items-center gap-2">
+            <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6">
+              <h3 className="text-red-800 dark:text-red-400 font-semibold flex items-center gap-2">
                 <AlertIcon className="w-5 h-5" />
                 Alertas de Discrepancia
               </h3>
-              <p className="text-red-700 mt-1">
+              <p className="text-red-700 dark:text-red-400 mt-1">
                 Se detectaron <strong>{report.stats.shifts_with_discrepancy}</strong> turnos donde
                 la caja inicial no coincide con el cierre del turno anterior.
               </p>
-              <p className="text-red-600 text-sm mt-1">
+              <p className="text-red-600 dark:text-red-400 text-sm mt-1">
                 Total faltante: <strong>{formatCurrency(report.stats.total_gap)}</strong>
               </p>
             </div>
@@ -238,31 +238,31 @@ export default function CashAuditPage() {
 
           {/* Estadísticas */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-xl shadow-sm p-4">
-              <p className="text-sm text-gray-500">Total Turnos</p>
+            <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-4">
+              <p className="text-sm text-gray-500 dark:text-neutral-400">Total Turnos</p>
               <p className="text-2xl font-bold">{report.stats.total_shifts}</p>
             </div>
             <div className={`rounded-xl shadow-sm p-4 ${
-              report.stats.shifts_with_discrepancy > 0 ? 'bg-red-50' : 'bg-green-50'
+              report.stats.shifts_with_discrepancy > 0 ? 'bg-red-50 dark:bg-red-950' : 'bg-green-50 dark:bg-green-950'
             }`}>
-              <p className="text-sm text-gray-600">Con Discrepancia</p>
+              <p className="text-sm text-gray-600 dark:text-neutral-300">Con Discrepancia</p>
               <p className={`text-2xl font-bold ${
-                report.stats.shifts_with_discrepancy > 0 ? 'text-red-600' : 'text-green-600'
+                report.stats.shifts_with_discrepancy > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
               }`}>
                 {report.stats.shifts_with_discrepancy}
               </p>
             </div>
             <div className={`rounded-xl shadow-sm p-4 ${
-              report.stats.shifts_missing_cash > 0 ? 'bg-orange-50' : 'bg-white'
+              report.stats.shifts_missing_cash > 0 ? 'bg-orange-50 dark:bg-orange-950' : 'bg-white dark:bg-neutral-800'
             }`}>
-              <p className="text-sm text-gray-500">Faltante en Caja</p>
-              <p className="text-2xl font-bold text-orange-600">
+              <p className="text-sm text-gray-500 dark:text-neutral-400">Faltante en Caja</p>
+              <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {report.stats.shifts_missing_cash}
               </p>
             </div>
-            <div className="bg-white rounded-xl shadow-sm p-4">
-              <p className="text-sm text-gray-500">Sobrante en Caja</p>
-              <p className="text-2xl font-bold text-blue-600">
+            <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-4">
+              <p className="text-sm text-gray-500 dark:text-neutral-400">Sobrante en Caja</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {report.stats.shifts_extra_cash}
               </p>
             </div>
@@ -270,7 +270,7 @@ export default function CashAuditPage() {
 
           {/* Vista de línea de tiempo */}
           {viewMode === 'timeline' && (
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6">
               <h3 className="text-lg font-semibold mb-4">Historial de Turnos</h3>
               <div className="space-y-4">
                 {report.entries.map((entry, index) => (
@@ -278,22 +278,22 @@ export default function CashAuditPage() {
                     key={entry.shift_id}
                     className={`border rounded-lg p-4 ${
                       entry.has_discrepancy
-                        ? 'border-red-300 bg-red-50'
-                        : 'border-gray-200'
+                        ? 'border-red-300 bg-red-50 dark:bg-red-950'
+                        : 'border-gray-200 dark:border-neutral-700'
                     }`}
                   >
                     {/* Alerta de discrepancia */}
                     {entry.has_discrepancy && entry.gap_with_previous !== null && (
-                      <div className="bg-red-100 text-red-800 px-3 py-2 rounded-lg mb-3 text-sm">
+                      <div className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-400 px-3 py-2 rounded-lg mb-3 text-sm">
                         <strong>⚠️ DISCREPANCIA:</strong> El turno anterior cerró con{' '}
                         <strong>{formatCurrency(entry.previous_shift_end || 0)}</strong> pero
                         este turno inició con <strong>{formatCurrency(entry.cash_start)}</strong>
                         {entry.gap_with_previous < 0 ? (
-                          <span className="text-red-600">
+                          <span className="text-red-600 dark:text-red-400">
                             {' '}(Faltan {formatCurrency(Math.abs(entry.gap_with_previous))})
                           </span>
                         ) : (
-                          <span className="text-blue-600">
+                          <span className="text-blue-600 dark:text-blue-400">
                             {' '}(Sobran {formatCurrency(entry.gap_with_previous)})
                           </span>
                         )}
@@ -305,19 +305,19 @@ export default function CashAuditPage() {
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
                             entry.type === 'day'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-indigo-100 text-indigo-800'
+                              ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-400'
+                              : 'bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-400'
                           }`}>
                             {entry.type === 'day' ? '☀️ Día' : '🌙 Noche'}
                           </span>
                           <span className="font-medium">{entry.employee_name}</span>
                           {entry.is_active && (
-                            <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-400 rounded text-xs">
                               Activo
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
                           {formatDate(entry.start_time)} {formatTime(entry.start_time)}
                           {entry.end_time && ` - ${formatTime(entry.end_time)}`}
                         </p>
@@ -326,46 +326,46 @@ export default function CashAuditPage() {
 
                     {/* Flujo de caja */}
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4 text-sm">
-                      <div className="bg-gray-50 p-2 rounded">
-                        <p className="text-gray-500 text-xs">Caja Inicial</p>
+                      <div className="bg-gray-50 dark:bg-neutral-950 p-2 rounded">
+                        <p className="text-gray-500 dark:text-neutral-400 text-xs">Caja Inicial</p>
                         <p className="font-bold">{formatCurrency(entry.cash_start)}</p>
                       </div>
-                      <div className="bg-green-50 p-2 rounded">
-                        <p className="text-gray-500 text-xs">+ Ventas Efectivo</p>
-                        <p className="font-bold text-green-600">
+                      <div className="bg-green-50 dark:bg-green-950 p-2 rounded">
+                        <p className="text-gray-500 dark:text-neutral-400 text-xs">+ Ventas Efectivo</p>
+                        <p className="font-bold text-green-600 dark:text-green-400">
                           {formatCurrency(entry.cash_sales)}
                         </p>
                       </div>
-                      <div className="bg-blue-50 p-2 rounded">
-                        <p className="text-gray-500 text-xs">= Esperado</p>
-                        <p className="font-bold text-blue-600">
+                      <div className="bg-blue-50 dark:bg-blue-950 p-2 rounded">
+                        <p className="text-gray-500 dark:text-neutral-400 text-xs">= Esperado</p>
+                        <p className="font-bold text-blue-600 dark:text-blue-400">
                           {formatCurrency(entry.expected_cash)}
                         </p>
                       </div>
-                      <div className="bg-gray-50 p-2 rounded">
-                        <p className="text-gray-500 text-xs">Caja Final</p>
+                      <div className="bg-gray-50 dark:bg-neutral-950 p-2 rounded">
+                        <p className="text-gray-500 dark:text-neutral-400 text-xs">Caja Final</p>
                         <p className="font-bold">
                           {entry.cash_end !== null ? formatCurrency(entry.cash_end) : '—'}
                         </p>
                       </div>
                       <div className={`p-2 rounded ${
                         entry.difference === null
-                          ? 'bg-gray-50'
+                          ? 'bg-gray-50 dark:bg-neutral-950'
                           : entry.difference === 0
-                            ? 'bg-green-50'
+                            ? 'bg-green-50 dark:bg-green-950'
                             : entry.difference > 0
-                              ? 'bg-blue-50'
-                              : 'bg-red-50'
+                              ? 'bg-blue-50 dark:bg-blue-950'
+                              : 'bg-red-50 dark:bg-red-950'
                       }`}>
-                        <p className="text-gray-500 text-xs">Diferencia</p>
+                        <p className="text-gray-500 dark:text-neutral-400 text-xs">Diferencia</p>
                         <p className={`font-bold ${
                           entry.difference === null
-                            ? 'text-gray-500'
+                            ? 'text-gray-500 dark:text-neutral-400'
                             : entry.difference === 0
-                              ? 'text-green-600'
+                              ? 'text-green-600 dark:text-green-400'
                               : entry.difference > 0
-                                ? 'text-blue-600'
-                                : 'text-red-600'
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : 'text-red-600 dark:text-red-400'
                         }`}>
                           {entry.difference !== null
                             ? (entry.difference >= 0 ? '+' : '') + formatCurrency(entry.difference)
@@ -376,23 +376,23 @@ export default function CashAuditPage() {
 
                     {/* Observaciones */}
                     {entry.notes && (
-                      <div className="mt-3 bg-yellow-50 p-3 rounded-lg">
-                        <p className="text-sm font-medium text-yellow-800">Observaciones:</p>
-                        <p className="text-sm text-yellow-700">{entry.notes}</p>
+                      <div className="mt-3 bg-yellow-50 dark:bg-yellow-950 p-3 rounded-lg">
+                        <p className="text-sm font-medium text-yellow-800 dark:text-yellow-400">Observaciones:</p>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-400">{entry.notes}</p>
                       </div>
                     )}
 
                     {/* Conexión con siguiente turno */}
                     {index < report.entries.length - 1 && (
-                      <div className="mt-3 pt-3 border-t border-dashed border-gray-200 text-center">
-                        <span className="text-gray-500 text-xs">↓</span>
+                      <div className="mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-neutral-700 text-center">
+                        <span className="text-gray-500 dark:text-neutral-400 text-xs">↓</span>
                       </div>
                     )}
                   </div>
                 ))}
 
                 {report.entries.length === 0 && (
-                  <p className="text-center text-gray-500 py-8">
+                  <p className="text-center text-gray-500 dark:text-neutral-400 py-8">
                     No hay turnos registrados en este período
                   </p>
                 )}
@@ -404,16 +404,16 @@ export default function CashAuditPage() {
           {viewMode === 'by_employee' && (
             <div className="space-y-6">
               {report.by_employee.map((emp) => (
-                <div key={emp.employee_id} className="bg-white rounded-xl shadow-sm p-6">
+                <div key={emp.employee_id} className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <h3 className="text-lg font-semibold">{emp.employee_name}</h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-neutral-400">
                         {emp.shifts.length} turno(s) en el período
                       </p>
                     </div>
                     {emp.total_missing > 0 && (
-                      <div className="bg-red-100 text-red-800 px-3 py-1 rounded-lg text-sm">
+                      <div className="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-400 px-3 py-1 rounded-lg text-sm">
                         Discrepancias: {formatCurrency(emp.total_missing)}
                       </div>
                     )}
@@ -422,7 +422,7 @@ export default function CashAuditPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b border-gray-200 bg-gray-50">
+                        <tr className="border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-950">
                           <th className="text-left py-2 px-2">Fecha</th>
                           <th className="text-left py-2 px-2">Turno</th>
                           <th className="text-right py-2 px-2">Inicio</th>
@@ -438,7 +438,7 @@ export default function CashAuditPage() {
                           <tr
                             key={shift.shift_id}
                             className={`border-b ${
-                              shift.has_discrepancy ? 'bg-red-50' : ''
+                              shift.has_discrepancy ? 'bg-red-50 dark:bg-red-950' : ''
                             }`}
                           >
                             <td className="py-2 px-2">{formatDate(shift.start_time)}</td>
@@ -448,7 +448,7 @@ export default function CashAuditPage() {
                             <td className="py-2 px-2 text-right">
                               {formatCurrency(shift.cash_start)}
                             </td>
-                            <td className="py-2 px-2 text-right text-green-600">
+                            <td className="py-2 px-2 text-right text-green-600 dark:text-green-400">
                               +{formatCurrency(shift.cash_sales)}
                             </td>
                             <td className="py-2 px-2 text-right">
@@ -461,12 +461,12 @@ export default function CashAuditPage() {
                             </td>
                             <td className={`py-2 px-2 text-right font-medium ${
                               shift.difference === null
-                                ? 'text-gray-500'
+                                ? 'text-gray-500 dark:text-neutral-400'
                                 : shift.difference === 0
-                                  ? 'text-green-600'
+                                  ? 'text-green-600 dark:text-green-400'
                                   : shift.difference > 0
-                                    ? 'text-blue-600'
-                                    : 'text-red-600'
+                                    ? 'text-blue-600 dark:text-blue-400'
+                                    : 'text-red-600 dark:text-red-400'
                             }`}>
                               {shift.difference !== null
                                 ? formatCurrency(shift.difference)
@@ -474,12 +474,12 @@ export default function CashAuditPage() {
                             </td>
                             <td className="py-2 px-2 text-center">
                               {shift.has_discrepancy && (
-                                <span className="text-red-600" title="Discrepancia con turno anterior">
+                                <span className="text-red-600 dark:text-red-400" title="Discrepancia con turno anterior">
                                   ⚠️
                                 </span>
                               )}
                               {shift.is_active && (
-                                <span className="text-green-600">🟢</span>
+                                <span className="text-green-600 dark:text-green-400">🟢</span>
                               )}
                             </td>
                           </tr>

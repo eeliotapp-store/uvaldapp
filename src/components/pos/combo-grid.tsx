@@ -32,7 +32,7 @@ export function ComboGrid({ combos, products }: ComboGridProps) {
 
   if (combos.length === 0) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-gray-500 dark:text-neutral-400">
         <p>No hay combos disponibles</p>
         <p className="text-sm mt-1">Crea combos desde la página de Combos</p>
       </div>
@@ -46,34 +46,34 @@ export function ComboGrid({ combos, products }: ComboGridProps) {
           <button
             key={combo.id}
             onClick={() => handleComboClick(combo)}
-            className="bg-white rounded-xl p-4 border-2 border-gray-200 hover:border-amber-500 transition-colors text-left"
+            className="bg-white dark:bg-neutral-800 rounded-xl p-4 border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 transition-colors text-left"
           >
             <div className="flex items-start justify-between mb-2">
               <span className="text-2xl">🎁</span>
               {combo.is_price_editable && (
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                <span className="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400 px-2 py-0.5 rounded">
                   Editable
                 </span>
               )}
             </div>
-            <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">
+            <h3 className="font-medium text-gray-900 dark:text-neutral-100 text-sm mb-1 line-clamp-2">
               {combo.name}
             </h3>
             {combo.description && (
-              <p className="text-xs text-gray-500 mb-2 line-clamp-1">{combo.description}</p>
+              <p className="text-xs text-gray-500 dark:text-neutral-400 mb-2 line-clamp-1">{combo.description}</p>
             )}
             <div className="flex flex-wrap gap-1 mb-2">
               {combo.combo_items?.slice(0, 3).map((item) => (
-                <span key={item.id} className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
+                <span key={item.id} className="text-xs bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 px-1.5 py-0.5 rounded">
                   {item.quantity}x {item.products?.name?.substring(0, 10)}
                   {item.is_michelada && ' 🌶️'}
                 </span>
               ))}
               {(combo.combo_items?.length || 0) > 3 && (
-                <span className="text-xs text-gray-500">+{(combo.combo_items?.length || 0) - 3}</span>
+                <span className="text-xs text-gray-500 dark:text-neutral-400">+{(combo.combo_items?.length || 0) - 3}</span>
               )}
             </div>
-            <p className="text-lg font-bold text-amber-600">
+            <p className="text-lg font-bold text-amber-600 dark:text-amber-400">
               {formatCurrency(combo.base_price)}
             </p>
           </button>
@@ -142,28 +142,28 @@ function EditableComboModal({ combo, products, onClose, onAdd }: EditableComboMo
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-2">{combo.name}</h2>
         {combo.description && (
-          <p className="text-sm text-gray-500 mb-4">{combo.description}</p>
+          <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">{combo.description}</p>
         )}
 
         {/* Precio editable */}
         {combo.is_price_editable && (
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Precio final
             </label>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500">$</span>
+              <span className="text-gray-500 dark:text-neutral-400">$</span>
               <input
                 type="number"
                 value={finalPrice}
                 onChange={(e) => setFinalPrice(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-lg font-bold"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-lg font-bold"
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">
               Precio base: {formatCurrency(combo.base_price)}
             </p>
           </div>
@@ -171,17 +171,17 @@ function EditableComboModal({ combo, products, onClose, onAdd }: EditableComboMo
 
         {/* Productos del combo */}
         <div className="space-y-3 mb-4">
-          <p className="text-sm font-medium text-gray-700">Productos incluidos:</p>
+          <p className="text-sm font-medium text-gray-700 dark:text-neutral-300">Productos incluidos:</p>
           {comboItems.map((item, index) => {
             const currentProduct = products.find(p => p.id === item.productId);
             return (
-              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+              <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-neutral-950 rounded-lg">
                 <span className="text-sm font-medium w-8 text-center">{item.quantity}x</span>
                 {item.isSwappable ? (
                   <select
                     value={item.productId}
                     onChange={(e) => handleProductChange(index, e.target.value)}
-                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                    className="flex-1 px-2 py-1 border border-gray-300 dark:border-neutral-600 rounded text-sm"
                   >
                     {beerProducts.map(p => (
                       <option key={p.id} value={p.id}>{p.name}</option>
@@ -191,18 +191,18 @@ function EditableComboModal({ combo, products, onClose, onAdd }: EditableComboMo
                   <span className="flex-1 text-sm">{currentProduct?.name}</span>
                 )}
                 {item.isMichelada && (
-                  <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                  <span className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded">
                     Mich
                   </span>
                 )}
                 {item.isSwappable && (
-                  <span className="text-xs text-blue-600">*</span>
+                  <span className="text-xs text-blue-600 dark:text-blue-400">*</span>
                 )}
               </div>
             );
           })}
           {comboItems.some(i => i.isSwappable) && (
-            <p className="text-xs text-blue-600">* Producto intercambiable</p>
+            <p className="text-xs text-blue-600 dark:text-blue-400">* Producto intercambiable</p>
           )}
         </div>
 

@@ -85,7 +85,7 @@ export default function SuppliersPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Proveedores</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Proveedores</h1>
         <Button onClick={handleCreate}>+ Nuevo Proveedor</Button>
       </div>
 
@@ -96,7 +96,7 @@ export default function SuppliersPage() {
             checked={showInactive}
             onChange={(e) => setShowInactive(e.target.checked)}
           />
-          <span className="text-sm text-gray-600">Mostrar inactivos</span>
+          <span className="text-sm text-gray-600 dark:text-neutral-300">Mostrar inactivos</span>
         </label>
       </div>
 
@@ -104,21 +104,21 @@ export default function SuppliersPage() {
         {filteredSuppliers.map((supplier) => (
           <div
             key={supplier.id}
-            className={`bg-white rounded-xl border border-gray-200 p-5 ${!supplier.active ? 'opacity-50' : ''}`}
+            className={`bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 p-5 ${!supplier.active ? 'opacity-50' : ''}`}
           >
             <div className="flex items-start justify-between mb-3">
               <div>
-                <h3 className="font-bold text-gray-900">{supplier.name}</h3>
+                <h3 className="font-bold text-gray-900 dark:text-neutral-100">{supplier.name}</h3>
                 {supplier.contact_person && (
-                  <p className="text-sm text-gray-600">{supplier.contact_person}</p>
+                  <p className="text-sm text-gray-600 dark:text-neutral-300">{supplier.contact_person}</p>
                 )}
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${supplier.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${supplier.active ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-400' : 'bg-gray-100 dark:bg-neutral-700 text-gray-500 dark:text-neutral-400'}`}>
                 {supplier.active ? 'Activo' : 'Inactivo'}
               </span>
             </div>
 
-            <div className="space-y-1 text-sm text-gray-600 mb-4">
+            <div className="space-y-1 text-sm text-gray-600 dark:text-neutral-300 mb-4">
               {supplier.phone && (
                 <p className="flex items-center gap-2">
                   <span>📞</span> {supplier.phone}
@@ -137,22 +137,22 @@ export default function SuppliersPage() {
             </div>
 
             {/* Productos que provee */}
-            <div className="border-t border-gray-100 pt-3 mb-4">
-              <p className="text-xs text-gray-500 mb-2">
+            <div className="border-t border-gray-100 dark:border-neutral-700 pt-3 mb-4">
+              <p className="text-xs text-gray-500 dark:text-neutral-400 mb-2">
                 Productos ({supplier.product_suppliers?.length || 0})
               </p>
               <div className="flex flex-wrap gap-1">
                 {supplier.product_suppliers?.slice(0, 5).map((ps) => (
                   <span
                     key={ps.id}
-                    className="px-2 py-0.5 bg-gray-100 rounded text-xs text-gray-600"
+                    className="px-2 py-0.5 bg-gray-100 dark:bg-neutral-700 rounded text-xs text-gray-600 dark:text-neutral-300"
                     title={`Compra: ${formatCurrency(ps.purchase_price)} | Venta: ${formatCurrency(ps.products.sale_price)}`}
                   >
                     {ps.products.name}
                   </span>
                 ))}
                 {(supplier.product_suppliers?.length || 0) > 5 && (
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-neutral-400">
                     +{supplier.product_suppliers.length - 5} más
                   </span>
                 )}
@@ -162,13 +162,13 @@ export default function SuppliersPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => handleEdit(supplier)}
-                className="flex-1 px-3 py-2 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium hover:bg-amber-100"
+                className="flex-1 px-3 py-2 bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-400 rounded-lg text-sm font-medium hover:bg-amber-100 dark:hover:bg-amber-900"
               >
                 Editar
               </button>
               <button
                 onClick={() => handleToggleActive(supplier)}
-                className="px-3 py-2 bg-gray-50 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-100"
+                className="px-3 py-2 bg-gray-50 dark:bg-neutral-950 text-gray-600 dark:text-neutral-300 rounded-lg text-sm font-medium hover:bg-gray-100 dark:hover:bg-neutral-700"
               >
                 {supplier.active ? 'Desactivar' : 'Activar'}
               </button>
@@ -178,7 +178,7 @@ export default function SuppliersPage() {
       </div>
 
       {filteredSuppliers.length === 0 && (
-        <div className="text-center py-12 text-gray-500 bg-white rounded-xl border border-gray-200">
+        <div className="text-center py-12 text-gray-500 dark:text-neutral-400 bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700">
           No hay proveedores
         </div>
       )}
@@ -251,74 +251,74 @@ function SupplierModal({ supplier, onClose, onSuccess }: SupplierModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-6">
           {isEditing ? 'Editar Proveedor' : 'Nuevo Proveedor'}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Nombre de la Empresa *
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Persona de Contacto
             </label>
             <input
               type="text"
               value={formData.contact_person}
               onChange={(e) => setFormData({ ...formData, contact_person: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Teléfono
             </label>
             <input
               type="tel"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Email
             </label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Dirección
             </label>
             <textarea
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-3 rounded-lg">{error}</div>
           )}
 
           <div className="flex gap-3 pt-4">

@@ -250,17 +250,17 @@ function POSContent() {
         {/* Products/Combos Grid */}
         <div className="flex-1 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold text-gray-900">Punto de Venta</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-neutral-100">Punto de Venta</h1>
             <div className="flex items-center gap-2">
               {!currentShift && (
-                <span className="text-sm text-amber-600 bg-amber-50 px-3 py-1 rounded-full">
+                <span className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-3 py-1 rounded-full">
                   Sin turno activo
                 </span>
               )}
               {needsOpenCash && currentShift && (
                 <button
                   onClick={() => setShowOpenCash(true)}
-                  className="text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full hover:bg-blue-100"
+                  className="text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950 px-3 py-1 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900"
                 >
                   Abrir Caja
                 </button>
@@ -273,7 +273,7 @@ function POSContent() {
 
           {/* Mensaje de éxito */}
           {successMessage && (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center gap-2">
+            <div className="mb-4 p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-lg flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
@@ -282,7 +282,7 @@ function POSContent() {
           )}
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-lg">
               {error}
             </div>
           )}
@@ -294,7 +294,7 @@ function POSContent() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'products'
                   ? 'bg-amber-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
               }`}
             >
               Productos
@@ -304,7 +304,7 @@ function POSContent() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeTab === 'combos'
                   ? 'bg-amber-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700'
               }`}
             >
               Combos {combos.length > 0 && `(${combos.length})`}
@@ -333,8 +333,8 @@ function POSContent() {
         </div>
 
         {/* Cart */}
-        <div className="lg:w-96 bg-gray-100 rounded-xl p-4">
-          <h2 className="font-bold text-gray-900 mb-4">Carrito</h2>
+        <div className="lg:w-96 bg-gray-100 dark:bg-neutral-700 rounded-xl p-4">
+          <h2 className="font-bold text-gray-900 dark:text-neutral-100 mb-4">Carrito</h2>
           <Cart onCheckout={() => setShowPayment(true)} />
         </div>
       </div>
@@ -366,10 +366,10 @@ function POSContent() {
         const hasAny = cigProds.some(p => (cigCounts[p.id] || 0) > 0);
         return (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-gray-900">🚬 Mostrador</h2>
-                <button onClick={() => setShowCigModal(false)} className="text-gray-500 hover:text-gray-600 text-2xl leading-none">×</button>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-neutral-100">🚬 Mostrador</h2>
+                <button onClick={() => setShowCigModal(false)} className="text-gray-500 dark:text-neutral-400 hover:text-gray-600 dark:hover:text-neutral-300 text-2xl leading-none">×</button>
               </div>
 
               {/* Un botón grande por producto — cada toque suma 1 */}
@@ -384,7 +384,7 @@ function POSContent() {
                     >
                       <span className="text-4xl font-black">{count > 0 ? count : '+'}</span>
                       <span className="text-base font-semibold">{p.name}</span>
-                      <span className="text-gray-500 text-sm">{formatCurrency(p.sale_price)}</span>
+                      <span className="text-gray-500 dark:text-neutral-400 text-sm">{formatCurrency(p.sale_price)}</span>
                     </button>
                   );
                 })}
@@ -397,7 +397,7 @@ function POSContent() {
                     <button
                       key={p.id}
                       onClick={() => setCigCounts(prev => ({ ...prev, [p.id]: Math.max(0, (prev[p.id] || 0) - 1) }))}
-                      className="flex-1 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium"
+                      className="flex-1 py-2 rounded-xl bg-gray-100 dark:bg-neutral-700 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-600 dark:text-neutral-300 text-sm font-medium"
                     >
                       − {p.name}
                     </button>
@@ -407,9 +407,9 @@ function POSContent() {
 
               {/* Total */}
               {hasAny && (
-                <div className="flex justify-between items-center bg-gray-50 rounded-xl px-4 py-3 mb-4">
-                  <span className="text-gray-500 text-sm">Total</span>
-                  <span className="font-bold text-gray-900 text-xl">{formatCurrency(totalCig)}</span>
+                <div className="flex justify-between items-center bg-gray-50 dark:bg-neutral-950 rounded-xl px-4 py-3 mb-4">
+                  <span className="text-gray-500 dark:text-neutral-400 text-sm">Total</span>
+                  <span className="font-bold text-gray-900 dark:text-neutral-100 text-xl">{formatCurrency(totalCig)}</span>
                 </div>
               )}
 

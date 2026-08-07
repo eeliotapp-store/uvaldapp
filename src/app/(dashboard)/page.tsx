@@ -77,25 +77,25 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100 mb-6">Dashboard</h1>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <p className="text-sm text-gray-600 mb-1">Ventas Hoy</p>
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 border border-gray-200 dark:border-neutral-700">
+          <p className="text-sm text-gray-600 dark:text-neutral-300 mb-1">Ventas Hoy</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-neutral-100">
             {formatCurrency(stats.todaySales)}
           </p>
         </div>
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <p className="text-sm text-gray-600 mb-1">Transacciones</p>
-          <p className="text-2xl font-bold text-gray-900">
+        <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 border border-gray-200 dark:border-neutral-700">
+          <p className="text-sm text-gray-600 dark:text-neutral-300 mb-1">Transacciones</p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-neutral-100">
             {stats.todayTransactions}
           </p>
         </div>
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <p className="text-sm text-gray-600 mb-1">Stock Bajo</p>
-          <p className={`text-2xl font-bold ${stats.lowStockCount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+        <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 border border-gray-200 dark:border-neutral-700">
+          <p className="text-sm text-gray-600 dark:text-neutral-300 mb-1">Stock Bajo</p>
+          <p className={`text-2xl font-bold ${stats.lowStockCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
             {stats.lowStockCount} productos
           </p>
         </div>
@@ -103,26 +103,26 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Sales */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <h2 className="font-bold text-gray-900 mb-4">Últimas Ventas</h2>
+        <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 border border-gray-200 dark:border-neutral-700">
+          <h2 className="font-bold text-gray-900 dark:text-neutral-100 mb-4">Últimas Ventas</h2>
           {recentSales.length === 0 ? (
-            <p className="text-gray-500 text-sm">No hay ventas hoy</p>
+            <p className="text-gray-500 dark:text-neutral-400 text-sm">No hay ventas hoy</p>
           ) : (
             <div className="space-y-3">
               {recentSales.map((sale) => (
                 <div
                   key={sale.id}
-                  className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+                  className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-neutral-700 last:border-0"
                 >
                   <div>
-                    <p className="font-medium text-gray-900">
+                    <p className="font-medium text-gray-900 dark:text-neutral-100">
                       {formatCurrency(sale.total)}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-neutral-400">
                       {sale.employee_name} • {sale.payment_method === 'cash' ? 'Efectivo' : 'Tarjeta'}
                     </p>
                   </div>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-500 dark:text-neutral-400">
                     {new Date(sale.created_at).toLocaleTimeString('es-CO', {
                       hour: '2-digit',
                       minute: '2-digit',
@@ -135,19 +135,19 @@ export default function DashboardPage() {
         </div>
 
         {/* Low Stock Alert */}
-        <div className="bg-white rounded-xl p-6 border border-gray-200">
-          <h2 className="font-bold text-gray-900 mb-4">Alertas de Stock</h2>
+        <div className="bg-white dark:bg-neutral-800 rounded-xl p-6 border border-gray-200 dark:border-neutral-700">
+          <h2 className="font-bold text-gray-900 dark:text-neutral-100 mb-4">Alertas de Stock</h2>
           {lowStockProducts.length === 0 ? (
-            <p className="text-green-600 text-sm">Todo el stock está bien</p>
+            <p className="text-green-600 dark:text-green-400 text-sm">Todo el stock está bien</p>
           ) : (
             <div className="space-y-3">
               {lowStockProducts.map((product) => (
                 <div
                   key={product.product_id}
-                  className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0"
+                  className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-neutral-700 last:border-0"
                 >
-                  <p className="font-medium text-gray-900">{product.product_name}</p>
-                  <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
+                  <p className="font-medium text-gray-900 dark:text-neutral-100">{product.product_name}</p>
+                  <span className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-400 rounded-full text-sm font-medium">
                     {product.current_stock} / {product.min_stock}
                   </span>
                 </div>

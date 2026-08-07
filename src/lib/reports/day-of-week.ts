@@ -11,6 +11,7 @@ export const TOP_PRODUCTS_PER_DAY = 15;
 export interface DowOverallRow {
   dow: number;
   sales_count: number;
+  revenue: number;
 }
 
 export interface DowProductRow {
@@ -28,7 +29,15 @@ export interface DowOccurrenceRow {
 }
 
 export interface DayOfWeekPayload {
-  overall: { dow: number; day_name: string; sales_count: number; occurrences: number; avg_sales_count: number }[];
+  overall: {
+    dow: number;
+    day_name: string;
+    sales_count: number;
+    revenue: number;
+    occurrences: number;
+    avg_sales_count: number;
+    avg_revenue: number;
+  }[];
   products_by_day: Record<number, {
     product_name: string;
     day_units: number;
@@ -47,16 +56,20 @@ export function buildDayOfWeekPayload(
 ): DayOfWeekPayload {
   const occurrencesByDow = new Map<number, number>(occurrenceRows.map((r) => [r.dow, r.day_count]));
   const countsByDow = new Map<number, number>(overallRows.map((r) => [r.dow, r.sales_count]));
+  const revenueByDow = new Map<number, number>(overallRows.map((r) => [r.dow, r.revenue || 0]));
 
   const overall = DISPLAY_ORDER.map((dow) => {
     const occurrences = occurrencesByDow.get(dow) || 0;
     const salesCount = countsByDow.get(dow) || 0;
+    const revenue = revenueByDow.get(dow) || 0;
     return {
       dow,
       day_name: DAY_NAMES[dow],
       sales_count: salesCount,
+      revenue,
       occurrences,
       avg_sales_count: occurrences > 0 ? Math.round((salesCount / occurrences) * 10) / 10 : 0,
+      avg_revenue: occurrences > 0 ? Math.round(revenue / occurrences) : 0,
     };
   });
 
@@ -74,8 +87,11 @@ export function buildDayOfWeekPayload(
   }
   for (const dow of Object.keys(productsByDay).map(Number)) {
     productsByDay[dow] = productsByDay[dow]
+      // Selección: los que más se disparan este día (% sobre su propio histórico) son los interesantes.
       .sort((a, b) => b.pct_of_total - a.pct_of_total)
-      .slice(0, TOP_PRODUCTS_PER_DAY);
+      .slice(0, TOP_PRODUCTS_PER_DAY)
+      // Orden de despliegue: de mayor a menor promedio de unidades vendidas ese día.
+      .sort((a, b) => b.avg_units - a.avg_units);
   }
 
   return {

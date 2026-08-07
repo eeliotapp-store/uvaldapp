@@ -24,7 +24,7 @@ export function Cart({ onCheckout }: CartProps) {
 
   if (isEmpty) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-gray-500 py-12">
+      <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-neutral-400 py-12">
         <svg
           className="w-16 h-16 mb-4"
           fill="none"
@@ -57,22 +57,22 @@ export function Cart({ onCheckout }: CartProps) {
           return (
             <div
               key={itemKey}
-              className="bg-white rounded-lg p-3 border border-gray-200"
+              className="bg-white dark:bg-neutral-800 rounded-lg p-3 border border-gray-200 dark:border-neutral-700"
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
-                  <h4 className="font-medium text-gray-900 text-sm line-clamp-1">
+                  <h4 className="font-medium text-gray-900 dark:text-neutral-100 text-sm line-clamp-1">
                     {item.product.name}
                   </h4>
                   {item.isMichelada && (
-                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded inline-flex items-center gap-1 mt-1">
+                    <span className="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded inline-flex items-center gap-1 mt-1">
                       🌶️ Michelada +{formatCurrency(MICHELADA_EXTRA)}
                     </span>
                   )}
                 </div>
                 <button
                   onClick={() => removeItem(item.product.id, item.isMichelada)}
-                  className="text-gray-500 hover:text-red-500 ml-2"
+                  className="text-gray-500 dark:text-neutral-400 hover:text-red-500 ml-2"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -89,19 +89,19 @@ export function Cart({ onCheckout }: CartProps) {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => decrementQuantity(item.product.id, item.isMichelada)}
-                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200"
+                    className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-700 flex items-center justify-center text-gray-600 dark:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-700"
                   >
                     -
                   </button>
                   <span className="w-8 text-center font-medium">{item.quantity}</span>
                   <button
                     onClick={() => incrementQuantity(item.product.id, item.isMichelada)}
-                    className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 hover:bg-amber-200"
+                    className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-700 dark:text-amber-400 hover:bg-amber-200"
                   >
                     +
                   </button>
                 </div>
-                <span className="font-bold text-gray-900">
+                <span className="font-bold text-gray-900 dark:text-neutral-100">
                   {formatCurrency(itemTotal)}
                 </span>
               </div>
@@ -113,19 +113,19 @@ export function Cart({ onCheckout }: CartProps) {
         {combos.map((cartCombo, index) => (
           <div
             key={`combo-${index}`}
-            className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-3 border border-amber-200"
+            className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-3 border border-amber-200 dark:border-amber-800"
           >
             <div className="flex justify-between items-start mb-2">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🎁</span>
-                  <h4 className="font-medium text-gray-900 text-sm">
+                  <h4 className="font-medium text-gray-900 dark:text-neutral-100 text-sm">
                     {cartCombo.combo.name}
                   </h4>
                 </div>
                 <div className="flex flex-wrap gap-1 mt-1">
                   {cartCombo.items.map((item, i) => (
-                    <span key={i} className="text-xs bg-white/70 text-gray-600 px-1.5 py-0.5 rounded">
+                    <span key={i} className="text-xs bg-white dark:bg-neutral-800/70 text-gray-600 dark:text-neutral-300 px-1.5 py-0.5 rounded">
                       {item.quantity}x {item.product.name.substring(0, 12)}
                       {item.isMichelada && ' 🌶️'}
                     </span>
@@ -134,7 +134,7 @@ export function Cart({ onCheckout }: CartProps) {
               </div>
               <button
                 onClick={() => removeCombo(index)}
-                className="text-gray-500 hover:text-red-500 ml-2"
+                className="text-gray-500 dark:text-neutral-400 hover:text-red-500 ml-2"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
@@ -148,8 +148,8 @@ export function Cart({ onCheckout }: CartProps) {
             </div>
 
             <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-500">COMBO</span>
-              <span className="font-bold text-amber-700">
+              <span className="text-xs text-gray-500 dark:text-neutral-400">COMBO</span>
+              <span className="font-bold text-amber-700 dark:text-amber-400">
                 {formatCurrency(cartCombo.finalPrice)}
               </span>
             </div>
@@ -158,10 +158,10 @@ export function Cart({ onCheckout }: CartProps) {
       </div>
 
       {/* Cart Footer */}
-      <div className="border-t border-gray-200 pt-4 mt-4">
+      <div className="border-t border-gray-200 dark:border-neutral-700 pt-4 mt-4">
         <div className="flex justify-between items-center mb-4">
-          <span className="text-gray-600">Total</span>
-          <span className="text-2xl font-bold text-gray-900">
+          <span className="text-gray-600 dark:text-neutral-300">Total</span>
+          <span className="text-2xl font-bold text-gray-900 dark:text-neutral-100">
             {formatCurrency(total)}
           </span>
         </div>

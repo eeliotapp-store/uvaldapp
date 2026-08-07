@@ -132,18 +132,18 @@ export default function InventoryCountPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+      <div className="bg-white dark:bg-neutral-800 rounded-xl border border-gray-200 dark:border-neutral-700 shadow-sm">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-neutral-700">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-              <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Conteo de Inventario Inicial</h1>
-              <p className="text-sm text-gray-500">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-neutral-100">Conteo de Inventario Inicial</h1>
+              <p className="text-sm text-gray-500 dark:text-neutral-400">
                 Registra el stock real de cada producto para iniciar el turno
               </p>
             </div>
@@ -151,16 +151,16 @@ export default function InventoryCountPage() {
 
           {/* Resumen */}
           <div className="mt-4 flex gap-4">
-            <div className="bg-gray-50 rounded-lg px-4 py-2">
-              <p className="text-xs text-gray-500">Productos</p>
-              <p className="text-lg font-bold text-gray-900">{totalProducts}</p>
+            <div className="bg-gray-50 dark:bg-neutral-950 rounded-lg px-4 py-2">
+              <p className="text-xs text-gray-500 dark:text-neutral-400">Productos</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-neutral-100">{totalProducts}</p>
             </div>
             <div className={`rounded-lg px-4 py-2 ${
-              totalDifference > 0 ? 'bg-green-50' : totalDifference < 0 ? 'bg-red-50' : 'bg-gray-50'
+              totalDifference > 0 ? 'bg-green-50 dark:bg-green-950' : totalDifference < 0 ? 'bg-red-50 dark:bg-red-950' : 'bg-gray-50 dark:bg-neutral-950'
             }`}>
-              <p className="text-xs text-gray-500">Diferencia Total</p>
+              <p className="text-xs text-gray-500 dark:text-neutral-400">Diferencia Total</p>
               <p className={`text-lg font-bold ${
-                totalDifference > 0 ? 'text-green-600' : totalDifference < 0 ? 'text-red-600' : 'text-gray-900'
+                totalDifference > 0 ? 'text-green-600 dark:text-green-400' : totalDifference < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-neutral-100'
               }`}>
                 {totalDifference > 0 ? '+' : ''}{totalDifference}
               </p>
@@ -172,18 +172,18 @@ export default function InventoryCountPage() {
         <form onSubmit={handleSubmit}>
           <div className="max-h-[60vh] overflow-y-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 sticky top-0">
+              <thead className="bg-gray-50 dark:bg-neutral-950 sticky top-0">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-neutral-300">
                     Producto
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 w-28">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300 w-28">
                     Sistema
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 w-32">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300 w-32">
                     Stock Real
                   </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 w-24">
+                  <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-neutral-300 w-24">
                     Dif.
                   </th>
                 </tr>
@@ -194,17 +194,17 @@ export default function InventoryCountPage() {
                   const difference = realStock - product.current_stock;
 
                   return (
-                    <tr key={product.product_id} className="hover:bg-gray-50">
+                    <tr key={product.product_id} className="hover:bg-gray-50 dark:hover:bg-neutral-950">
                       <td className="px-4 py-3">
                         <div>
-                          <p className="font-medium text-gray-900">{product.product_name}</p>
-                          <p className="text-xs text-gray-500 capitalize">
+                          <p className="font-medium text-gray-900 dark:text-neutral-100">{product.product_name}</p>
+                          <p className="text-xs text-gray-500 dark:text-neutral-400 capitalize">
                             {product.category.replace('_', ' ')}
                           </p>
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className="font-medium text-gray-600">
+                        <span className="font-medium text-gray-600 dark:text-neutral-300">
                           {product.current_stock}
                         </span>
                       </td>
@@ -215,17 +215,17 @@ export default function InventoryCountPage() {
                           onChange={(e) => updateRealStock(product.product_id, e.target.value)}
                           min="0"
                           required
-                          className="w-full px-3 py-2 text-center font-bold border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                          className="w-full px-3 py-2 text-center font-bold border-2 border-gray-200 dark:border-neutral-700 rounded-lg focus:border-blue-500 focus:outline-none"
                         />
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span
                           className={`font-bold ${
                             difference > 0
-                              ? 'text-green-600'
+                              ? 'text-green-600 dark:text-green-400'
                               : difference < 0
-                              ? 'text-red-600'
-                              : 'text-gray-500'
+                              ? 'text-red-600 dark:text-red-400'
+                              : 'text-gray-500 dark:text-neutral-400'
                           }`}
                         >
                           {difference !== 0 && (difference > 0 ? '+' : '')}{difference !== 0 ? difference : '-'}
@@ -239,9 +239,9 @@ export default function InventoryCountPage() {
           </div>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-200 bg-gray-50">
+          <div className="p-6 border-t border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-950">
             {error && (
-              <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
+              <div className="mb-4 p-3 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 rounded-lg text-sm">
                 {error}
               </div>
             )}
@@ -329,12 +329,12 @@ function AddProductModal({ onClose, onSuccess }: AddProductModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md p-6">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
         <h2 className="text-xl font-bold mb-4">Agregar Producto</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Nombre *
             </label>
             <input
@@ -343,18 +343,18 @@ function AddProductModal({ onClose, onSuccess }: AddProductModalProps) {
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="Ej: Corona Extra"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Categoría *
             </label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             >
               <option value="cerveza">Cerveza</option>
               <option value="licor">Licor</option>
@@ -365,7 +365,7 @@ function AddProductModal({ onClose, onSuccess }: AddProductModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Precio de Venta *
             </label>
             <input
@@ -375,12 +375,12 @@ function AddProductModal({ onClose, onSuccess }: AddProductModalProps) {
               required
               min="0"
               placeholder="5000"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
               Stock Mínimo
             </label>
             <input
@@ -388,12 +388,12 @@ function AddProductModal({ onClose, onSuccess }: AddProductModalProps) {
               value={minStock}
               onChange={(e) => setMinStock(e.target.value)}
               min="0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
             />
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">{error}</div>
+            <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-3 rounded-lg">{error}</div>
           )}
 
           <div className="flex gap-3 pt-4">

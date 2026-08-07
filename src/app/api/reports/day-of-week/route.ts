@@ -17,7 +17,7 @@ export async function GET() {
       { data: productRows, error: productError },
       { data: occurrenceRows, error: occurrenceError },
     ] = await Promise.all([
-      supabaseAdmin.from('v_sales_by_dow').select('dow, sales_count'),
+      supabaseAdmin.from('v_sales_by_dow').select('dow, sales_count, revenue'),
       supabaseAdmin
         .from('v_product_sales_by_dow')
         .select('product_name, dow, day_units, day_revenue, pct_of_total, total_units'),
