@@ -55,9 +55,67 @@ export interface WeekOfMonthEntry {
   avg_revenue: number;
 }
 
+export interface DayConcentrationItem {
+  dom: number;
+  avg_revenue: number;
+  pct_of_total: number;
+  cumulative_pct: number;
+}
+
+export interface DayConcentration {
+  total_avg_revenue: number;
+  items: DayConcentrationItem[]; // días con datos, ordenados de mayor a menor ingreso promedio
+  days_for_50pct: number;
+  days_for_80pct: number;
+}
+
 export interface MonthCyclePayload {
   by_day: DomEntry[];
   by_week: WeekOfMonthEntry[];
+  concentration: DayConcentration;
+}
+
+/**
+ * Pareto por día del mes: ordena los días por su ingreso promedio y calcula cuántos días
+ * concentran el 50% y el 80% de los ingresos de un mes típico. Usa avg_revenue (no el total
+ * crudo) para que un día con pocas ocurrencias no se vea artificialmente bajo.
+ */
+export function buildDayConcentration(byDay: DomEntry[]): DayConcentration {
+  const withData = byDay.filter((d) => d.avg_revenue > 0);
+  const total = withData.reduce((sum, d) => sum + d.avg_revenue, 0);
+  const sorted = [...withData].sort((a, b) => b.avg_revenue - a.avg_revenue);
+
+  let cumulative = 0;
+  let daysFor50 = sorted.length;
+  let daysFor80 = sorted.length;
+  let reached50 = false;
+  let reached80 = false;
+
+  const items: DayConcentrationItem[] = sorted.map((d, idx) => {
+    cumulative += d.avg_revenue;
+    const cumulativePct = total > 0 ? Math.round((cumulative / total) * 1000) / 10 : 0;
+    if (!reached50 && cumulativePct >= 50) {
+      daysFor50 = idx + 1;
+      reached50 = true;
+    }
+    if (!reached80 && cumulativePct >= 80) {
+      daysFor80 = idx + 1;
+      reached80 = true;
+    }
+    return {
+      dom: d.dom,
+      avg_revenue: d.avg_revenue,
+      pct_of_total: total > 0 ? Math.round((d.avg_revenue / total) * 1000) / 10 : 0,
+      cumulative_pct: cumulativePct,
+    };
+  });
+
+  return {
+    total_avg_revenue: total,
+    items,
+    days_for_50pct: daysFor50,
+    days_for_80pct: daysFor80,
+  };
 }
 
 export function buildMonthCyclePayload(
@@ -105,5 +163,5 @@ export function buildMonthCyclePayload(
     });
   }
 
-  return { by_day, by_week };
+  return { by_day, by_week, concentration: buildDayConcentration(by_day) };
 }

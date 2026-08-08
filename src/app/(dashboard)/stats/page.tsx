@@ -88,9 +88,24 @@ interface WeekOfMonthEntry {
   avg_revenue: number;
 }
 
+interface DayConcentrationItem {
+  dom: number;
+  avg_revenue: number;
+  pct_of_total: number;
+  cumulative_pct: number;
+}
+
+interface DayConcentration {
+  total_avg_revenue: number;
+  items: DayConcentrationItem[];
+  days_for_50pct: number;
+  days_for_80pct: number;
+}
+
 interface MonthCycleReport {
   by_day: DomEntry[];
   by_week: WeekOfMonthEntry[];
+  concentration: DayConcentration;
 }
 
 interface InventoryTurnoverReport {
@@ -1174,8 +1189,31 @@ function MonthCycleView({
 
   const monthCycleThClass = 'py-1.5 text-[10px] font-mono uppercase tracking-widest text-gray-500 dark:text-neutral-400';
 
+  // Concentración (Pareto): qué días del mes hacen el 50% / 80% de la plata
+  const conc = report.concentration;
+  const coreItems = conc.items.slice(0, conc.days_for_50pct);
+  const coreDays = new Set(coreItems.map((i) => i.dom));
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+    <div className="space-y-3">
+      {/* Concentración de ingresos por día del mes */}
+      {conc.items.length > 0 && (
+        <div className="bg-violet-50 dark:bg-violet-950 border border-violet-200 dark:border-violet-800 rounded-2xl p-4">
+          <p className="text-2xl font-bold text-violet-900 dark:text-violet-300">
+            {conc.days_for_50pct} día{conc.days_for_50pct !== 1 ? 's' : ''} concentran el 50% de tus ingresos
+          </p>
+          <p className="text-sm text-violet-800 dark:text-violet-400 mt-1">
+            Y con {conc.days_for_80pct} día{conc.days_for_80pct !== 1 ? 's' : ''} del mes ya cubres el 80%. Son tus días fuertes — asegúrate de tener inventario y personal listos para ellos.
+          </p>
+          {coreItems.length > 0 && (
+            <p className="text-[11px] font-mono text-violet-700 dark:text-violet-500 mt-2">
+              Días clave: {coreItems.map((i) => `el ${i.dom}`).join(' · ')}
+            </p>
+          )}
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
       {/* Por semana del mes */}
       <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-gray-100 dark:border-neutral-800 shadow-sm p-4">
         <h3 className="text-sm font-bold text-gray-900 dark:text-neutral-100">Por semana del mes</h3>
@@ -1219,14 +1257,19 @@ function MonthCycleView({
           {report.by_day.map((d) => (
             <div
               key={d.dom}
-              title={`Día ${d.dom}: ${formatCurrency(d.avg_revenue)} en promedio (${d.occurrences} veces en el histórico)`}
-              className={`rounded-lg py-1 text-center ${domIntensityClass(d.avg_revenue, maxDayAvg, d.occurrences)}`}
+              title={`Día ${d.dom}: ${formatCurrency(d.avg_revenue)} en promedio (${d.occurrences} veces en el histórico)${coreDays.has(d.dom) ? ' · día clave (50% de tus ingresos)' : ''}`}
+              className={`rounded-lg py-1 text-center ${domIntensityClass(d.avg_revenue, maxDayAvg, d.occurrences)} ${coreDays.has(d.dom) ? 'ring-2 ring-inset ring-violet-500' : ''}`}
             >
               <p className="text-[9px] font-mono opacity-70">{d.dom}</p>
               <p className="text-[9px] font-bold leading-tight">{d.occurrences > 0 ? formatCompactCOP(d.avg_revenue) : '—'}</p>
             </div>
           ))}
         </div>
+        <p className="text-[9px] font-mono text-gray-400 dark:text-neutral-500 mt-2">
+          <span className="inline-block w-2 h-2 rounded-sm ring-2 ring-inset ring-violet-500 align-middle mr-1" />
+          Días clave = concentran el 50% de los ingresos del mes.
+        </p>
+      </div>
       </div>
     </div>
   );

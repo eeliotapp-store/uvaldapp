@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { buildMonthCyclePayload } from './day-of-month';
+import { buildMonthCyclePayload, buildDayConcentration } from './day-of-month';
+
+// DomEntry mínimo: solo importa avg_revenue para la concentración
+const dom = (d: number, avg: number) => ({
+  dom: d,
+  sales_count: 0,
+  revenue: 0,
+  occurrences: avg > 0 ? 1 : 0,
+  avg_sales_count: 0,
+  avg_revenue: avg,
+});
 
 describe('buildMonthCyclePayload', () => {
   it('siempre devuelve 31 días y 4 semanas, aunque no haya datos', () => {
@@ -63,5 +73,37 @@ describe('buildMonthCyclePayload', () => {
 
     expect(week4.label).toBe('Semana 4 (22–31)');
     expect(week4.avg_revenue).toBe(3562567); // 21375401 / 6 = 3562566.8... -> redondeado
+  });
+
+  it('Pareto por día: cuántos días concentran el 50% y 80% de los ingresos', () => {
+    const days = [dom(1, 50), dom(15, 30), dom(30, 15), dom(5, 5)];
+    const c = buildDayConcentration(days);
+
+    expect(c.total_avg_revenue).toBe(100);
+    expect(c.days_for_50pct).toBe(1); // el día 1 (50) ya es el 50%
+    expect(c.days_for_80pct).toBe(2); // día 1 + día 15 = 80%
+    expect(c.items[0].dom).toBe(1);
+    expect(c.items[0].pct_of_total).toBe(50);
+    expect(c.items[1].cumulative_pct).toBe(80);
+  });
+
+  it('Pareto por día: ignora días sin datos y no explota cuando todo es 0', () => {
+    const c = buildDayConcentration([dom(1, 0), dom(2, 0)]);
+    expect(c.total_avg_revenue).toBe(0);
+    expect(c.items).toHaveLength(0);
+    expect(c.days_for_50pct).toBe(0);
+    expect(c.days_for_80pct).toBe(0);
+  });
+
+  it('buildMonthCyclePayload incluye la concentración por día', () => {
+    const domRows = [
+      { dom: 15, sales_count: 100, revenue: 1_000_000 },
+      { dom: 30, sales_count: 100, revenue: 1_000_000 },
+    ];
+    const occ = [{ dom: 15, day_count: 1 }, { dom: 30, day_count: 1 }];
+
+    const result = buildMonthCyclePayload(domRows, occ, [], []);
+    expect(result.concentration.items).toHaveLength(2);
+    expect(result.concentration.days_for_50pct).toBe(1);
   });
 });
