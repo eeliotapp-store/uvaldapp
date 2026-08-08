@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase/client';
 import { useAuthStore, isOwner } from '@/stores/auth-store';
 import { formatCurrency, formatDate, formatTime, formatDateTime, getShiftTypeLabel } from '@/lib/utils';
 import type { ShiftSummary } from '@/types/database';
@@ -23,22 +22,15 @@ export default function ShiftHistoryPage() {
   const loadShifts = async () => {
     setIsLoading(true);
     try {
-      let query = supabase
-        .from('v_shift_summary')
-        .select('*')
-        .order('start_time', { ascending: false });
+      const params = new URLSearchParams();
+      if (filters.start_date) params.set('start_date', filters.start_date);
+      if (filters.end_date) params.set('end_date', filters.end_date);
 
-      if (filters.start_date) {
-        query = query.gte('start_time', `${filters.start_date}T00:00:00`);
-      }
-      if (filters.end_date) {
-        query = query.lte('start_time', `${filters.end_date}T23:59:59`);
-      }
+      const res = await fetch(`/api/shifts/history?${params}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al cargar el historial');
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-      setShifts((data as ShiftSummary[]) || []);
+      setShifts((data.shifts as ShiftSummary[]) || []);
     } catch (error) {
       console.error('Error loading shifts:', error);
     } finally {
