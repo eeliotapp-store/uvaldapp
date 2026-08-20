@@ -41,3 +41,22 @@ h1, h2, h3 {
   font-family: var(--font-display), var(--font-sans), sans-serif;
   letter-spacing: -0.01em;
 }
+
+/* El popup de <select> no siempre respeta color-scheme: dark (depende del navegador/SO
+   y no se puede controlar con clases dark: de Tailwind, porque el navegador lo dibuja
+   fuera de nuestro CSS). El resultado es texto claro sobre fondo claro, ilegible.
+   Forzamos texto oscuro sobre fondo blanco en las opciones para que siempre se lean,
+   sea cual sea el tema con el que el navegador termine pintando el popup. */
+select option {
+  color: #111827;
+  background-color: #ffffff;
+}
+
+/* Mismo problema con el calendario nativo de <input type="date">: no se puede re-temizar
+   con CSS más allá de esto. Lo fijamos en claro para que sea legible siempre — el input
+   en sí sigue con el estilo oscuro de la app, solo el popup del calendario se ve claro. */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: light;
+}
