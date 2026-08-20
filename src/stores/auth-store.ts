@@ -35,3 +35,6 @@ export const isOwner = (role: EmployeeRole | undefined): boolean =>
 
 export const isSuperAdmin = (role: EmployeeRole | undefined): boolean =>
   role === 'superadmin';
+
+export const isPruebas = (role: EmployeeRole | undefined): boolean =>
+  role === 'pruebas';

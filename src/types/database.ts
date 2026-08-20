@@ -1,6 +1,6 @@
 // Tipos generados para la base de datos
 
-export type EmployeeRole = 'employee' | 'owner' | 'superadmin';
+export type EmployeeRole = 'employee' | 'owner' | 'superadmin' | 'pruebas';
 export type ShiftType = 'day' | 'night';
 export type PaymentMethod = 'cash' | 'transfer' | 'mixed' | 'fiado';
 export type SaleStatus = 'open' | 'closed' | 'voided';

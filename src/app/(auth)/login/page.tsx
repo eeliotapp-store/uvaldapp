@@ -41,8 +41,10 @@ export default function LoginPage() {
       login(data.employee);
 
       // Redirigir según rol
-      if (data.employee.role === 'owner') {
+      if (data.employee.role === 'owner' || data.employee.role === 'superadmin') {
         router.push('/');
+      } else if (data.employee.role === 'pruebas') {
+        router.push('/demo');
       } else {
         router.push('/pos');
       }

@@ -56,6 +56,21 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
+  // Cuenta de capacitación (rol 'pruebas'): confinada a /demo, sin acceso a
+  // datos reales. Las pantallas de /demo usan datos quemados y nunca llaman
+  // a estos endpoints, pero esto es la barrera de servidor por si acaso.
+  if (payload.role === 'pruebas') {
+    if (path.startsWith('/api/') && !path.startsWith('/api/auth')) {
+      return NextResponse.json(
+        { error: 'Cuenta de práctica: sin acceso a datos reales' },
+        { status: 403 }
+      );
+    }
+    if (!path.startsWith('/demo')) {
+      return NextResponse.redirect(new URL('/demo', request.url));
+    }
+  }
+
   // Verificar permisos de owner/superadmin para páginas
   const isOwnerPath = OWNER_ONLY_PATHS.some((p) => path.startsWith(p));
   if (isOwnerPath && payload.role !== 'owner' && payload.role !== 'superadmin') {
@@ -109,6 +124,7 @@ export const config = {
     '/admin/:path*',
     '/audit/:path*',
     '/combos/:path*',
+    '/demo/:path*',
     '/employees/:path*',
     '/fiados/:path*',
     '/inventory/:path*',
