@@ -3,6 +3,8 @@ import { create } from 'zustand';
 // Estado 100% local para la cuenta de capacitación (rol 'pruebas').
 // Nada de lo que hay aquí toca Supabase ni /api/* — es solo para practicar
 // la mecánica de la app (mesas, ventas, turno) con datos de mentira.
+// La forma de las acciones (guardar mesa, cobrar, descartar) sigue a
+// propósito el mismo patrón que /sales en producción.
 
 export interface DemoProduct {
   id: string;
@@ -12,7 +14,7 @@ export interface DemoProduct {
   stock: number;
 }
 
-export interface DemoCartItem {
+export interface DemoLineItem {
   product: DemoProduct;
   quantity: number;
 }
@@ -20,16 +22,19 @@ export interface DemoCartItem {
 export interface DemoTab {
   id: string;
   tableNumber: string;
-  items: DemoCartItem[];
+  items: DemoLineItem[];
   createdAt: string;
 }
 
 export interface DemoClosedSale {
   id: string;
   tableNumber: string;
-  items: DemoCartItem[];
+  items: DemoLineItem[];
   total: number;
-  paymentMethod: 'cash' | 'transfer';
+  paymentMethod: 'cash' | 'transfer' | 'mixed';
+  cashAmount: number;
+  transferAmount: number;
+  cashChange: number;
   closedAt: string;
 }
 
@@ -50,20 +55,31 @@ const INITIAL_PRODUCTS: DemoProduct[] = [
   { id: 'demo-8', name: '3 Cordilleras', category: 'beer_artesanal', sale_price: 8500, stock: 20 },
 ];
 
+function tabTotal(tab: Pick<DemoTab, 'items'>): number {
+  return tab.items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0);
+}
+
 interface DemoState {
   products: DemoProduct[];
   shift: DemoShift | null;
   tabs: DemoTab[];
   closedSales: DemoClosedSale[];
-  nextTabNumber: number;
 
   startShift: (type: 'day' | 'night', cashStart: number) => void;
   closeShift: () => void;
 
-  openTab: () => string;
-  addItemToTab: (tabId: string, product: DemoProduct) => void;
-  decrementItemInTab: (tabId: string, productId: string) => void;
-  closeTab: (tabId: string, paymentMethod: 'cash' | 'transfer') => void;
+  // El modal de venta trabaja con una lista local de items (el contenido final
+  // deseado de la mesa) y esta acción la concilia contra el stock: crea la mesa
+  // si existingTabId es null, o ajusta el stock por la diferencia si ya existía.
+  // Igual efecto que "Guardar (Cuenta Abierta)" en /sales.
+  upsertTab: (existingTabId: string | null, tableNumber: string, items: DemoLineItem[]) => string;
+  // Devuelve el stock de los items de la mesa y la elimina — igual que "Descartar cuenta".
+  discardTab: (tabId: string) => void;
+  // Cierra y cobra la mesa — igual que "Dar la Cuenta" + "Confirmar Pago".
+  closeTab: (
+    tabId: string,
+    payment: { method: 'cash' | 'transfer' | 'mixed'; cashAmount: number; transferAmount: number; cashChange: number }
+  ) => void;
 
   adjustStock: (productId: string, delta: number) => void;
 
@@ -75,86 +91,93 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   shift: null,
   tabs: [],
   closedSales: [],
-  nextTabNumber: 1,
 
   startShift: (type, cashStart) => {
     set({ shift: { type, cashStart, startedAt: new Date().toISOString() } });
   },
 
   closeShift: () => {
-    set({ shift: null, tabs: [], closedSales: [], products: INITIAL_PRODUCTS, nextTabNumber: 1 });
+    set({ shift: null, tabs: [], closedSales: [], products: INITIAL_PRODUCTS });
   },
 
-  openTab: () => {
-    const { tabs, nextTabNumber } = get();
-    const id = `tab-${Date.now()}`;
-    const tableNumber = `Mesa ${nextTabNumber}`;
-    set({
-      tabs: [...tabs, { id, tableNumber, items: [], createdAt: new Date().toISOString() }],
-      nextTabNumber: nextTabNumber + 1,
+  upsertTab: (existingTabId, tableNumber, items) => {
+    const { tabs, products } = get();
+    const cleanItems = items.filter((i) => i.quantity > 0);
+
+    if (existingTabId) {
+      const existingTab = tabs.find((t) => t.id === existingTabId);
+      const oldQtyByProduct: Record<string, number> = {};
+      existingTab?.items.forEach((i) => {
+        oldQtyByProduct[i.product.id] = (oldQtyByProduct[i.product.id] || 0) + i.quantity;
+      });
+      const newQtyByProduct: Record<string, number> = {};
+      cleanItems.forEach((i) => {
+        newQtyByProduct[i.product.id] = (newQtyByProduct[i.product.id] || 0) + i.quantity;
+      });
+      // Delta positivo = se agregó (descuenta stock), negativo = se quitó (devuelve stock)
+      const productIds = new Set([...Object.keys(oldQtyByProduct), ...Object.keys(newQtyByProduct)]);
+      const updatedProducts = products.map((p) => {
+        if (!productIds.has(p.id)) return p;
+        const delta = (newQtyByProduct[p.id] || 0) - (oldQtyByProduct[p.id] || 0);
+        return delta ? { ...p, stock: Math.max(0, p.stock - delta) } : p;
+      });
+
+      const updatedTabs = tabs.map((tab) =>
+        tab.id === existingTabId ? { ...tab, items: cleanItems } : tab
+      );
+      set({ tabs: updatedTabs, products: updatedProducts });
+      return existingTabId;
+    }
+
+    const stockDelta: Record<string, number> = {};
+    cleanItems.forEach((i) => {
+      stockDelta[i.product.id] = (stockDelta[i.product.id] || 0) + i.quantity;
     });
+    const updatedProducts = products.map((p) =>
+      stockDelta[p.id] ? { ...p, stock: Math.max(0, p.stock - stockDelta[p.id]) } : p
+    );
+
+    const id = `tab-${Date.now()}`;
+    const tab: DemoTab = {
+      id,
+      tableNumber: tableNumber.trim() || 'Sin número',
+      items: cleanItems,
+      createdAt: new Date().toISOString(),
+    };
+    set({ tabs: [...tabs, tab], products: updatedProducts });
     return id;
   },
 
-  addItemToTab: (tabId, product) => {
-    const { tabs, products } = get();
-    const stockItem = products.find((p) => p.id === product.id);
-    if (!stockItem || stockItem.stock <= 0) return;
-
-    const updatedTabs = tabs.map((tab) => {
-      if (tab.id !== tabId) return tab;
-      const existing = tab.items.find((i) => i.product.id === product.id);
-      const items = existing
-        ? tab.items.map((i) =>
-            i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
-          )
-        : [...tab.items, { product, quantity: 1 }];
-      return { ...tab, items };
-    });
-
-    const updatedProducts = products.map((p) =>
-      p.id === product.id ? { ...p, stock: p.stock - 1 } : p
-    );
-
-    set({ tabs: updatedTabs, products: updatedProducts });
-  },
-
-  decrementItemInTab: (tabId, productId) => {
+  discardTab: (tabId) => {
     const { tabs, products } = get();
     const tab = tabs.find((t) => t.id === tabId);
-    const item = tab?.items.find((i) => i.product.id === productId);
-    if (!tab || !item) return;
+    if (!tab) return;
 
-    const updatedTabs = tabs.map((t) => {
-      if (t.id !== tabId) return t;
-      const items =
-        item.quantity <= 1
-          ? t.items.filter((i) => i.product.id !== productId)
-          : t.items.map((i) =>
-              i.product.id === productId ? { ...i, quantity: i.quantity - 1 } : i
-            );
-      return { ...t, items };
+    const restoreDelta: Record<string, number> = {};
+    tab.items.forEach((i) => {
+      restoreDelta[i.product.id] = (restoreDelta[i.product.id] || 0) + i.quantity;
     });
-
     const updatedProducts = products.map((p) =>
-      p.id === productId ? { ...p, stock: p.stock + 1 } : p
+      restoreDelta[p.id] ? { ...p, stock: p.stock + restoreDelta[p.id] } : p
     );
 
-    set({ tabs: updatedTabs, products: updatedProducts });
+    set({ tabs: tabs.filter((t) => t.id !== tabId), products: updatedProducts });
   },
 
-  closeTab: (tabId, paymentMethod) => {
+  closeTab: (tabId, payment) => {
     const { tabs, closedSales } = get();
     const tab = tabs.find((t) => t.id === tabId);
     if (!tab || tab.items.length === 0) return;
 
-    const total = tab.items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0);
     const closedSale: DemoClosedSale = {
       id: tab.id,
       tableNumber: tab.tableNumber,
       items: tab.items,
-      total,
-      paymentMethod,
+      total: tabTotal(tab),
+      paymentMethod: payment.method,
+      cashAmount: payment.cashAmount,
+      transferAmount: payment.transferAmount,
+      cashChange: payment.cashChange,
       closedAt: new Date().toISOString(),
     };
 
@@ -174,6 +197,8 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   },
 
   reset: () => {
-    set({ products: INITIAL_PRODUCTS, shift: null, tabs: [], closedSales: [], nextTabNumber: 1 });
+    set({ products: INITIAL_PRODUCTS, shift: null, tabs: [], closedSales: [] });
   },
 }));
+
+export { tabTotal };

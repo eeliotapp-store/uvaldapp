@@ -22,9 +22,9 @@ export default function DemoCloseShiftPage() {
     );
   }
 
-  const cashSales = closedSales.filter((s) => s.paymentMethod === 'cash').reduce((sum, s) => sum + s.total, 0);
-  const transferSales = closedSales.filter((s) => s.paymentMethod === 'transfer').reduce((sum, s) => sum + s.total, 0);
-  const totalSales = cashSales + transferSales;
+  const cashSales = closedSales.reduce((sum, s) => sum + s.cashAmount, 0);
+  const transferSales = closedSales.reduce((sum, s) => sum + s.transferAmount, 0);
+  const totalSales = closedSales.reduce((sum, s) => sum + s.total, 0);
   const expectedCash = shift.cashStart + cashSales;
   const cashEndValue = parseFloat(cashEnd) || 0;
   const difference = cashEndValue - expectedCash;
