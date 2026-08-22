@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDemoStore } from '@/stores/demo-store';
+import { useDemoStore, fiadoPaid } from '@/stores/demo-store';
 import { formatCurrency, getShiftTypeLabel, formatDateTime } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 export default function DemoCloseShiftPage() {
   const router = useRouter();
-  const { shift, closedSales, tabs, closeShift } = useDemoStore();
+  const { shift, closedSales, tabs, fiados, closeShift } = useDemoStore();
   const [cashEnd, setCashEnd] = useState('');
 
   if (!shift) {
@@ -22,8 +22,13 @@ export default function DemoCloseShiftPage() {
     );
   }
 
-  const cashSales = closedSales.reduce((sum, s) => sum + s.cashAmount, 0);
-  const transferSales = closedSales.reduce((sum, s) => sum + s.transferAmount, 0);
+  // Los pagos parciales de mesas todavía abiertas ya son dinero cobrado — cuentan
+  // para la caja aunque la mesa no se haya cerrado (igual que en producción).
+  const partialCash = tabs.reduce((sum, t) => sum + t.partialPayments.reduce((s, p) => s + p.cashAmount, 0), 0);
+  const partialTransfer = tabs.reduce((sum, t) => sum + t.partialPayments.reduce((s, p) => s + p.transferAmount, 0), 0);
+
+  const cashSales = closedSales.reduce((sum, s) => sum + s.cashAmount, 0) + partialCash;
+  const transferSales = closedSales.reduce((sum, s) => sum + s.transferAmount, 0) + partialTransfer;
   const totalSales = closedSales.reduce((sum, s) => sum + s.total, 0);
   const expectedCash = shift.cashStart + cashSales;
   const cashEndValue = parseFloat(cashEnd) || 0;
@@ -83,6 +88,14 @@ export default function DemoCloseShiftPage() {
             <span className="text-gray-600 dark:text-neutral-300">Mesas cerradas</span>
             <span className="font-medium">{closedSales.length}</span>
           </div>
+          {fiados.length > 0 && (
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-neutral-300">Fiados generados</span>
+              <span className="font-medium text-amber-600 dark:text-amber-400">
+                {fiados.length} ({formatCurrency(fiados.reduce((s, f) => s + Math.max(0, f.fiadoAmount - fiadoPaid(f)), 0))} pendiente)
+              </span>
+            </div>
+          )}
           <div className="flex justify-between border-t border-gray-200 dark:border-neutral-700 pt-3">
             <span className="font-bold">Total ventas del turno</span>
             <span className="font-bold text-xl text-green-600 dark:text-green-400">{formatCurrency(totalSales)}</span>

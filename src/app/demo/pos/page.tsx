@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDemoStore, tabTotal, type DemoProduct, type DemoLineItem, type DemoTab } from '@/stores/demo-store';
+import { useDemoStore, tabTotal, tabPaid, type DemoProduct, type DemoLineItem, type DemoTab, type PayMethod } from '@/stores/demo-store';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -63,9 +63,17 @@ export default function DemoPosPage() {
                     <span className="font-bold text-lg text-amber-800 dark:text-amber-400">
                       Mesa {tab.tableNumber}
                     </span>
-                    <span className="text-xl font-bold text-gray-900 dark:text-neutral-100">
-                      {formatCurrency(tabTotal(tab))}
-                    </span>
+                    <div className="text-right">
+                      <span className="text-xl font-bold text-gray-900 dark:text-neutral-100">
+                        {formatCurrency(tabTotal(tab))}
+                      </span>
+                      {tabPaid(tab) > 0 && (
+                        <div className="text-xs mt-1">
+                          <span className="text-green-600 dark:text-green-400">Pagado: {formatCurrency(tabPaid(tab))}</span>
+                          <span className="text-amber-600 dark:text-amber-400 ml-2">Resta: {formatCurrency(tabTotal(tab) - tabPaid(tab))}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="text-sm text-gray-600 dark:text-neutral-300">
                     {tab.items.length === 0 ? (
@@ -117,10 +125,10 @@ export default function DemoPosPage() {
 }
 
 type Step = 'products' | 'payment';
-type PaymentMethod = 'cash' | 'transfer' | 'mixed';
+type PaymentMethod = PayMethod | 'fiado';
 
 function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onClose: () => void }) {
-  const { products, upsertTab, closeTab } = useDemoStore();
+  const { products, upsertTab, closeTab, closeTabAsFiado } = useDemoStore();
 
   const [step, setStep] = useState<Step>('products');
   const [tableNumber, setTableNumber] = useState(existingTab?.tableNumber || '');
@@ -128,30 +136,36 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
   const [selectedProductId, setSelectedProductId] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [committedTabId, setCommittedTabId] = useState<string | null>(existingTab?.id || null);
+  const [showPartialModal, setShowPartialModal] = useState(false);
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [cashReceived, setCashReceived] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
   const [cashAmountMixed, setCashAmountMixed] = useState('');
+  const [fiadoCustomerName, setFiadoCustomerName] = useState('');
+  const [fiadoAbono, setFiadoAbono] = useState('');
 
   const total = items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0);
+  const alreadyPaid = existingTab ? tabPaid(existingTab) : 0;
+  const totalToPay = Math.max(0, total - alreadyPaid);
 
   const getChange = () => {
-    if (paymentMethod === 'cash') return Math.max(0, (parseFloat(cashReceived) || 0) - total);
+    if (paymentMethod === 'cash') return Math.max(0, (parseFloat(cashReceived) || 0) - totalToPay);
     if (paymentMethod === 'mixed') {
       const paid = (parseFloat(transferAmount) || 0) + (parseFloat(cashAmountMixed) || 0);
-      return Math.max(0, paid - total);
+      return Math.max(0, paid - totalToPay);
     }
     return 0;
   };
 
   const canConfirmPayment = () => {
     if (paymentMethod === 'transfer') return true;
-    if (paymentMethod === 'cash') return (parseFloat(cashReceived) || 0) >= total;
+    if (paymentMethod === 'cash') return (parseFloat(cashReceived) || 0) >= totalToPay;
     if (paymentMethod === 'mixed') {
       const paid = (parseFloat(transferAmount) || 0) + (parseFloat(cashAmountMixed) || 0);
-      return paid >= total;
+      return paid >= totalToPay;
     }
+    if (paymentMethod === 'fiado') return fiadoCustomerName.trim().length > 0;
     return false;
   };
 
@@ -206,10 +220,10 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
     if (!committedTabId || !paymentMethod) return;
     const change = getChange();
     if (paymentMethod === 'cash') {
-      closeTab(committedTabId, { method: 'cash', cashAmount: total, transferAmount: 0, cashChange: change });
+      closeTab(committedTabId, { method: 'cash', cashAmount: totalToPay, transferAmount: 0, cashChange: change });
     } else if (paymentMethod === 'transfer') {
-      closeTab(committedTabId, { method: 'transfer', cashAmount: 0, transferAmount: total, cashChange: 0 });
-    } else {
+      closeTab(committedTabId, { method: 'transfer', cashAmount: 0, transferAmount: totalToPay, cashChange: 0 });
+    } else if (paymentMethod === 'mixed') {
       const cashAmountMixedNum = parseFloat(cashAmountMixed) || 0;
       closeTab(committedTabId, {
         method: 'mixed',
@@ -217,6 +231,8 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
         transferAmount: parseFloat(transferAmount) || 0,
         cashChange: change,
       });
+    } else {
+      closeTabAsFiado(committedTabId, fiadoCustomerName, parseFloat(fiadoAbono) || 0);
     }
     onClose();
   };
@@ -335,12 +351,15 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
           ) : (
             <div className="space-y-6">
               <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-4 text-center">
-                <p className="text-gray-600 dark:text-neutral-300 text-sm">Total a cobrar</p>
-                <p className="text-3xl font-bold text-amber-700 dark:text-amber-400">{formatCurrency(total)}</p>
+                <p className="text-gray-600 dark:text-neutral-300 text-sm">{alreadyPaid > 0 ? 'Restante a cobrar' : 'Total a cobrar'}</p>
+                <p className="text-3xl font-bold text-amber-700 dark:text-amber-400">{formatCurrency(totalToPay)}</p>
+                {alreadyPaid > 0 && (
+                  <p className="text-sm text-green-600 dark:text-green-400 mt-1">(Pagos parciales: {formatCurrency(alreadyPaid)} de {formatCurrency(total)})</p>
+                )}
               </div>
 
-              <div className="grid grid-cols-3 gap-2">
-                {(['cash', 'transfer', 'mixed'] as PaymentMethod[]).map((method) => (
+              <div className="grid grid-cols-4 gap-2">
+                {(['cash', 'transfer', 'mixed', 'fiado'] as PaymentMethod[]).map((method) => (
                   <button
                     key={method}
                     onClick={() => setPaymentMethod(method)}
@@ -350,8 +369,8 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
                         : 'border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600'
                     }`}
                   >
-                    <div className="text-2xl mb-1">{method === 'cash' ? '💵' : method === 'transfer' ? '📱' : '💳'}</div>
-                    <p className="font-medium text-xs">{method === 'cash' ? 'Efectivo' : method === 'transfer' ? 'Transfer.' : 'Mixto'}</p>
+                    <div className="text-2xl mb-1">{method === 'cash' ? '💵' : method === 'transfer' ? '📱' : method === 'mixed' ? '💳' : '📝'}</div>
+                    <p className="font-medium text-xs">{method === 'cash' ? 'Efectivo' : method === 'transfer' ? 'Transfer.' : method === 'mixed' ? 'Mixto' : 'Fiado'}</p>
                   </button>
                 ))}
               </div>
@@ -379,8 +398,45 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
               {paymentMethod === 'transfer' && (
                 <div className="bg-blue-50 dark:bg-blue-950 rounded-xl p-6 text-center">
                   <p className="text-gray-700 dark:text-neutral-300 mb-2">Solicita la transferencia por:</p>
-                  <p className="text-3xl font-bold text-blue-700 dark:text-blue-400 mb-2">{formatCurrency(total)}</p>
+                  <p className="text-3xl font-bold text-blue-700 dark:text-blue-400 mb-2">{formatCurrency(totalToPay)}</p>
                   <p className="text-sm text-gray-500 dark:text-neutral-400">Verifica el comprobante antes de confirmar</p>
+                </div>
+              )}
+
+              {paymentMethod === 'fiado' && (
+                <div className="space-y-4">
+                  <div className="bg-amber-50 dark:bg-amber-950 rounded-xl p-4 text-center">
+                    <p className="text-amber-700 dark:text-amber-400 text-sm font-medium">⚠️ Esta venta quedará como fiado</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Nombre del cliente *</label>
+                    <input
+                      type="text"
+                      value={fiadoCustomerName}
+                      onChange={(e) => setFiadoCustomerName(e.target.value)}
+                      className="w-full px-4 py-3 text-lg border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-amber-500"
+                      placeholder="¿A quién se le fía?"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Abono (opcional)</label>
+                    <input
+                      type="number"
+                      value={fiadoAbono}
+                      onChange={(e) => setFiadoAbono(e.target.value)}
+                      className="w-full px-4 py-3 text-lg font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-green-500"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="bg-amber-100 dark:bg-amber-900 rounded-lg p-4">
+                    <div className="flex justify-between text-lg">
+                      <span className="font-medium">Queda debiendo:</span>
+                      <span className="text-amber-700 dark:text-amber-400 font-bold">
+                        {formatCurrency(Math.max(0, totalToPay - (parseFloat(fiadoAbono) || 0)))}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -451,6 +507,15 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
                     Descartar cuenta
                   </Button>
                 )}
+                {existingTab && existingTab.items.length > 0 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowPartialModal(true)}
+                    className="flex-1 min-w-[100px] border-green-500 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950"
+                  >
+                    Pago Parcial
+                  </Button>
+                )}
                 <Button variant="secondary" onClick={handleSaveOpen} disabled={items.length === 0 && !existingTab} className="flex-1 min-w-[100px]">
                   Guardar (Cuenta Abierta)
                 </Button>
@@ -477,6 +542,149 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
               </Button>
             </div>
           )}
+        </div>
+      </div>
+
+      {showPartialModal && existingTab && (
+        <PartialPaymentModal tab={existingTab} onClose={() => setShowPartialModal(false)} />
+      )}
+    </div>
+  );
+}
+
+function PartialPaymentModal({ tab, onClose }: { tab: DemoTab; onClose: () => void }) {
+  const addPartialPayment = useDemoStore((s) => s.addPartialPayment);
+  const total = tabTotal(tab);
+  const paid = tabPaid(tab);
+  const remaining = Math.max(0, total - paid);
+
+  const [amount, setAmount] = useState(remaining.toString());
+  const [method, setMethod] = useState<PayMethod>('cash');
+  const [cashReceived, setCashReceived] = useState(remaining.toString());
+  const [transferAmount, setTransferAmount] = useState('');
+  const [cashAmountMixed, setCashAmountMixed] = useState('');
+
+  const amountNum = parseFloat(amount) || 0;
+
+  const canConfirm = () => {
+    if (amountNum <= 0) return false;
+    if (method === 'transfer') return true;
+    if (method === 'cash') return (parseFloat(cashReceived) || 0) >= amountNum;
+    const paidNow = (parseFloat(transferAmount) || 0) + (parseFloat(cashAmountMixed) || 0);
+    return paidNow >= amountNum;
+  };
+
+  const handleConfirm = () => {
+    if (method === 'cash') {
+      addPartialPayment(tab.id, amountNum, 'cash', amountNum, 0);
+    } else if (method === 'transfer') {
+      addPartialPayment(tab.id, amountNum, 'transfer', 0, amountNum);
+    } else {
+      addPartialPayment(tab.id, amountNum, 'mixed', parseFloat(cashAmountMixed) || 0, parseFloat(transferAmount) || 0);
+    }
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6 space-y-4">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-neutral-100">
+          Pago Parcial — Mesa {tab.tableNumber}
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-neutral-400">
+          Total: {formatCurrency(total)} · Pagado: {formatCurrency(paid)} · Restante:{' '}
+          <span className="font-medium text-amber-600 dark:text-amber-400">{formatCurrency(remaining)}</span>
+        </p>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Monto a cobrar</label>
+          <input
+            type="number"
+            value={amount}
+            onChange={(e) => {
+              setAmount(e.target.value);
+              if (method === 'cash') setCashReceived(e.target.value);
+            }}
+            className="w-full px-4 py-3 text-xl font-bold text-center border-2 border-gray-200 dark:border-neutral-700 rounded-xl focus:border-green-500 outline-none"
+            placeholder="0"
+            autoFocus
+          />
+          <button
+            onClick={() => {
+              setAmount(remaining.toString());
+              if (method === 'cash') setCashReceived(remaining.toString());
+            }}
+            className="mt-2 w-full text-xs py-1.5 border border-green-300 text-green-700 dark:text-green-400 rounded-lg hover:bg-green-50 dark:hover:bg-green-950"
+          >
+            Cobrar todo ({formatCurrency(remaining)})
+          </button>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-2">Método de pago</label>
+          <div className="grid grid-cols-3 gap-2">
+            {(['cash', 'transfer', 'mixed'] as PayMethod[]).map((m) => (
+              <button
+                key={m}
+                onClick={() => {
+                  setMethod(m);
+                  if (m === 'cash') setCashReceived(amount);
+                }}
+                className={`py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                  method === m ? 'border-green-500 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400' : 'border-gray-200 dark:border-neutral-700 text-gray-600 dark:text-neutral-300'
+                }`}
+              >
+                {m === 'cash' ? '💵 Efectivo' : m === 'transfer' ? '📱 Transfer.' : '💳 Mixto'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {method === 'cash' && (
+          <div>
+            <label className="block text-xs text-gray-600 dark:text-neutral-300 mb-1">Efectivo recibido</label>
+            <input
+              type="number"
+              value={cashReceived}
+              onChange={(e) => setCashReceived(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
+              placeholder="0"
+            />
+          </div>
+        )}
+
+        {method === 'mixed' && (
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-600 dark:text-neutral-300 mb-1">Efectivo</label>
+              <input
+                type="number"
+                value={cashAmountMixed}
+                onChange={(e) => setCashAmountMixed(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
+                placeholder="0"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-600 dark:text-neutral-300 mb-1">Transferencia</label>
+              <input
+                type="number"
+                value={transferAmount}
+                onChange={(e) => setTransferAmount(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-center"
+                placeholder="0"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-3 pt-1">
+          <Button variant="outline" onClick={onClose} className="flex-1">
+            Cancelar
+          </Button>
+          <Button onClick={handleConfirm} disabled={!canConfirm()} className="flex-1 bg-green-600 hover:bg-green-700">
+            Confirmar pago
+          </Button>
         </div>
       </div>
     </div>

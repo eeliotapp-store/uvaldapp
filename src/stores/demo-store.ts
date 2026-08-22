@@ -2,9 +2,11 @@ import { create } from 'zustand';
 
 // Estado 100% local para la cuenta de capacitación (rol 'pruebas').
 // Nada de lo que hay aquí toca Supabase ni /api/* — es solo para practicar
-// la mecánica de la app (mesas, ventas, turno) con datos de mentira.
-// La forma de las acciones (guardar mesa, cobrar, descartar) sigue a
-// propósito el mismo patrón que /sales en producción.
+// la mecánica de la app (mesas, ventas, turno, fiados, pagos parciales,
+// observaciones) con datos de mentira. La forma de las acciones sigue a
+// propósito el mismo patrón que /sales, /fiados y /observations en producción.
+
+export type PayMethod = 'cash' | 'transfer' | 'mixed';
 
 export interface DemoProduct {
   id: string;
@@ -19,10 +21,20 @@ export interface DemoLineItem {
   quantity: number;
 }
 
+export interface DemoPartialPayment {
+  id: string;
+  amount: number;
+  method: PayMethod;
+  cashAmount: number;
+  transferAmount: number;
+  createdAt: string;
+}
+
 export interface DemoTab {
   id: string;
   tableNumber: string;
   items: DemoLineItem[];
+  partialPayments: DemoPartialPayment[];
   createdAt: string;
 }
 
@@ -31,11 +43,31 @@ export interface DemoClosedSale {
   tableNumber: string;
   items: DemoLineItem[];
   total: number;
-  paymentMethod: 'cash' | 'transfer' | 'mixed';
+  paymentMethod: PayMethod;
   cashAmount: number;
   transferAmount: number;
   cashChange: number;
   closedAt: string;
+}
+
+export interface DemoFiado {
+  id: string;
+  tableNumber: string;
+  customerName: string;
+  items: DemoLineItem[];
+  total: number;
+  fiadoAmount: number; // deuda original (total - abono inicial - pagos parciales previos)
+  abono: number; // abono inicial al momento de fiar
+  paid: boolean;
+  payments: DemoPartialPayment[]; // abonos posteriores
+  createdAt: string;
+  paidAt: string | null;
+}
+
+export interface DemoObservation {
+  id: string;
+  content: string;
+  createdAt: string;
 }
 
 export interface DemoShift {
@@ -59,11 +91,21 @@ function tabTotal(tab: Pick<DemoTab, 'items'>): number {
   return tab.items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0);
 }
 
+function tabPaid(tab: Pick<DemoTab, 'partialPayments'>): number {
+  return tab.partialPayments.reduce((sum, p) => sum + p.amount, 0);
+}
+
+function fiadoPaid(fiado: Pick<DemoFiado, 'payments'>): number {
+  return fiado.payments.reduce((sum, p) => sum + p.amount, 0);
+}
+
 interface DemoState {
   products: DemoProduct[];
   shift: DemoShift | null;
   tabs: DemoTab[];
   closedSales: DemoClosedSale[];
+  fiados: DemoFiado[];
+  observations: DemoObservation[];
 
   startShift: (type: 'day' | 'night', cashStart: number) => void;
   closeShift: () => void;
@@ -75,11 +117,21 @@ interface DemoState {
   upsertTab: (existingTabId: string | null, tableNumber: string, items: DemoLineItem[]) => string;
   // Devuelve el stock de los items de la mesa y la elimina — igual que "Descartar cuenta".
   discardTab: (tabId: string) => void;
-  // Cierra y cobra la mesa — igual que "Dar la Cuenta" + "Confirmar Pago".
+  // Cierra y cobra la mesa completa (efectivo/transferencia/mixto) — igual que
+  // "Dar la Cuenta" + "Confirmar Pago".
   closeTab: (
     tabId: string,
-    payment: { method: 'cash' | 'transfer' | 'mixed'; cashAmount: number; transferAmount: number; cashChange: number }
+    payment: { method: PayMethod; cashAmount: number; transferAmount: number; cashChange: number }
   ) => void;
+  // Cierra la mesa como fiado — igual que elegir método "Fiado" al cobrar.
+  closeTabAsFiado: (tabId: string, customerName: string, abono: number) => void;
+  // Abono parcial sobre una mesa TODAVÍA abierta — igual que "Pago Parcial" en /sales.
+  addPartialPayment: (tabId: string, amount: number, method: PayMethod, cashAmount: number, transferAmount: number) => void;
+  // Abono sobre un fiado ya cerrado — igual que "Registrar pago" en /fiados.
+  addFiadoPayment: (fiadoId: string, amount: number, method: PayMethod, cashAmount: number, transferAmount: number) => void;
+
+  addObservation: (content: string) => void;
+  deleteObservation: (id: string) => void;
 
   adjustStock: (productId: string, delta: number) => void;
 
@@ -91,13 +143,22 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   shift: null,
   tabs: [],
   closedSales: [],
+  fiados: [],
+  observations: [],
 
   startShift: (type, cashStart) => {
     set({ shift: { type, cashStart, startedAt: new Date().toISOString() } });
   },
 
   closeShift: () => {
-    set({ shift: null, tabs: [], closedSales: [], products: INITIAL_PRODUCTS });
+    set({
+      shift: null,
+      tabs: [],
+      closedSales: [],
+      fiados: [],
+      observations: [],
+      products: INITIAL_PRODUCTS,
+    });
   },
 
   upsertTab: (existingTabId, tableNumber, items) => {
@@ -142,6 +203,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       id,
       tableNumber: tableNumber.trim() || 'Sin número',
       items: cleanItems,
+      partialPayments: [],
       createdAt: new Date().toISOString(),
     };
     set({ tabs: [...tabs, tab], products: updatedProducts });
@@ -187,6 +249,90 @@ export const useDemoStore = create<DemoState>((set, get) => ({
     });
   },
 
+  closeTabAsFiado: (tabId, customerName, abono) => {
+    const { tabs, fiados } = get();
+    const tab = tabs.find((t) => t.id === tabId);
+    if (!tab || tab.items.length === 0) return;
+
+    const total = tabTotal(tab);
+    const alreadyPaid = tabPaid(tab); // pagos parciales previos, antes de fiar el resto
+    const fiadoAmount = Math.max(0, total - alreadyPaid - abono);
+
+    const fiado: DemoFiado = {
+      id: tab.id,
+      tableNumber: tab.tableNumber,
+      customerName: customerName.trim() || 'Sin nombre',
+      items: tab.items,
+      total,
+      fiadoAmount,
+      abono,
+      paid: fiadoAmount <= 0,
+      payments: [],
+      createdAt: new Date().toISOString(),
+      paidAt: fiadoAmount <= 0 ? new Date().toISOString() : null,
+    };
+
+    set({
+      tabs: tabs.filter((t) => t.id !== tabId),
+      fiados: [...fiados, fiado],
+    });
+  },
+
+  addPartialPayment: (tabId, amount, method, cashAmount, transferAmount) => {
+    const { tabs } = get();
+    if (amount <= 0) return;
+    const payment: DemoPartialPayment = {
+      id: `pp-${Date.now()}`,
+      amount,
+      method,
+      cashAmount,
+      transferAmount,
+      createdAt: new Date().toISOString(),
+    };
+    set({
+      tabs: tabs.map((t) =>
+        t.id === tabId ? { ...t, partialPayments: [...t.partialPayments, payment] } : t
+      ),
+    });
+  },
+
+  addFiadoPayment: (fiadoId, amount, method, cashAmount, transferAmount) => {
+    const { fiados } = get();
+    if (amount <= 0) return;
+    const payment: DemoPartialPayment = {
+      id: `fp-${Date.now()}`,
+      amount,
+      method,
+      cashAmount,
+      transferAmount,
+      createdAt: new Date().toISOString(),
+    };
+    set({
+      fiados: fiados.map((f) => {
+        if (f.id !== fiadoId) return f;
+        const payments = [...f.payments, payment];
+        const remaining = Math.max(0, f.fiadoAmount - fiadoPaid({ payments }));
+        return { ...f, payments, paid: remaining <= 0, paidAt: remaining <= 0 ? new Date().toISOString() : null };
+      }),
+    });
+  },
+
+  addObservation: (content) => {
+    if (!content.trim()) return;
+    const { observations } = get();
+    set({
+      observations: [
+        { id: `obs-${Date.now()}`, content: content.trim(), createdAt: new Date().toISOString() },
+        ...observations,
+      ],
+    });
+  },
+
+  deleteObservation: (id) => {
+    const { observations } = get();
+    set({ observations: observations.filter((o) => o.id !== id) });
+  },
+
   adjustStock: (productId, delta) => {
     const { products } = get();
     set({
@@ -197,8 +343,15 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   },
 
   reset: () => {
-    set({ products: INITIAL_PRODUCTS, shift: null, tabs: [], closedSales: [] });
+    set({
+      products: INITIAL_PRODUCTS,
+      shift: null,
+      tabs: [],
+      closedSales: [],
+      fiados: [],
+      observations: [],
+    });
   },
 }));
 
-export { tabTotal };
+export { tabTotal, tabPaid, fiadoPaid };
