@@ -6,10 +6,20 @@ import { verifyToken } from '@/lib/auth';
 const PUBLIC_PATHS = ['/login', '/api/auth/login'];
 
 // Rutas solo para owners/superadmin (páginas)
-const OWNER_ONLY_PATHS = ['/reports', '/suppliers', '/employees', '/admin', '/stats', '/products', '/combos'];
+const OWNER_ONLY_PATHS = [
+  '/reports',
+  '/suppliers',
+  '/employees',
+  '/admin',
+  '/stats',
+  '/products',
+  '/combos',
+  '/audit',
+  '/shifts/history',
+];
 
 // APIs solo para owners/superadmin
-const OWNER_ONLY_API_PATHS = ['/api/admin', '/api/reports', '/api/employees'];
+const OWNER_ONLY_API_PATHS = ['/api/admin', '/api/reports', '/api/employees', '/api/audit', '/api/shifts/history'];
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -72,7 +82,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // Verificar permisos de owner/superadmin para páginas
-  const isOwnerPath = OWNER_ONLY_PATHS.some((p) => path.startsWith(p));
+  // '/' se compara exacto (no startsWith) porque toda ruta empieza con '/' —
+  // meterlo en OWNER_ONLY_PATHS con startsWith bloquearía la app entera.
+  const isOwnerPath = path === '/' || OWNER_ONLY_PATHS.some((p) => path.startsWith(p));
   if (isOwnerPath && payload.role !== 'owner' && payload.role !== 'superadmin') {
     return NextResponse.redirect(new URL('/pos', request.url));
   }
