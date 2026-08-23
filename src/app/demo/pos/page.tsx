@@ -2,7 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDemoStore, tabTotal, tabPaid, type DemoProduct, type DemoLineItem, type DemoTab, type PayMethod } from '@/stores/demo-store';
+import {
+  useDemoStore,
+  tabTotal,
+  tabPaid,
+  comboItemsTotal,
+  type DemoProduct,
+  type DemoLineItem,
+  type DemoTab,
+  type DemoCartCombo,
+  type DemoComboTemplate,
+  type PayMethod,
+} from '@/stores/demo-store';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -29,9 +40,9 @@ export default function DemoPosPage() {
   };
 
   const handleDiscard = (tab: DemoTab) => {
-    const hasItems = tab.items.length > 0;
+    const hasItems = tab.items.length > 0 || tab.combos.length > 0;
     const msg = hasItems
-      ? `¿Descartar la cuenta de Mesa ${tab.tableNumber}? Se devolverán los ${tab.items.length} producto(s) al inventario.`
+      ? `¿Descartar la cuenta de Mesa ${tab.tableNumber}? Se devolverán los productos (y combos) al inventario.`
       : `¿Descartar la cuenta vacía de Mesa ${tab.tableNumber}?`;
     if (!confirm(msg)) return;
     discardTab(tab.id);
@@ -76,10 +87,13 @@ export default function DemoPosPage() {
                     </div>
                   </div>
                   <div className="text-sm text-gray-600 dark:text-neutral-300">
-                    {tab.items.length === 0 ? (
+                    {tab.items.length === 0 && tab.combos.length === 0 ? (
                       <span className="text-gray-500 dark:text-neutral-400 italic">Sin productos</span>
                     ) : (
                       <>
+                        {tab.combos.map((c, idx) => (
+                          <span key={`c-${idx}`}>🎁 {c.comboName}{idx < tab.combos.length - 1 || tab.items.length > 0 ? ', ' : ''}</span>
+                        ))}
                         {tab.items.slice(0, 3).map((item, idx) => (
                           <span key={idx}>
                             {item.quantity}x {item.product.name}
@@ -128,13 +142,16 @@ type Step = 'products' | 'payment';
 type PaymentMethod = PayMethod | 'fiado';
 
 function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onClose: () => void }) {
-  const { products, upsertTab, closeTab, closeTabAsFiado } = useDemoStore();
+  const { products, combos, upsertTab, closeTab, closeTabAsFiado } = useDemoStore();
 
   const [step, setStep] = useState<Step>('products');
   const [tableNumber, setTableNumber] = useState(existingTab?.tableNumber || '');
   const [items, setItems] = useState<DemoLineItem[]>(existingTab ? existingTab.items.map((i) => ({ ...i })) : []);
+  const [comboItems, setComboItems] = useState<DemoCartCombo[]>(existingTab ? existingTab.combos.map((c) => ({ ...c })) : []);
   const [selectedProductId, setSelectedProductId] = useState('');
   const [quantity, setQuantity] = useState('1');
+  const [selectedComboId, setSelectedComboId] = useState('');
+  const [editingCombo, setEditingCombo] = useState<DemoComboTemplate | null>(null);
   const [committedTabId, setCommittedTabId] = useState<string | null>(existingTab?.id || null);
   const [showPartialModal, setShowPartialModal] = useState(false);
 
@@ -145,7 +162,7 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
   const [fiadoCustomerName, setFiadoCustomerName] = useState('');
   const [fiadoAbono, setFiadoAbono] = useState('');
 
-  const total = items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0);
+  const total = items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0) + comboItemsTotal(comboItems);
   const alreadyPaid = existingTab ? tabPaid(existingTab) : 0;
   const totalToPay = Math.max(0, total - alreadyPaid);
 
@@ -194,11 +211,41 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
     setItems((prev) => prev.map((i) => (i.product.id === productId ? { ...i, quantity: newQty } : i)));
   };
 
+  const handleSelectCombo = (comboId: string) => {
+    setSelectedComboId('');
+    const template = combos.find((c) => c.id === comboId);
+    if (!template) return;
+
+    const needsModal = template.isPriceEditable || template.items.some((i) => i.isSwappable);
+    if (needsModal) {
+      setEditingCombo(template);
+      return;
+    }
+
+    const resolvedItems: DemoLineItem[] = template.items
+      .map((ti) => {
+        const product = products.find((p) => p.id === ti.productId);
+        return product ? { product, quantity: ti.quantity } : null;
+      })
+      .filter((i): i is DemoLineItem => i !== null);
+
+    setComboItems((prev) => [...prev, { comboId: template.id, comboName: template.name, items: resolvedItems, finalPrice: template.basePrice }]);
+  };
+
+  const handleAddComboFromModal = (cartCombo: DemoCartCombo) => {
+    setComboItems((prev) => [...prev, cartCombo]);
+    setEditingCombo(null);
+  };
+
+  const handleRemoveCombo = (index: number) => {
+    setComboItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleDiscard = () => {
     if (!existingTab) return;
-    const hasItems = existingTab.items.length > 0;
+    const hasItems = existingTab.items.length > 0 || existingTab.combos.length > 0;
     const msg = hasItems
-      ? `¿Descartar esta cuenta? Se devolverán los ${existingTab.items.length} producto(s) al inventario.`
+      ? '¿Descartar esta cuenta? Se devolverán los productos (y combos) al inventario.'
       : '¿Descartar esta cuenta vacía?';
     if (!confirm(msg)) return;
     useDemoStore.getState().discardTab(existingTab.id);
@@ -206,12 +253,12 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
   };
 
   const handleSaveOpen = () => {
-    upsertTab(committedTabId, tableNumber, items);
+    upsertTab(committedTabId, tableNumber, items, comboItems);
     onClose();
   };
 
   const handleGoToPayment = () => {
-    const id = upsertTab(committedTabId, tableNumber, items);
+    const id = upsertTab(committedTabId, tableNumber, items, comboItems);
     setCommittedTabId(id);
     setStep('payment');
   };
@@ -304,13 +351,69 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
                 </div>
               </div>
 
+              <div className="bg-purple-50 dark:bg-purple-950 rounded-xl p-4 mb-4">
+                <h3 className="font-medium text-purple-800 dark:text-purple-400 mb-3">🎁 Agregar Combo</h3>
+                {combos.length > 0 ? (
+                  <select
+                    value={selectedComboId}
+                    onChange={(e) => { if (e.target.value) handleSelectCombo(e.target.value); }}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                  >
+                    <option value="">Seleccionar combo...</option>
+                    {combos.map((combo) => (
+                      <option key={combo.id} value={combo.id}>
+                        {combo.name} - {formatCurrency(combo.basePrice)}
+                        {combo.isPriceEditable ? ' (Editable)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-sm text-purple-600 dark:text-purple-400">No hay combos de ejemplo.</p>
+                )}
+              </div>
+
               <div className="space-y-3">
-                {items.length === 0 ? (
+                {comboItems.length === 0 && items.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 dark:text-neutral-400">
                     <p>No hay productos</p>
-                    <p className="text-sm">Selecciona un producto arriba</p>
+                    <p className="text-sm">Selecciona un producto o combo arriba</p>
                   </div>
                 ) : (
+                  <>
+                    {comboItems.length > 0 && (
+                      <>
+                        <h3 className="font-medium text-gray-700 dark:text-neutral-300">🎁 Combos</h3>
+                        {comboItems.map((c, index) => (
+                          <div key={`combo-${index}`} className="bg-purple-50 dark:bg-purple-950 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <p className="font-medium text-purple-900 dark:text-purple-300">{c.comboName}</p>
+                                <div className="text-xs text-gray-500 dark:text-neutral-400 mt-1">
+                                  {c.items.map((item, i) => (
+                                    <span key={i}>
+                                      {item.quantity}x {item.product.name}
+                                      {i < c.items.length - 1 && ', '}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="font-bold text-purple-700 dark:text-purple-400">{formatCurrency(c.finalPrice)}</span>
+                                <button onClick={() => handleRemoveCombo(index)} className="text-red-500 hover:text-red-700 dark:hover:text-red-400">
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    )}
+                    {items.length > 0 && <h3 className="font-medium text-gray-700 dark:text-neutral-300 mt-4">Productos</h3>}
+                  </>
+                )}
+                {items.length > 0 && (
                   items.map((item) => (
                     <div
                       key={item.product.id}
@@ -507,7 +610,7 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
                     Descartar cuenta
                   </Button>
                 )}
-                {existingTab && existingTab.items.length > 0 && (
+                {existingTab && (existingTab.items.length > 0 || existingTab.combos.length > 0) && (
                   <Button
                     variant="outline"
                     onClick={() => setShowPartialModal(true)}
@@ -516,12 +619,12 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
                     Pago Parcial
                   </Button>
                 )}
-                <Button variant="secondary" onClick={handleSaveOpen} disabled={items.length === 0 && !existingTab} className="flex-1 min-w-[100px]">
+                <Button variant="secondary" onClick={handleSaveOpen} disabled={items.length === 0 && comboItems.length === 0 && !existingTab} className="flex-1 min-w-[100px]">
                   Guardar (Cuenta Abierta)
                 </Button>
                 <Button
                   onClick={handleGoToPayment}
-                  disabled={(items.length === 0 && !existingTab) || total === 0}
+                  disabled={(items.length === 0 && comboItems.length === 0 && !existingTab) || total === 0}
                   className="flex-1 min-w-[100px] bg-amber-500 hover:bg-amber-600 focus:ring-amber-500"
                 >
                   Dar la Cuenta
@@ -548,6 +651,103 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
       {showPartialModal && existingTab && (
         <PartialPaymentModal tab={existingTab} onClose={() => setShowPartialModal(false)} />
       )}
+
+      {editingCombo && (
+        <ComboModal combo={editingCombo} products={products} onClose={() => setEditingCombo(null)} onAdd={handleAddComboFromModal} />
+      )}
+    </div>
+  );
+}
+
+function ComboModal({
+  combo,
+  products,
+  onClose,
+  onAdd,
+}: {
+  combo: DemoComboTemplate;
+  products: DemoProduct[];
+  onClose: () => void;
+  onAdd: (cartCombo: DemoCartCombo) => void;
+}) {
+  const [finalPrice, setFinalPrice] = useState(combo.basePrice.toString());
+  const [selectedProductIds, setSelectedProductIds] = useState<Record<number, string>>(
+    Object.fromEntries(combo.items.map((_, idx) => [idx, combo.items[idx].productId]))
+  );
+
+  const beerProducts = products.filter((p) => p.category.includes('beer'));
+
+  const handleSubmit = () => {
+    const items: DemoLineItem[] = combo.items
+      .map((templateItem, idx) => {
+        const productId = selectedProductIds[idx] || templateItem.productId;
+        const product = products.find((p) => p.id === productId);
+        return product ? { product, quantity: templateItem.quantity } : null;
+      })
+      .filter((i): i is DemoLineItem => i !== null);
+
+    onAdd({
+      comboId: combo.id,
+      comboName: combo.name,
+      items,
+      finalPrice: parseFloat(finalPrice) || combo.basePrice,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+      <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-md p-6">
+        <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-neutral-100">{combo.name}</h2>
+        {combo.description && <p className="text-sm text-gray-500 dark:text-neutral-400 mb-4">{combo.description}</p>}
+
+        {combo.isPriceEditable && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Precio final</label>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-500 dark:text-neutral-400">$</span>
+              <input
+                type="number"
+                value={finalPrice}
+                onChange={(e) => setFinalPrice(e.target.value)}
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-lg font-bold"
+              />
+            </div>
+            <p className="text-xs text-gray-500 dark:text-neutral-400 mt-1">Precio base: {formatCurrency(combo.basePrice)}</p>
+          </div>
+        )}
+
+        <div className="space-y-3 mb-4">
+          <p className="text-sm font-medium text-gray-700 dark:text-neutral-300">Productos incluidos:</p>
+          {combo.items.map((templateItem, index) => (
+            <div key={index} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-neutral-950 rounded-lg">
+              <span className="text-sm font-medium w-8 text-center">{templateItem.quantity}x</span>
+              {templateItem.isSwappable ? (
+                <select
+                  value={selectedProductIds[index] || templateItem.productId}
+                  onChange={(e) => setSelectedProductIds((prev) => ({ ...prev, [index]: e.target.value }))}
+                  className="flex-1 px-2 py-1 border border-gray-300 dark:border-neutral-600 rounded text-sm"
+                >
+                  {beerProducts.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <span className="flex-1 text-sm">{products.find((p) => p.id === templateItem.productId)?.name}</span>
+              )}
+              {templateItem.isSwappable && <span className="text-xs text-blue-600 dark:text-blue-400">* intercambiable</span>}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-3">
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmit} className="flex-1 bg-amber-500 hover:bg-amber-600 focus:ring-amber-500">
+            Agregar {formatCurrency(parseFloat(finalPrice) || combo.basePrice)}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

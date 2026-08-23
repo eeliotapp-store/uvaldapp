@@ -3,8 +3,9 @@ import { create } from 'zustand';
 // Estado 100% local para la cuenta de capacitación (rol 'pruebas').
 // Nada de lo que hay aquí toca Supabase ni /api/* — es solo para practicar
 // la mecánica de la app (mesas, ventas, turno, fiados, pagos parciales,
-// observaciones) con datos de mentira. La forma de las acciones sigue a
-// propósito el mismo patrón que /sales, /fiados y /observations en producción.
+// combos, observaciones) con datos de mentira. La forma de las acciones
+// sigue a propósito el mismo patrón que /sales, /fiados y /observations
+// en producción.
 
 export type PayMethod = 'cash' | 'transfer' | 'mixed';
 
@@ -21,6 +22,30 @@ export interface DemoLineItem {
   quantity: number;
 }
 
+// Plantilla de combo (equivalente a la tabla combos + combo_items real).
+export interface DemoComboTemplateItem {
+  productId: string; // producto por defecto
+  quantity: number;
+  isSwappable: boolean; // si es true, se puede cambiar por otra cerveza al agregarlo
+}
+
+export interface DemoComboTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  basePrice: number;
+  isPriceEditable: boolean;
+  items: DemoComboTemplateItem[];
+}
+
+// Combo ya agregado a una mesa/venta (productos resueltos + precio final elegido).
+export interface DemoCartCombo {
+  comboId: string;
+  comboName: string;
+  items: DemoLineItem[];
+  finalPrice: number;
+}
+
 export interface DemoPartialPayment {
   id: string;
   amount: number;
@@ -34,6 +59,7 @@ export interface DemoTab {
   id: string;
   tableNumber: string;
   items: DemoLineItem[];
+  combos: DemoCartCombo[];
   partialPayments: DemoPartialPayment[];
   createdAt: string;
 }
@@ -42,6 +68,7 @@ export interface DemoClosedSale {
   id: string;
   tableNumber: string;
   items: DemoLineItem[];
+  combos: DemoCartCombo[];
   total: number;
   paymentMethod: PayMethod;
   cashAmount: number;
@@ -55,6 +82,7 @@ export interface DemoFiado {
   tableNumber: string;
   customerName: string;
   items: DemoLineItem[];
+  combos: DemoCartCombo[];
   total: number;
   fiadoAmount: number; // deuda original (total - abono inicial - pagos parciales previos)
   abono: number; // abono inicial al momento de fiar
@@ -87,8 +115,40 @@ const INITIAL_PRODUCTS: DemoProduct[] = [
   { id: 'demo-8', name: '3 Cordilleras', category: 'beer_artesanal', sale_price: 8500, stock: 20 },
 ];
 
-function tabTotal(tab: Pick<DemoTab, 'items'>): number {
-  return tab.items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0);
+const DEMO_COMBOS: DemoComboTemplate[] = [
+  {
+    id: 'combo-1',
+    name: '2 Coronitas',
+    description: '2 Corona Extra a precio de combo',
+    basePrice: 8500,
+    isPriceEditable: false,
+    items: [{ productId: 'demo-1', quantity: 2, isSwappable: false }],
+  },
+  {
+    id: 'combo-2',
+    name: '4 Cervezas Surtidas',
+    description: 'Elige 4 cervezas nacionales',
+    basePrice: 16000,
+    isPriceEditable: false,
+    items: [{ productId: 'demo-6', quantity: 4, isSwappable: true }],
+  },
+  {
+    id: 'combo-3',
+    name: 'Combo Fiesta (6 cervezas)',
+    description: 'Elige 6 cervezas, precio ajustable',
+    basePrice: 24000,
+    isPriceEditable: true,
+    items: [{ productId: 'demo-6', quantity: 6, isSwappable: true }],
+  },
+];
+
+function comboItemsTotal(combos: DemoCartCombo[]): number {
+  return combos.reduce((sum, c) => sum + c.finalPrice, 0);
+}
+
+function tabTotal(tab: Pick<DemoTab, 'items' | 'combos'>): number {
+  const itemsTotal = tab.items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0);
+  return itemsTotal + comboItemsTotal(tab.combos);
 }
 
 function tabPaid(tab: Pick<DemoTab, 'partialPayments'>): number {
@@ -99,8 +159,24 @@ function fiadoPaid(fiado: Pick<DemoFiado, 'payments'>): number {
   return fiado.payments.reduce((sum, p) => sum + p.amount, 0);
 }
 
+// Junta items sueltos + productos dentro de combos en un solo mapa de cantidades
+// por producto — así el descuento/devolución de stock trata todo por igual.
+function resolvedQtyByProduct(items: DemoLineItem[], combos: DemoCartCombo[]): Record<string, number> {
+  const qty: Record<string, number> = {};
+  items.forEach((i) => {
+    qty[i.product.id] = (qty[i.product.id] || 0) + i.quantity;
+  });
+  combos.forEach((c) => {
+    c.items.forEach((i) => {
+      qty[i.product.id] = (qty[i.product.id] || 0) + i.quantity;
+    });
+  });
+  return qty;
+}
+
 interface DemoState {
   products: DemoProduct[];
+  combos: DemoComboTemplate[];
   shift: DemoShift | null;
   tabs: DemoTab[];
   closedSales: DemoClosedSale[];
@@ -110,12 +186,12 @@ interface DemoState {
   startShift: (type: 'day' | 'night', cashStart: number) => void;
   closeShift: () => void;
 
-  // El modal de venta trabaja con una lista local de items (el contenido final
-  // deseado de la mesa) y esta acción la concilia contra el stock: crea la mesa
-  // si existingTabId es null, o ajusta el stock por la diferencia si ya existía.
-  // Igual efecto que "Guardar (Cuenta Abierta)" en /sales.
-  upsertTab: (existingTabId: string | null, tableNumber: string, items: DemoLineItem[]) => string;
-  // Devuelve el stock de los items de la mesa y la elimina — igual que "Descartar cuenta".
+  // El modal de venta trabaja con listas locales de items y combos (el contenido
+  // final deseado de la mesa) y esta acción las concilia contra el stock: crea la
+  // mesa si existingTabId es null, o ajusta el stock por la diferencia si ya
+  // existía. Igual efecto que "Guardar (Cuenta Abierta)" en /sales.
+  upsertTab: (existingTabId: string | null, tableNumber: string, items: DemoLineItem[], combos: DemoCartCombo[]) => string;
+  // Devuelve el stock de los items/combos de la mesa y la elimina — igual que "Descartar cuenta".
   discardTab: (tabId: string) => void;
   // Cierra y cobra la mesa completa (efectivo/transferencia/mixto) — igual que
   // "Dar la Cuenta" + "Confirmar Pago".
@@ -140,6 +216,7 @@ interface DemoState {
 
 export const useDemoStore = create<DemoState>((set, get) => ({
   products: INITIAL_PRODUCTS,
+  combos: DEMO_COMBOS,
   shift: null,
   tabs: [],
   closedSales: [],
@@ -161,41 +238,33 @@ export const useDemoStore = create<DemoState>((set, get) => ({
     });
   },
 
-  upsertTab: (existingTabId, tableNumber, items) => {
+  upsertTab: (existingTabId, tableNumber, items, combos) => {
     const { tabs, products } = get();
     const cleanItems = items.filter((i) => i.quantity > 0);
+    const cleanCombos = combos.filter((c) => c.items.length > 0);
 
     if (existingTabId) {
       const existingTab = tabs.find((t) => t.id === existingTabId);
-      const oldQtyByProduct: Record<string, number> = {};
-      existingTab?.items.forEach((i) => {
-        oldQtyByProduct[i.product.id] = (oldQtyByProduct[i.product.id] || 0) + i.quantity;
-      });
-      const newQtyByProduct: Record<string, number> = {};
-      cleanItems.forEach((i) => {
-        newQtyByProduct[i.product.id] = (newQtyByProduct[i.product.id] || 0) + i.quantity;
-      });
+      const oldQty = resolvedQtyByProduct(existingTab?.items || [], existingTab?.combos || []);
+      const newQty = resolvedQtyByProduct(cleanItems, cleanCombos);
       // Delta positivo = se agregó (descuenta stock), negativo = se quitó (devuelve stock)
-      const productIds = new Set([...Object.keys(oldQtyByProduct), ...Object.keys(newQtyByProduct)]);
+      const productIds = new Set([...Object.keys(oldQty), ...Object.keys(newQty)]);
       const updatedProducts = products.map((p) => {
         if (!productIds.has(p.id)) return p;
-        const delta = (newQtyByProduct[p.id] || 0) - (oldQtyByProduct[p.id] || 0);
+        const delta = (newQty[p.id] || 0) - (oldQty[p.id] || 0);
         return delta ? { ...p, stock: Math.max(0, p.stock - delta) } : p;
       });
 
       const updatedTabs = tabs.map((tab) =>
-        tab.id === existingTabId ? { ...tab, items: cleanItems } : tab
+        tab.id === existingTabId ? { ...tab, items: cleanItems, combos: cleanCombos } : tab
       );
       set({ tabs: updatedTabs, products: updatedProducts });
       return existingTabId;
     }
 
-    const stockDelta: Record<string, number> = {};
-    cleanItems.forEach((i) => {
-      stockDelta[i.product.id] = (stockDelta[i.product.id] || 0) + i.quantity;
-    });
+    const newQty = resolvedQtyByProduct(cleanItems, cleanCombos);
     const updatedProducts = products.map((p) =>
-      stockDelta[p.id] ? { ...p, stock: Math.max(0, p.stock - stockDelta[p.id]) } : p
+      newQty[p.id] ? { ...p, stock: Math.max(0, p.stock - newQty[p.id]) } : p
     );
 
     const id = `tab-${Date.now()}`;
@@ -203,6 +272,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       id,
       tableNumber: tableNumber.trim() || 'Sin número',
       items: cleanItems,
+      combos: cleanCombos,
       partialPayments: [],
       createdAt: new Date().toISOString(),
     };
@@ -215,12 +285,9 @@ export const useDemoStore = create<DemoState>((set, get) => ({
     const tab = tabs.find((t) => t.id === tabId);
     if (!tab) return;
 
-    const restoreDelta: Record<string, number> = {};
-    tab.items.forEach((i) => {
-      restoreDelta[i.product.id] = (restoreDelta[i.product.id] || 0) + i.quantity;
-    });
+    const restoreQty = resolvedQtyByProduct(tab.items, tab.combos);
     const updatedProducts = products.map((p) =>
-      restoreDelta[p.id] ? { ...p, stock: p.stock + restoreDelta[p.id] } : p
+      restoreQty[p.id] ? { ...p, stock: p.stock + restoreQty[p.id] } : p
     );
 
     set({ tabs: tabs.filter((t) => t.id !== tabId), products: updatedProducts });
@@ -229,12 +296,13 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   closeTab: (tabId, payment) => {
     const { tabs, closedSales } = get();
     const tab = tabs.find((t) => t.id === tabId);
-    if (!tab || tab.items.length === 0) return;
+    if (!tab || (tab.items.length === 0 && tab.combos.length === 0)) return;
 
     const closedSale: DemoClosedSale = {
       id: tab.id,
       tableNumber: tab.tableNumber,
       items: tab.items,
+      combos: tab.combos,
       total: tabTotal(tab),
       paymentMethod: payment.method,
       cashAmount: payment.cashAmount,
@@ -252,7 +320,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   closeTabAsFiado: (tabId, customerName, abono) => {
     const { tabs, fiados } = get();
     const tab = tabs.find((t) => t.id === tabId);
-    if (!tab || tab.items.length === 0) return;
+    if (!tab || (tab.items.length === 0 && tab.combos.length === 0)) return;
 
     const total = tabTotal(tab);
     const alreadyPaid = tabPaid(tab); // pagos parciales previos, antes de fiar el resto
@@ -263,6 +331,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       tableNumber: tab.tableNumber,
       customerName: customerName.trim() || 'Sin nombre',
       items: tab.items,
+      combos: tab.combos,
       total,
       fiadoAmount,
       abono,
@@ -354,4 +423,4 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   },
 }));
 
-export { tabTotal, tabPaid, fiadoPaid };
+export { tabTotal, tabPaid, fiadoPaid, comboItemsTotal };
