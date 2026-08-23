@@ -15,6 +15,8 @@ const METHOD_LABEL: Record<PayMethod, string> = {
 export default function DemoFiadosPage() {
   const { fiados, addFiadoPayment } = useDemoStore();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
+  const [searchInput, setSearchInput] = useState('');
+  const [customerSearch, setCustomerSearch] = useState('');
 
   const [paymentModal, setPaymentModal] = useState<DemoFiado | null>(null);
   const [payAmount, setPayAmount] = useState('');
@@ -23,10 +25,21 @@ export default function DemoFiadosPage() {
   const [payTransfer, setPayTransfer] = useState('');
 
   const filtered = fiados.filter((f) => {
-    if (statusFilter === 'pending') return !f.paid;
-    if (statusFilter === 'paid') return f.paid;
+    if (statusFilter === 'pending' && f.paid) return false;
+    if (statusFilter === 'paid' && !f.paid) return false;
+    if (customerSearch && !f.customerName.toLowerCase().includes(customerSearch.toLowerCase())) return false;
     return true;
   });
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCustomerSearch(searchInput);
+  };
+
+  const clearSearch = () => {
+    setSearchInput('');
+    setCustomerSearch('');
+  };
 
   const summary = {
     total_pending: fiados.filter((f) => !f.paid).reduce((sum, f) => sum + Math.max(0, f.fiadoAmount - fiadoPaid(f)), 0),
@@ -100,9 +113,29 @@ export default function DemoFiadosPage() {
         ))}
       </div>
 
+      <form onSubmit={handleSearch} className="flex gap-2">
+        <input
+          type="text"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Buscar por nombre..."
+          className="flex-1 border border-gray-300 dark:border-neutral-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+        />
+        <button type="submit" className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-medium hover:bg-amber-700 transition-colors">
+          Buscar
+        </button>
+        {customerSearch && (
+          <button type="button" onClick={clearSearch} className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm text-gray-600 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-950 transition-colors">
+            ✕
+          </button>
+        )}
+      </form>
+
       {filtered.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-neutral-400">
-          {statusFilter === 'pending' ? 'No hay fiados pendientes' : 'No hay fiados en esta categoría'}
+          {customerSearch
+            ? `Sin resultados para "${customerSearch}"`
+            : statusFilter === 'pending' ? 'No hay fiados pendientes' : 'No hay fiados en esta categoría'}
         </div>
       ) : (
         <div className="space-y-3">

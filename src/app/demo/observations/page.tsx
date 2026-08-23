@@ -5,9 +5,15 @@ import { useDemoStore } from '@/stores/demo-store';
 import { formatDate, formatTime } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
+function todayLocal(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
 export default function DemoObservationsPage() {
   const { shift, observations, addObservation, deleteObservation } = useDemoStore();
   const [newObservation, setNewObservation] = useState('');
+  const [startDate, setStartDate] = useState(todayLocal());
+  const [endDate, setEndDate] = useState(todayLocal());
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,6 +21,13 @@ export default function DemoObservationsPage() {
     addObservation(newObservation);
     setNewObservation('');
   };
+
+  const filteredObservations = observations.filter((obs) => {
+    const obsDate = obs.createdAt.split('T')[0];
+    if (startDate && obsDate < startDate) return false;
+    if (endDate && obsDate > endDate) return false;
+    return true;
+  });
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -49,19 +62,42 @@ export default function DemoObservationsPage() {
         </div>
       )}
 
+      <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm p-4 mb-6">
+        <div className="flex flex-wrap gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Desde</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">Hasta</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg text-sm"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-sm">
         <div className="p-4 border-b border-gray-200 dark:border-neutral-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-neutral-100">Historial de Observaciones</h2>
         </div>
 
-        {observations.length === 0 ? (
+        {filteredObservations.length === 0 ? (
           <div className="p-8 text-center">
             <NoteIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 dark:text-neutral-400">No hay observaciones todavía</p>
+            <p className="text-gray-500 dark:text-neutral-400">No hay observaciones en este período</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-neutral-700">
-            {observations.map((obs) => (
+            {filteredObservations.map((obs) => (
               <div key={obs.id} className="p-4 hover:bg-gray-50 dark:hover:bg-neutral-950">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
