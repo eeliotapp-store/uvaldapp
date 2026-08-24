@@ -142,7 +142,11 @@ type Step = 'products' | 'payment';
 type PaymentMethod = PayMethod | 'fiado';
 
 function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onClose: () => void }) {
-  const { products, combos, upsertTab, closeTab, closeTabAsFiado } = useDemoStore();
+  const { products, combos, upsertTab, closeTab, closeTabAsFiado, addTabObservation } = useDemoStore();
+  // Las observaciones se leen en vivo del store (no del snapshot de existingTab)
+  // para que la lista se actualice al instante al agregar una nueva.
+  const liveObservations = useDemoStore((s) => s.tabs.find((t) => t.id === existingTab?.id)?.tabObservations) || [];
+  const [newTabObservation, setNewTabObservation] = useState('');
 
   const [step, setStep] = useState<Step>('products');
   const [tableNumber, setTableNumber] = useState(existingTab?.tableNumber || '');
@@ -320,6 +324,52 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
                     placeholder="Ej: 5, Barra, Terraza..."
                     className="w-full px-3 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
                   />
+                </div>
+              )}
+
+              {existingTab && (
+                <div className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-xl p-4 mb-4">
+                  <h3 className="font-medium text-gray-700 dark:text-neutral-300 mb-3">📝 Observaciones</h3>
+                  {liveObservations.length > 0 && (
+                    <ul className="mb-3 space-y-1">
+                      {liveObservations.map((obs) => (
+                        <li key={obs.id} className="text-sm text-gray-600 dark:text-neutral-300 flex items-start gap-2">
+                          <span className="text-gray-500 dark:text-neutral-400 mt-0.5">•</span>
+                          <span>{obs.text}</span>
+                          <span className="ml-auto text-xs text-gray-500 dark:text-neutral-400 whitespace-nowrap">
+                            {new Date(obs.createdAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newTabObservation}
+                      onChange={(e) => setNewTabObservation(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newTabObservation.trim()) {
+                          addTabObservation(existingTab.id, newTabObservation);
+                          setNewTabObservation('');
+                        }
+                      }}
+                      placeholder="Escribe una observación..."
+                      className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg focus:ring-amber-500 focus:border-amber-500"
+                    />
+                    <Button
+                      onClick={() => {
+                        if (!newTabObservation.trim()) return;
+                        addTabObservation(existingTab.id, newTabObservation);
+                        setNewTabObservation('');
+                      }}
+                      disabled={!newTabObservation.trim()}
+                      size="sm"
+                      className="bg-amber-500 hover:bg-amber-600 focus:ring-amber-500"
+                    >
+                      Agregar
+                    </Button>
+                  </div>
                 </div>
               )}
 

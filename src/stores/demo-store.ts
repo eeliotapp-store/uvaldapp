@@ -55,12 +55,21 @@ export interface DemoPartialPayment {
   createdAt: string;
 }
 
+// Observación ligada a UNA mesa/venta puntual — distinta de las observaciones
+// generales de turno (DemoObservation, página /demo/observations).
+export interface DemoTabObservation {
+  id: string;
+  text: string;
+  createdAt: string;
+}
+
 export interface DemoTab {
   id: string;
   tableNumber: string;
   items: DemoLineItem[];
   combos: DemoCartCombo[];
   partialPayments: DemoPartialPayment[];
+  tabObservations: DemoTabObservation[];
   createdAt: string;
 }
 
@@ -69,6 +78,7 @@ export interface DemoClosedSale {
   tableNumber: string;
   items: DemoLineItem[];
   combos: DemoCartCombo[];
+  tabObservations: DemoTabObservation[];
   total: number;
   paymentMethod: PayMethod;
   cashAmount: number;
@@ -83,6 +93,7 @@ export interface DemoFiado {
   customerName: string;
   items: DemoLineItem[];
   combos: DemoCartCombo[];
+  tabObservations: DemoTabObservation[];
   total: number;
   fiadoAmount: number; // deuda original (total - abono inicial - pagos parciales previos)
   abono: number; // abono inicial al momento de fiar
@@ -257,6 +268,10 @@ interface DemoState {
   addPartialPayment: (tabId: string, amount: number, method: PayMethod, cashAmount: number, transferAmount: number) => void;
   // Abono sobre un fiado ya cerrado — igual que "Registrar pago" en /fiados.
   addFiadoPayment: (fiadoId: string, amount: number, method: PayMethod, cashAmount: number, transferAmount: number) => void;
+  // Observación ligada a una mesa puntual — igual que el campo de notas dentro
+  // del modal de una cuenta abierta en /sales. Se guarda al instante, no espera
+  // a "Guardar"/"Dar la Cuenta".
+  addTabObservation: (tabId: string, text: string) => void;
 
   addObservation: (content: string) => void;
   deleteObservation: (id: string) => void;
@@ -326,6 +341,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       items: cleanItems,
       combos: cleanCombos,
       partialPayments: [],
+      tabObservations: [],
       createdAt: new Date().toISOString(),
     };
     set({ tabs: [...tabs, tab], products: updatedProducts });
@@ -355,6 +371,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       tableNumber: tab.tableNumber,
       items: tab.items,
       combos: tab.combos,
+      tabObservations: tab.tabObservations,
       total: tabTotal(tab),
       paymentMethod: payment.method,
       cashAmount: payment.cashAmount,
@@ -384,6 +401,7 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       customerName: customerName.trim() || 'Sin nombre',
       items: tab.items,
       combos: tab.combos,
+      tabObservations: tab.tabObservations,
       total,
       fiadoAmount,
       abono,
@@ -435,6 +453,21 @@ export const useDemoStore = create<DemoState>((set, get) => ({
         const remaining = Math.max(0, f.fiadoAmount - fiadoPaid({ payments }));
         return { ...f, payments, paid: remaining <= 0, paidAt: remaining <= 0 ? new Date().toISOString() : null };
       }),
+    });
+  },
+
+  addTabObservation: (tabId, text) => {
+    if (!text.trim()) return;
+    const { tabs } = get();
+    const observation: DemoTabObservation = {
+      id: `tobs-${Date.now()}`,
+      text: text.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    set({
+      tabs: tabs.map((t) =>
+        t.id === tabId ? { ...t, tabObservations: [...t.tabObservations, observation] } : t
+      ),
     });
   },
 
