@@ -20,6 +20,29 @@ export interface DemoProduct {
 export interface DemoLineItem {
   product: DemoProduct;
   quantity: number;
+  isMichelada?: boolean;
+  isBomba?: boolean;
+}
+
+export const MICHELADA_EXTRA = 4000;
+
+// Precio total (con bomba) por categoría — el "extra" es la diferencia contra
+// el precio normal del producto, igual que getBombaExtra en producción.
+const BOMBA_TOTAL_BY_CATEGORY: Partial<Record<string, number>> = {
+  agua: 7000,
+  soda: 12000,
+};
+export function getBombaExtra(product: DemoProduct): number {
+  const total = BOMBA_TOTAL_BY_CATEGORY[product.category];
+  return total !== undefined ? total - product.sale_price : 0;
+}
+
+export function lineItemUnitPrice(item: DemoLineItem): number {
+  return (
+    item.product.sale_price +
+    (item.isMichelada ? MICHELADA_EXTRA : 0) +
+    (item.isBomba ? getBombaExtra(item.product) : 0)
+  );
 }
 
 // Plantilla de combo (equivalente a la tabla combos + combo_items real).
@@ -212,7 +235,7 @@ function comboItemsTotal(combos: DemoCartCombo[]): number {
 }
 
 function tabTotal(tab: Pick<DemoTab, 'items' | 'combos'>): number {
-  const itemsTotal = tab.items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0);
+  const itemsTotal = tab.items.reduce((sum, i) => sum + lineItemUnitPrice(i) * i.quantity, 0);
   return itemsTotal + comboItemsTotal(tab.combos);
 }
 

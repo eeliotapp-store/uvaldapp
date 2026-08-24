@@ -6,6 +6,9 @@ import {
   tabTotal,
   tabPaid,
   comboItemsTotal,
+  lineItemUnitPrice,
+  getBombaExtra,
+  MICHELADA_EXTRA,
   type DemoProduct,
   type DemoLineItem,
   type DemoTab,
@@ -249,6 +252,8 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
   const [editingCombo, setEditingCombo] = useState<DemoComboTemplate | null>(null);
   const [committedTabId, setCommittedTabId] = useState<string | null>(existingTab?.id || null);
   const [showPartialModal, setShowPartialModal] = useState(false);
+  const [showMicheladaModal, setShowMicheladaModal] = useState<{ product: DemoProduct; qty: number } | null>(null);
+  const [showBombaModal, setShowBombaModal] = useState<{ product: DemoProduct; qty: number } | null>(null);
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [cashReceived, setCashReceived] = useState('');
@@ -257,7 +262,7 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
   const [fiadoCustomerName, setFiadoCustomerName] = useState('');
   const [fiadoAbono, setFiadoAbono] = useState('');
 
-  const total = items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0) + comboItemsTotal(comboItems);
+  const total = items.reduce((sum, i) => sum + lineItemUnitPrice(i) * i.quantity, 0) + comboItemsTotal(comboItems);
   const alreadyPaid = existingTab ? tabPaid(existingTab) : 0;
   const totalToPay = Math.max(0, total - alreadyPaid);
 
@@ -281,29 +286,68 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
     return false;
   };
 
+  const addResolvedItem = (product: DemoProduct, qty: number, isMichelada: boolean, isBomba: boolean) => {
+    setItems((prev) => {
+      const existing = prev.find(
+        (i) => i.product.id === product.id && !!i.isMichelada === isMichelada && !!i.isBomba === isBomba
+      );
+      if (existing) {
+        return prev.map((i) =>
+          i.product.id === product.id && !!i.isMichelada === isMichelada && !!i.isBomba === isBomba
+            ? { ...i, quantity: i.quantity + qty }
+            : i
+        );
+      }
+      return [...prev, { product, quantity: qty, isMichelada, isBomba }];
+    });
+  };
+
   const handleAddProduct = () => {
     if (!selectedProductId) return;
     const product = products.find((p) => p.id === selectedProductId);
     if (!product) return;
     const qty = parseInt(quantity) || 1;
 
-    setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
-      if (existing) {
-        return prev.map((i) => (i.product.id === product.id ? { ...i, quantity: i.quantity + qty } : i));
-      }
-      return [...prev, { product, quantity: qty }];
-    });
+    if (product.category.includes('beer')) {
+      setShowMicheladaModal({ product, qty });
+      setSelectedProductId('');
+      setQuantity('1');
+      return;
+    }
+    if (product.category === 'agua' || product.category === 'soda') {
+      setShowBombaModal({ product, qty });
+      setSelectedProductId('');
+      setQuantity('1');
+      return;
+    }
+
+    addResolvedItem(product, qty, false, false);
     setSelectedProductId('');
     setQuantity('1');
   };
 
-  const handleUpdateQty = (productId: string, newQty: number) => {
+  const handleMicheladaChoice = (isMichelada: boolean) => {
+    if (!showMicheladaModal) return;
+    addResolvedItem(showMicheladaModal.product, showMicheladaModal.qty, isMichelada, false);
+    setShowMicheladaModal(null);
+  };
+
+  const handleBombaChoice = (isMichelada: boolean, isBomba: boolean) => {
+    if (!showBombaModal) return;
+    addResolvedItem(showBombaModal.product, showBombaModal.qty, isMichelada, isBomba);
+    setShowBombaModal(null);
+  };
+
+  const handleUpdateQty = (item: DemoLineItem, newQty: number) => {
+    const productId = item.product.id;
+    const isMichelada = !!item.isMichelada;
+    const isBomba = !!item.isBomba;
+    const matches = (i: DemoLineItem) => i.product.id === productId && !!i.isMichelada === isMichelada && !!i.isBomba === isBomba;
     if (newQty <= 0) {
-      setItems((prev) => prev.filter((i) => i.product.id !== productId));
+      setItems((prev) => prev.filter((i) => !matches(i)));
       return;
     }
-    setItems((prev) => prev.map((i) => (i.product.id === productId ? { ...i, quantity: newQty } : i)));
+    setItems((prev) => prev.map((i) => (matches(i) ? { ...i, quantity: newQty } : i)));
   };
 
   const handleSelectCombo = (comboId: string) => {
@@ -557,31 +601,35 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
                 {items.length > 0 && (
                   items.map((item) => (
                     <div
-                      key={item.product.id}
+                      key={`${item.product.id}-${item.isMichelada}-${item.isBomba}`}
                       className="flex items-center justify-between bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-lg p-4"
                     >
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-neutral-100">{item.product.name}</p>
-                        <p className="text-sm text-gray-500 dark:text-neutral-400">{formatCurrency(item.product.sale_price)} c/u</p>
+                        <p className="font-medium text-gray-900 dark:text-neutral-100">
+                          {item.product.name}
+                          {item.isMichelada && <span className="text-amber-600 dark:text-amber-400 ml-1">🌶️</span>}
+                          {item.isBomba && <span className="text-blue-600 dark:text-blue-400 ml-1">💣</span>}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-neutral-400">{formatCurrency(lineItemUnitPrice(item))} c/u</p>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleUpdateQty(item.product.id, item.quantity - 1)}
+                            onClick={() => handleUpdateQty(item, item.quantity - 1)}
                             className="w-8 h-8 rounded-full bg-gray-100 dark:bg-neutral-700 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-neutral-700"
                           >
                             -
                           </button>
                           <span className="w-8 text-center font-medium">{item.quantity}</span>
                           <button
-                            onClick={() => handleUpdateQty(item.product.id, item.quantity + 1)}
+                            onClick={() => handleUpdateQty(item, item.quantity + 1)}
                             className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center text-amber-700 dark:text-amber-400 hover:bg-amber-200"
                           >
                             +
                           </button>
                         </div>
-                        <span className="w-24 text-right font-bold">{formatCurrency(item.product.sale_price * item.quantity)}</span>
-                        <button onClick={() => handleUpdateQty(item.product.id, 0)} className="text-red-500 hover:text-red-700 dark:hover:text-red-400">
+                        <span className="w-24 text-right font-bold">{formatCurrency(lineItemUnitPrice(item) * item.quantity)}</span>
+                        <button onClick={() => handleUpdateQty(item, 0)} className="text-red-500 hover:text-red-700 dark:hover:text-red-400">
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
@@ -795,6 +843,80 @@ function SaleModal({ existingTab, onClose }: { existingTab: DemoTab | null; onCl
 
       {editingCombo && (
         <ComboModal combo={editingCombo} products={products} onClose={() => setEditingCombo(null)} onAdd={handleAddComboFromModal} />
+      )}
+
+      {showMicheladaModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6">
+            <h2 className="text-xl font-bold mb-2 text-center text-gray-900 dark:text-neutral-100">{showMicheladaModal.product.name}</h2>
+            <p className="text-center text-gray-600 dark:text-neutral-300 mb-6">¿Cómo la quiere el cliente?</p>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => handleMicheladaChoice(false)}
+                className="p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950 transition-all"
+              >
+                <div className="text-3xl mb-2">🍺</div>
+                <p className="font-medium text-gray-900 dark:text-neutral-100">Normal</p>
+                <p className="text-sm text-gray-500 dark:text-neutral-400">{formatCurrency(showMicheladaModal.product.sale_price)}</p>
+              </button>
+              <button
+                onClick={() => handleMicheladaChoice(true)}
+                className="p-4 rounded-xl border-2 border-amber-500 bg-amber-50 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 transition-all"
+              >
+                <div className="text-3xl mb-2">🌶️</div>
+                <p className="font-medium text-amber-700 dark:text-amber-400">Michelada</p>
+                <p className="text-sm text-amber-600 dark:text-amber-400">{formatCurrency(showMicheladaModal.product.sale_price + MICHELADA_EXTRA)}</p>
+              </button>
+            </div>
+            <button
+              onClick={() => setShowMicheladaModal(null)}
+              className="w-full mt-4 py-2 text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showBombaModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl w-full max-w-sm p-6">
+            <h2 className="text-xl font-bold mb-2 text-center text-gray-900 dark:text-neutral-100">{showBombaModal.product.name}</h2>
+            <p className="text-center text-gray-600 dark:text-neutral-300 mb-6">¿Cómo lo quiere el cliente?</p>
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                onClick={() => handleBombaChoice(false, false)}
+                className="p-4 rounded-xl border-2 border-gray-200 dark:border-neutral-700 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-950 transition-all"
+              >
+                <div className="text-3xl mb-2">💧</div>
+                <p className="font-medium text-gray-900 dark:text-neutral-100">Normal</p>
+                <p className="text-sm text-gray-500 dark:text-neutral-400">{formatCurrency(showBombaModal.product.sale_price)}</p>
+              </button>
+              <button
+                onClick={() => handleBombaChoice(true, false)}
+                className="p-4 rounded-xl border-2 border-amber-400 bg-amber-50 dark:bg-amber-950 hover:bg-amber-100 dark:hover:bg-amber-900 transition-all"
+              >
+                <div className="text-3xl mb-2">🌶️</div>
+                <p className="font-medium text-amber-700 dark:text-amber-400">Michelada</p>
+                <p className="text-sm text-amber-600 dark:text-amber-400">{formatCurrency(showBombaModal.product.sale_price + MICHELADA_EXTRA)}</p>
+              </button>
+              <button
+                onClick={() => handleBombaChoice(false, true)}
+                className="p-4 rounded-xl border-2 border-blue-500 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900 transition-all"
+              >
+                <div className="text-3xl mb-2">💣</div>
+                <p className="font-medium text-blue-700 dark:text-blue-400">Con Bomba</p>
+                <p className="text-sm text-blue-600 dark:text-blue-400">{formatCurrency(showBombaModal.product.sale_price + getBombaExtra(showBombaModal.product))}</p>
+              </button>
+            </div>
+            <button
+              onClick={() => setShowBombaModal(null)}
+              className="w-full mt-4 py-2 text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-neutral-300"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import {
   useDemoStore,
+  lineItemUnitPrice,
   type DemoClosedSale,
   type DemoFiado,
   type DemoLineItem,
@@ -250,8 +251,12 @@ function SaleDetailModal({ row, onClose }: { row: SaleRow; onClose: () => void }
           ))}
           {row.items.map((item, idx) => (
             <div key={`i-${idx}`} className="flex justify-between text-sm">
-              <span className="text-gray-700 dark:text-neutral-300">{item.quantity}x {item.product.name}</span>
-              <span className="font-medium text-gray-900 dark:text-neutral-100">{formatCurrency(item.product.sale_price * item.quantity)}</span>
+              <span className="text-gray-700 dark:text-neutral-300">
+                {item.quantity}x {item.product.name}
+                {item.isMichelada && ' 🌶️'}
+                {item.isBomba && ' 💣'}
+              </span>
+              <span className="font-medium text-gray-900 dark:text-neutral-100">{formatCurrency(lineItemUnitPrice(item) * item.quantity)}</span>
             </div>
           ))}
         </div>
