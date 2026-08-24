@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import {
   useDemoStore,
   tabTotal,
@@ -16,21 +15,23 @@ import {
 } from '@/stores/demo-store';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { DemoShiftGuard } from '@/components/layout/demo-shift-guard';
 
 export default function DemoPosPage() {
-  const router = useRouter();
-  const { shift, tabs, products, discardTab, sellMostrador } = useDemoStore();
+  return (
+    <DemoShiftGuard>
+      <DemoPosContent />
+    </DemoShiftGuard>
+  );
+}
+
+function DemoPosContent() {
+  const { tabs, products, discardTab, sellMostrador } = useDemoStore();
   const [showModal, setShowModal] = useState(false);
   const [editingTab, setEditingTab] = useState<DemoTab | null>(null);
   const [showCigModal, setShowCigModal] = useState(false);
   const [cigCounts, setCigCounts] = useState<Record<string, number>>({});
   const [cigPaymentMethod, setCigPaymentMethod] = useState<'cash' | 'transfer'>('cash');
-
-  useEffect(() => {
-    if (!shift) router.replace('/demo/shifts/start');
-  }, [shift, router]);
-
-  if (!shift) return null;
 
   const cigProducts = products.filter((p) => p.category === 'cigarros');
 

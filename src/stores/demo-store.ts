@@ -113,6 +113,8 @@ export interface DemoShift {
   type: 'day' | 'night';
   cashStart: number;
   startedAt: string;
+  // Solo aplica a turno de día — igual que ShiftGuard real, de noche no se exige.
+  inventoryCounted: boolean;
 }
 
 // Copia estática de los nombres, categorías y precios reales del catálogo
@@ -248,6 +250,9 @@ interface DemoState {
 
   startShift: (type: 'day' | 'night', cashStart: number) => void;
   closeShift: () => void;
+  // Marca el conteo de inventario inicial como hecho — igual que llegar al final
+  // de /inventory/count en producción. Solo bloquea turno de día.
+  confirmInventoryCount: () => void;
 
   // El modal de venta trabaja con listas locales de items y combos (el contenido
   // final deseado de la mesa) y esta acción las concilia contra el stock: crea la
@@ -294,7 +299,13 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   observations: [],
 
   startShift: (type, cashStart) => {
-    set({ shift: { type, cashStart, startedAt: new Date().toISOString() } });
+    set({ shift: { type, cashStart, startedAt: new Date().toISOString(), inventoryCounted: false } });
+  },
+
+  confirmInventoryCount: () => {
+    const { shift } = get();
+    if (!shift) return;
+    set({ shift: { ...shift, inventoryCounted: true } });
   },
 
   closeShift: () => {

@@ -11,6 +11,7 @@ import {
   type PayMethod,
 } from '@/stores/demo-store';
 import { formatCurrency, formatDate, formatTime } from '@/lib/utils';
+import { DemoShiftGuard } from '@/components/layout/demo-shift-guard';
 
 type MethodFilter = 'all' | PayMethod | 'fiado';
 
@@ -33,6 +34,14 @@ interface SaleRow {
 }
 
 export default function DemoSalesHistoryPage() {
+  return (
+    <DemoShiftGuard>
+      <DemoSalesHistoryContent />
+    </DemoShiftGuard>
+  );
+}
+
+function DemoSalesHistoryContent() {
   const { closedSales, fiados } = useDemoStore();
   const [methodFilter, setMethodFilter] = useState<MethodFilter>('all');
   const [selectedRow, setSelectedRow] = useState<SaleRow | null>(null);
