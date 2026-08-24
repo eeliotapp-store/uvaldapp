@@ -132,6 +132,36 @@ export interface DemoObservation {
   createdAt: string;
 }
 
+export interface DemoSupplier {
+  id: string;
+  name: string;
+}
+
+// Entrada de compra/lote — equivalente a una fila de la tabla "inventory" real.
+// Simplificado a propósito: no hace descuento FIFO por lote al vender (eso es
+// invisible para quien vende, no aporta a la práctica) — solo lleva la cuenta
+// para el historial de compras y para poder editarla.
+export interface DemoInventoryBatch {
+  id: string;
+  productId: string;
+  supplierId: string;
+  quantity: number;
+  initialQuantity: number;
+  purchasePrice: number;
+  batchDate: string;
+  createdAt: string;
+}
+
+export interface DemoInventoryCount {
+  id: string;
+  productId: string;
+  systemStock: number;
+  realStock: number;
+  difference: number;
+  notes: string;
+  createdAt: string;
+}
+
 export interface DemoShift {
   type: 'day' | 'night';
   cashStart: number;
@@ -230,6 +260,12 @@ const DEMO_COMBOS: DemoComboTemplate[] = [
   },
 ];
 
+const DEMO_SUPPLIERS: DemoSupplier[] = [
+  { id: 'sup-1', name: 'Distribuidora Lopez' },
+  { id: 'sup-2', name: 'Bebidas SA' },
+  { id: 'sup-3', name: 'Importadora Premium' },
+];
+
 function comboItemsTotal(combos: DemoCartCombo[]): number {
   return combos.reduce((sum, c) => sum + c.finalPrice, 0);
 }
@@ -265,6 +301,9 @@ function resolvedQtyByProduct(items: DemoLineItem[], combos: DemoCartCombo[]): R
 interface DemoState {
   products: DemoProduct[];
   combos: DemoComboTemplate[];
+  suppliers: DemoSupplier[];
+  inventoryBatches: DemoInventoryBatch[];
+  inventoryCounts: DemoInventoryCount[];
   shift: DemoShift | null;
   tabs: DemoTab[];
   closedSales: DemoClosedSale[];
@@ -308,6 +347,28 @@ interface DemoState {
   deleteObservation: (id: string) => void;
 
   adjustStock: (productId: string, delta: number) => void;
+  // Edición directa (clic en el número) — igual que el inline-edit real.
+  setProductStock: (productId: string, newStock: number) => void;
+  setProductPrice: (productId: string, newPrice: number) => void;
+  // Nueva compra/lote: suma al stock del producto y queda en el historial de
+  // compras — igual que "+ Agregar Stock" en /inventory.
+  addInventoryBatch: (
+    productId: string,
+    supplierId: string,
+    quantity: number,
+    initialQuantity: number,
+    purchasePrice: number,
+    batchDate: string
+  ) => void;
+  // Editar un lote ya existente — ajusta el stock por la diferencia si cambió
+  // la cantidad. Igual que "Editar" en el historial de compras.
+  editInventoryBatch: (
+    batchId: string,
+    updates: { quantity: number; initialQuantity: number; purchasePrice: number; supplierId: string; batchDate: string }
+  ) => void;
+  // Conteo puntual de UN producto (sistema vs. real + notas) — no corrige el
+  // stock automáticamente, solo queda registrado. Igual que "Contar" en /inventory.
+  addInventoryCount: (productId: string, realStock: number, notes: string) => void;
 
   reset: () => void;
 }
@@ -315,6 +376,9 @@ interface DemoState {
 export const useDemoStore = create<DemoState>((set, get) => ({
   products: INITIAL_PRODUCTS,
   combos: DEMO_COMBOS,
+  suppliers: DEMO_SUPPLIERS,
+  inventoryBatches: [],
+  inventoryCounts: [],
   shift: null,
   tabs: [],
   closedSales: [],
@@ -339,6 +403,9 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       fiados: [],
       observations: [],
       products: INITIAL_PRODUCTS,
+      suppliers: DEMO_SUPPLIERS,
+      inventoryBatches: [],
+      inventoryCounts: [],
     });
   },
 
@@ -571,9 +638,83 @@ export const useDemoStore = create<DemoState>((set, get) => ({
     });
   },
 
+  setProductStock: (productId, newStock) => {
+    const { products } = get();
+    set({
+      products: products.map((p) =>
+        p.id === productId ? { ...p, stock: Math.max(0, newStock) } : p
+      ),
+    });
+  },
+
+  setProductPrice: (productId, newPrice) => {
+    const { products } = get();
+    set({
+      products: products.map((p) =>
+        p.id === productId ? { ...p, sale_price: Math.max(0, newPrice) } : p
+      ),
+    });
+  },
+
+  addInventoryBatch: (productId, supplierId, quantity, initialQuantity, purchasePrice, batchDate) => {
+    const { products, inventoryBatches } = get();
+    const batch: DemoInventoryBatch = {
+      id: `batch-${Date.now()}`,
+      productId,
+      supplierId,
+      quantity,
+      initialQuantity,
+      purchasePrice,
+      batchDate,
+      createdAt: new Date().toISOString(),
+    };
+    set({
+      inventoryBatches: [batch, ...inventoryBatches],
+      products: products.map((p) =>
+        p.id === productId ? { ...p, stock: p.stock + quantity } : p
+      ),
+    });
+  },
+
+  editInventoryBatch: (batchId, updates) => {
+    const { products, inventoryBatches } = get();
+    const batch = inventoryBatches.find((b) => b.id === batchId);
+    if (!batch) return;
+    const stockDelta = updates.quantity - batch.quantity;
+    set({
+      inventoryBatches: inventoryBatches.map((b) =>
+        b.id === batchId ? { ...b, ...updates } : b
+      ),
+      products: stockDelta
+        ? products.map((p) =>
+            p.id === batch.productId ? { ...p, stock: Math.max(0, p.stock + stockDelta) } : p
+          )
+        : products,
+    });
+  },
+
+  addInventoryCount: (productId, realStock, notes) => {
+    const { products, inventoryCounts } = get();
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+    const count: DemoInventoryCount = {
+      id: `count-${Date.now()}`,
+      productId,
+      systemStock: product.stock,
+      realStock,
+      difference: realStock - product.stock,
+      notes,
+      createdAt: new Date().toISOString(),
+    };
+    set({ inventoryCounts: [count, ...inventoryCounts] });
+  },
+
   reset: () => {
     set({
       products: INITIAL_PRODUCTS,
+      suppliers: DEMO_SUPPLIERS,
+      inventoryBatches: [],
+      inventoryCounts: [],
       shift: null,
       tabs: [],
       closedSales: [],
