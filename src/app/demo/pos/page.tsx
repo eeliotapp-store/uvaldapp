@@ -19,15 +19,20 @@ import { Button } from '@/components/ui/button';
 
 export default function DemoPosPage() {
   const router = useRouter();
-  const { shift, tabs, discardTab } = useDemoStore();
+  const { shift, tabs, products, discardTab, sellMostrador } = useDemoStore();
   const [showModal, setShowModal] = useState(false);
   const [editingTab, setEditingTab] = useState<DemoTab | null>(null);
+  const [showCigModal, setShowCigModal] = useState(false);
+  const [cigCounts, setCigCounts] = useState<Record<string, number>>({});
+  const [cigPaymentMethod, setCigPaymentMethod] = useState<'cash' | 'transfer'>('cash');
 
   useEffect(() => {
     if (!shift) router.replace('/demo/shifts/start');
   }, [shift, router]);
 
   if (!shift) return null;
+
+  const cigProducts = products.filter((p) => p.category === 'cigarros');
 
   const handleOpenTab = (tab: DemoTab) => {
     setEditingTab(tab);
@@ -52,9 +57,19 @@ export default function DemoPosPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-neutral-100">Punto de Venta — Práctica</h1>
-        <Button onClick={handleNewSale} className="bg-amber-500 hover:bg-amber-600 focus:ring-amber-500">
-          + Nueva Venta
-        </Button>
+        <div className="flex gap-2">
+          {cigProducts.length > 0 && (
+            <Button
+              variant="outline"
+              onClick={() => { setCigCounts({}); setCigPaymentMethod('cash'); setShowCigModal(true); }}
+            >
+              🚬 Cigarrillos
+            </Button>
+          )}
+          <Button onClick={handleNewSale} className="bg-amber-500 hover:bg-amber-600 focus:ring-amber-500">
+            + Nueva Venta
+          </Button>
+        </div>
       </div>
 
       {tabs.length > 0 ? (
@@ -134,6 +149,81 @@ export default function DemoPosPage() {
           }}
         />
       )}
+
+      {showCigModal && (() => {
+        const total = cigProducts.reduce((sum, p) => sum + (cigCounts[p.id] || 0) * p.sale_price, 0);
+        const hasAny = cigProducts.some((p) => (cigCounts[p.id] || 0) > 0);
+        return (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-neutral-100">🚬 Mostrador</h2>
+                <button onClick={() => setShowCigModal(false)} className="text-gray-500 dark:text-neutral-400 hover:text-gray-600 dark:hover:text-neutral-300 text-3xl leading-none">×</button>
+              </div>
+
+              <div className="flex gap-3 mb-5">
+                {cigProducts.map((p) => {
+                  const count = cigCounts[p.id] || 0;
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => setCigCounts((prev) => ({ ...prev, [p.id]: (prev[p.id] || 0) + 1 }))}
+                      className="flex-1 flex flex-col items-center justify-center gap-2 py-8 rounded-2xl bg-gray-900 hover:bg-gray-700 active:scale-95 transition-transform text-white select-none"
+                    >
+                      <span className="text-5xl font-black">{count > 0 ? count : '+'}</span>
+                      <span className="text-lg font-semibold">{p.name}</span>
+                      <span className="text-gray-400 text-sm">{formatCurrency(p.sale_price)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {hasAny && (
+                <div className="flex justify-between items-center bg-gray-50 dark:bg-neutral-950 rounded-xl px-4 py-3 mb-4">
+                  <span className="text-gray-500 dark:text-neutral-400 text-sm">Total</span>
+                  <span className="font-bold text-gray-900 dark:text-neutral-100 text-xl">{formatCurrency(total)}</span>
+                </div>
+              )}
+
+              {hasAny && (
+                <button
+                  onClick={() => setCigCounts({})}
+                  className="w-full py-2 mb-3 rounded-xl bg-gray-100 dark:bg-neutral-700 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-600 dark:text-neutral-300 text-sm font-medium"
+                >
+                  Resetear cantidad
+                </button>
+              )}
+
+              <div className="flex gap-2 mb-3">
+                <button
+                  onClick={() => setCigPaymentMethod('cash')}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${cigPaymentMethod === 'cash' ? 'bg-green-600 text-white border-green-600' : 'bg-white dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 border-gray-300 dark:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-950'}`}
+                >
+                  💵 Efectivo
+                </button>
+                <button
+                  onClick={() => setCigPaymentMethod('transfer')}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-colors ${cigPaymentMethod === 'transfer' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 border-gray-300 dark:border-neutral-600 hover:bg-gray-50 dark:hover:bg-neutral-950'}`}
+                >
+                  🔄 Transferencia
+                </button>
+              </div>
+
+              <button
+                onClick={() => {
+                  sellMostrador(cigCounts, cigPaymentMethod);
+                  setShowCigModal(false);
+                  setCigCounts({});
+                }}
+                disabled={!hasAny}
+                className="w-full py-4 rounded-xl bg-gray-900 text-white font-bold text-base hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Confirmar → Mostrador
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

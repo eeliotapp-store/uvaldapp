@@ -264,6 +264,9 @@ interface DemoState {
   ) => void;
   // Cierra la mesa como fiado — igual que elegir método "Fiado" al cobrar.
   closeTabAsFiado: (tabId: string, customerName: string, abono: number) => void;
+  // Venta rápida de mostrador (cigarrillos) — se cobra y cierra al instante,
+  // sin pasar por el flujo de mesas. Igual que el botón "🚬 Cigarrillos" en /pos.
+  sellMostrador: (counts: Record<string, number>, method: 'cash' | 'transfer') => void;
   // Abono parcial sobre una mesa TODAVÍA abierta — igual que "Pago Parcial" en /sales.
   addPartialPayment: (tabId: string, amount: number, method: PayMethod, cashAmount: number, transferAmount: number) => void;
   // Abono sobre un fiado ya cerrado — igual que "Registrar pago" en /fiados.
@@ -415,6 +418,44 @@ export const useDemoStore = create<DemoState>((set, get) => ({
       tabs: tabs.filter((t) => t.id !== tabId),
       fiados: [...fiados, fiado],
     });
+  },
+
+  sellMostrador: (counts, method) => {
+    const { products, closedSales } = get();
+    const items: DemoLineItem[] = Object.entries(counts)
+      .filter(([, qty]) => qty > 0)
+      .map(([productId, qty]) => {
+        const product = products.find((p) => p.id === productId);
+        return product ? { product, quantity: qty } : null;
+      })
+      .filter((i): i is DemoLineItem => i !== null);
+
+    if (items.length === 0) return;
+
+    const total = items.reduce((sum, i) => sum + i.product.sale_price * i.quantity, 0);
+    const newQty: Record<string, number> = {};
+    items.forEach((i) => {
+      newQty[i.product.id] = (newQty[i.product.id] || 0) + i.quantity;
+    });
+    const updatedProducts = products.map((p) =>
+      newQty[p.id] ? { ...p, stock: Math.max(0, p.stock - newQty[p.id]) } : p
+    );
+
+    const closedSale: DemoClosedSale = {
+      id: `mostrador-${Date.now()}`,
+      tableNumber: 'Mostrador',
+      items,
+      combos: [],
+      tabObservations: [],
+      total,
+      paymentMethod: method,
+      cashAmount: method === 'cash' ? total : 0,
+      transferAmount: method === 'transfer' ? total : 0,
+      cashChange: 0,
+      closedAt: new Date().toISOString(),
+    };
+
+    set({ products: updatedProducts, closedSales: [...closedSales, closedSale] });
   },
 
   addPartialPayment: (tabId, amount, method, cashAmount, transferAmount) => {
