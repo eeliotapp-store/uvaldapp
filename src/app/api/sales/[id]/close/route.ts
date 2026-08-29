@@ -159,8 +159,8 @@ export async function POST(
         .from('shifts')
         .select('id')
         .eq('employee_id', employee_id)
-        .eq('status', 'active')
-        .order('started_at', { ascending: false })
+        .eq('is_active', true)
+        .order('start_time', { ascending: false })
         .limit(1)
         .maybeSingle();
 
